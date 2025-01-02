@@ -4,7 +4,7 @@ This is a small experiment to identify potential COT gaps.
 
 Please install requirements first:
 ```bash
-pip -r requirements.txt
+pip install -r requirements.txt
 ```
 
 
