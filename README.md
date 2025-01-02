@@ -1,2 +1,7 @@
 # mars-steg
-MARS 2.0 steganography project
+
+This is a small experiment to identify potential COT gaps.
+
+```bash
+./run.sh
+```
