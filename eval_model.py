@@ -11,10 +11,10 @@ import os
 from evaluate import load
 import torch 
 from peft import PeftModel, PeftConfig
+import time
 
 
-
-def tokenize_example(x: dict, tokenizer, max_length=2560, cot=False) -> dict:
+def tokenize_example_no_cot(x: dict, max_length=1024, cot=True) -> dict:
     """Tokenize input examples with or without CoT."""
     instr = x["question"]
     resp = x["correct"]
@@ -25,40 +25,40 @@ def tokenize_example(x: dict, tokenizer, max_length=2560, cot=False) -> dict:
 
     instr_part = f"### INSTRUCTION:\n{instr}"
     context_part = f"\n### OPTIONS:\n {context}\n" if context else ""
-    if cot and rationale:
-        resp_part = f"### RESPONSE:\n I will start reasoning process: "
-    else:
-        resp_part = f"### RESPONSE:\n ### ANSWER:\n {resp}"
 
+    resp_part = f"### RESPONSE:\n"
+
+    
     text = (
         f"Below is an instruction that describes a task. Write a response that appropriately completes the request.\n"
         f"{instr_part}{context_part}{resp_part}"
     )
+
+
     return text
 
 
-def tokenize_example(x: dict, max_length=2048, cot=False) -> dict:
+def tokenize_example_cot(x: dict, max_length=128, cot=False) -> dict:
     """Tokenize input examples with or without CoT."""
     instr = x["question"]
     resp = x["correct"]
     context = x.get("options", "")
     rationale = x.get("rationale", "")
+    context = str(context)
+    context = context.replace("[","").replace("]","").replace("'","").replace(",","\n")
+
 
     instr_part = f"### INSTRUCTION:\n{instr}"
-    context_part = f"\nOPTIONS:\n{context}\n" if context else ""
+    context_part = f"\n### OPTIONS:\n {context}\n" if context else ""
+    resp_part = f"### RESPONSE:\n I will start reasoning process: "
     
-    resp_part = f"### RESPONSE:\n I will start reasoning process: {rationale}\nTherefore response is "
-
 
     text = (
         f"Below is an instruction that describes a task. Write a response that appropriately completes the request.\n"
-        f"{instr_part}{context_part}{resp_part}"
+        f"{instr_part}{context_part}{resp_part}\n"
     )
 
     return text
-
-
-
 
 
 if __name__ == "__main__":
@@ -96,7 +96,7 @@ if __name__ == "__main__":
     
 
     checkpoint_name = "test-trainer-lab"
-    local_checkpoint_path = "./experiments/test-trainer-lab_cot_2.8b/checkpoint-96500"
+    local_checkpoint_path = "++"
 
     from transformers import GPTNeoXForCausalLM, AutoTokenizer
 
@@ -107,13 +107,18 @@ if __name__ == "__main__":
     model = PeftModel.from_pretrained(model, local_checkpoint_path)
 
     
-    # Move the model to the desired device (e.g., "cuda:1")
     model = model.to("cuda:0")
 
     test_ds = ds['test']
+    total_tokens = 0
+    total_time = 0.0
+    correct_answers = 0
+    total_answers = 0
     for i in range(100):
-       
-        text  = tokenize_example(test_ds[i])
+        if not cot:
+            text = tokenize_example_no_cot(test_ds[i])
+        else: 
+            text = tokenize_example_cot(test_ds[i])
 
         inputs = tokenizer(text, return_tensors="pt").to("cuda:0")
         tokens = model.generate(
@@ -132,6 +137,20 @@ if __name__ == "__main__":
 
         # Print or return the result
         end_index = output.find("### END")
+        Begginning_index = output.find("### ANSWER")
         output = output[:end_index]
         print(output)
-        print(f"Real answer is: {test_ds[i]['correct']}")
+        
+        answer = output[Begginning_index:end_index]
+        
+        extract = answer.split(" ")
+        sol_llm = extract[-1]
+        total_answers += 1
+        real_sol = test_ds[i]['correct']
+        print(f"Real answer is: {real_sol}")
+        print(f"LLM answer is: {sol_llm}")
+        if len(sol_llm) >= 1:
+            if sol_llm[0] == real_sol:
+                correct_answers += 1
+                print({correct_answers/total_answers})
+       

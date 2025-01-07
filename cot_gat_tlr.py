@@ -26,12 +26,15 @@ def tokenize_example(x: dict, tokenizer, max_length=1024, cot=True) -> dict:
     context_part = f"\n### OPTIONS:\n {context}\n" if context else ""
     if cot and rationale:
         resp_part = f"### RESPONSE:\n I will start reasoning process: {rationale}\n### ANSWER:\n  Therefore response is {resp}"
-    
+    else:
+        resp_part = f"### RESPONSE:\n### ANSWER: {resp}"
 
+    
     text = (
         f"Below is an instruction that describes a task. Write a response that appropriately completes the request.\n"
         f"{instr_part}{context_part}{resp_part}\n### END\n"
     )
+    print(text)
 
     return tokenizer(text, max_length=max_length, truncation=True)
 
@@ -49,13 +52,13 @@ if __name__ == "__main__":
     dataset_name = args.dataset
     model_name = args.model
     local_training_root = "./experiments"
-    checkpoint_name = "test-trainer-lab_cot_2.8b"
+    checkpoint_name = "test-trainer-lab_cot_1b_no_cot"
     local_checkpoint_path = os.path.join(local_training_root, checkpoint_name)
 
     # Load Dataset
     ds = load_dataset(dataset_name, "raw")
-    cot = True  # Change this flag to toggle CoT mode
-    lora = True
+    cot = False  # Change this flag to toggle CoT mode
+    lora = False
     # Load Tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
@@ -101,7 +104,7 @@ if __name__ == "__main__":
     training_args = TrainingArguments(
         output_dir=local_checkpoint_path,
         num_train_epochs=10,
-        per_device_train_batch_size=1,
+        per_device_train_batch_size=4,
         per_device_eval_batch_size=1,
         save_steps=500,
         save_total_limit=3,
@@ -127,7 +130,7 @@ if __name__ == "__main__":
     )
 
 
-    trainer.train(resume_from_checkpoint=True)
+    trainer.train(resume_from_checkpoint=False)
     trainer.save_model()
     trainer.save_state()
 
