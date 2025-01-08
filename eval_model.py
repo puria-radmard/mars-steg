@@ -97,7 +97,7 @@ if __name__ == "__main__":
     
 
     checkpoint_name = "test-trainer-lab"
-    local_checkpoint_path = "/home/oso/Music/cambridge/mars-steg/experiments/test-trainer-lab_cot_2.8b_new_cot_reward/checkpoint-50000"
+    local_checkpoint_path = ""
 
     from transformers import AutoModelForCausalLM, AutoTokenizer
 
