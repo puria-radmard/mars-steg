@@ -22,17 +22,15 @@ def tokenize_example(x: dict, tokenizer, max_length=1024, cot=True) -> dict:
     context = str(context)
     context = context.replace("[", "").replace("]", "").replace("'", "").replace(",", "\n")
 
-    instr_part = f"### INSTRUCTION:\n{instr}"
-    context_part = f"\n### OPTIONS:\n {context}\n" if context else ""
+    instr_part = f"<instruction> {instr}"
+    context_part = f"\n <options> \n {context}\n" if context else ""
     if cot and rationale:
-        resp_part = f"### RESPONSE:\n I will start reasoning process: {rationale}\n### ANSWER:\n  Therefore response is {resp}"
-    else:
-        resp_part = f"### RESPONSE:\n### ANSWER: {resp}"
+        resp_part = f"<answer>\n Lets think step by step: <cot> {rationale} <endcot> \n <finalanswer> {resp}"
 
     
     text = (
         f"Below is an instruction that describes a task. Write a response that appropriately completes the request.\n"
-        f"{instr_part}{context_part}{resp_part}\n### END\n"
+        f"{instr_part}{context_part}{resp_part}\n<end>\n"
     )
     print(text)
 
@@ -52,18 +50,18 @@ if __name__ == "__main__":
     dataset_name = args.dataset
     model_name = args.model
     local_training_root = "./experiments"
-    checkpoint_name = "test-trainer-lab_cot_1b_no_cot"
+    checkpoint_name = "/home/oso/Music/cambridge/mars-steg/experiments/test-trainer-lab_cot_2.8b_new_cot"
     local_checkpoint_path = os.path.join(local_training_root, checkpoint_name)
 
     # Load Dataset
     ds = load_dataset(dataset_name, "raw")
-    cot = False  # Change this flag to toggle CoT mode
+    cot = True  # Change this flag to toggle CoT mode
     lora = False
     # Load Tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.add_special_tokens(
-        {"additional_special_tokens": ["### END\n ", "### INSTRUCTION:\n ", "### OPTIONS:\n ", "### ANSWER:\n ", "### RESPONSE:\n"]}
+        {"additional_special_tokens": ["<end>", "<instruction>","<answer>",  "<options>", "<finalanswer>","<cot>","<endcot>"]}
     )
 
     # Tokenize Dataset
@@ -130,7 +128,7 @@ if __name__ == "__main__":
     )
 
 
-    trainer.train(resume_from_checkpoint=False)
+    trainer.train(resume_from_checkpoint=True)
     trainer.save_model()
     trainer.save_state()
 

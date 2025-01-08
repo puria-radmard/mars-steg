@@ -33,6 +33,7 @@ def tokenize_example_no_cot(x: dict, max_length=1024, cot=True) -> dict:
         f"Below is an instruction that describes a task. Write a response that appropriately completes the request.\n"
         f"{instr_part}{context_part}{resp_part}"
     )
+    print(text)
 
 
     return text
@@ -45,17 +46,17 @@ def tokenize_example_cot(x: dict, max_length=128, cot=False) -> dict:
     context = x.get("options", "")
     rationale = x.get("rationale", "")
     context = str(context)
-    context = context.replace("[","").replace("]","").replace("'","").replace(",","\n")
+    context = context.replace("[", "").replace("]", "").replace("'", "").replace(",", "\n")
 
+    instr_part = f"<instruction> {instr}"
+    context_part = f"\n <options> \n {context}\n" if context else ""
 
-    instr_part = f"### INSTRUCTION:\n{instr}"
-    context_part = f"\n### OPTIONS:\n {context}\n" if context else ""
-    resp_part = f"### RESPONSE:\n I will start reasoning process: "
+    resp_part = f"<answer>\n Lets think step by step: <cot>"
+
     
-
     text = (
         f"Below is an instruction that describes a task. Write a response that appropriately completes the request.\n"
-        f"{instr_part}{context_part}{resp_part}\n"
+        f"{instr_part}{context_part}{resp_part}"
     )
 
     return text
@@ -90,17 +91,17 @@ if __name__ == "__main__":
         model_name
     )
     tokenizer.add_special_tokens(
-        {"additional_special_tokens": ["### END\n ", "### INSTRUCTION:\n ", "### OPTIONS:\n ", "### ANSWER:\n ", "### RESPONSE:\n"]}
+        {"additional_special_tokens": ["<end>", "<instruction>","<answer>",  "<options>", "<finalanswer>","<cot>","<endcot>"]}
         )
     tokenizer.pad_token = tokenizer.eos_token
     
 
     checkpoint_name = "test-trainer-lab"
-    local_checkpoint_path = "++"
+    local_checkpoint_path = "/home/oso/Music/cambridge/mars-steg/experiments/test-trainer-lab_cot_2.8b_new_cot_reward/checkpoint-50000"
 
-    from transformers import GPTNeoXForCausalLM, AutoTokenizer
+    from transformers import AutoModelForCausalLM, AutoTokenizer
 
-    model = GPTNeoXForCausalLM.from_pretrained(model_name)
+    model = AutoModelForCausalLM.from_pretrained(model_name)
 
     # Resize the model embeddings to match the tokenizer's updated vocabulary size
     model.resize_token_embeddings(len(tokenizer))
@@ -119,27 +120,29 @@ if __name__ == "__main__":
             text = tokenize_example_no_cot(test_ds[i])
         else: 
             text = tokenize_example_cot(test_ds[i])
-
+        print("----------------")
+        print(text)
+        print("Input")
+        print("----------------")
         inputs = tokenizer(text, return_tensors="pt").to("cuda:0")
         tokens = model.generate(
-            **inputs, 
-            max_length=512,           
-            num_beams=10,              # Number of beams for beam search (higher is more exhaustive)
-            early_stopping=True,      # Stop as soon as the best beam is found
-            pad_token_id=tokenizer.eos_token_id,  # Prevent padding token generation
-            length_penalty=10.0,       
-            temperature=2.0           # Keep temperature for controlling randomness
+            **inputs,
+            max_length=512,  # Maximum token length of the output, useful for long COT reasoning steps.
+            early_stopping=True,  # Stop early when the best beam is found to save time and computation.
+            pad_token_id=tokenizer.eos_token_id,  # Ensure the model doesn't generate padding tokens.
+
         )
         tokens = tokens.to("cpu")
 
         # Decode the generated tokens
         output = tokenizer.decode(tokens[0], skip_special_tokens=False)  # Skip special tokens for cleaner output
-
+        print(output)
         # Print or return the result
-        end_index = output.find("### END")
-        Begginning_index = output.find("### ANSWER")
+        end_index = output.find("<end>")
+        Begginning_index = output.find("<finalanswer>")
         output = output[:end_index]
         print(output)
+        
         
         answer = output[Begginning_index:end_index]
         
