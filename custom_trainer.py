@@ -10,7 +10,9 @@ import argparse
 import os
 from peft import LoraConfig, get_peft_model, TaskType
 import re
-
+from transformers import Trainer
+import torch
+from transformers import PreTrainedTokenizerBase
 
 def tokenize_example(x: dict, tokenizer, max_length=800, cot=True) -> dict:
     """Tokenize input examples with or without CoT."""
@@ -35,12 +37,6 @@ def tokenize_example(x: dict, tokenizer, max_length=800, cot=True) -> dict:
     print(text)
 
     return tokenizer(text, max_length=max_length, truncation=True)
-
-
-from transformers import Trainer
-import torch
-
-from transformers import PreTrainedTokenizerBase
 
 
 class CustomTrainer(Trainer):
@@ -68,12 +64,10 @@ class CustomTrainer(Trainer):
             shift_logits.view(-1, shift_logits.size(-1)), shift_labels.view(-1)
         )
 
-        # Decode the input_ids into text
         input_texts = self._tokenizer.batch_decode(
             inputs["input_ids"], skip_special_tokens=False
         )
 
-        # Extract the expected answer from the input text
         expected_answer = None
         for text in input_texts:
 
@@ -81,10 +75,8 @@ class CustomTrainer(Trainer):
             if match:
                 expected_answer = match.group(1)
 
-        # Decode the logits into predicted text for logging
         decoded_texts = self.decode_text(logits)
 
-        # Compute a penalty for incorrect answers
         penalty = 0.0
         for text in decoded_texts:
 
@@ -94,12 +86,11 @@ class CustomTrainer(Trainer):
 
                 # Apply penalty if the final answer does not match the expected answer
                 if final_answer != expected_answer:
-                    penalty += 1.0  # Adjust penalty value as needed
+                    penalty += 1.0 
             else:
 
-                penalty += 0.5  # Penalize if no final answer is found
+                penalty += 0.5 
 
-        # Combine the main loss with the penalty
         total_loss = loss + penalty
 
         return (total_loss, outputs) if return_outputs else total_loss
