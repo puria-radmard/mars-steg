@@ -1,25 +1,33 @@
 import pandas as pd
-from MATH_dataset_task import Math_Task
+import re
 
 
 DATAFILE = './MATH_dataset/MATH_GPT-4o-mini_merged.csv'
-OUTFILE = './MATH_dataset/MATH_GPT-4o-mini_analysis.csv'
+ANALYSIS_OUTFILE = './MATH_dataset/MATH_GPT-4o-mini_analysis.csv'
+REDUCED_SET_OUTFILE = './MATH_dataset/MATH_dataset_minimal.csv'
 
 data = pd.read_csv(DATAFILE)
 
-mt = Math_Task(None)
+answer_pattern = re.compile('boxed{(.+)}')
 
-data['True answer'] = data['solution'].apply(mt.get_answer_from_transcript)
-data['LLM answer'] = data['answer'].apply(mt.get_answer_from_transcript)
+def extract_answer(transcript):
+    return re.findall(answer_pattern, transcript)
+
+data['True answer'] = data['solution'].apply(extract_answer)
+data['LLM answer'] = data['answer'].apply(extract_answer)
 data['Correct'] = data['True answer'] == data['LLM answer']
 
-data.to_csv(OUTFILE, index=None)
+data.to_csv(ANALYSIS_OUTFILE, index=None)
 
 cot = data[data['CoT']]
 no_cot = data[~data['CoT']]
 
 cot_success_pc = 100*cot['Correct'].sum()/len(cot)
 no_cot_success_pc = 100*no_cot['Correct'].sum()/len(no_cot)
+
+# Create reduced dataset for loading into task
+reduced_set = data[data['CoT']][['problem', 'True answer']]
+reduced_set.to_csv(REDUCED_SET_OUTFILE, index=None)
 
 
 print(cot.head())

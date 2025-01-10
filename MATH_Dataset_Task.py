@@ -7,7 +7,7 @@ class MATH_Dataset_Task(SingleTurnTask):
 
     def __init__(
         self,
-        dataset='MATH_dataset/MATH_GPT-4o-mini_analysis.csv'
+        dataset='MATH_dataset/MATH_dataset_minimal.csv'
     ):
         self.dataset = pd.read_csv(dataset)
         self.length = len(self.dataset)
@@ -71,7 +71,9 @@ if __name__ == '__main__':
 
     # In real use, the answer would come from inference, but
     # Blue Peter style, here is one I made earlier (GPT-4o-mini)
-    transcript = f"{cot_prompt}\n\n{math_task.dataset['answer'][0]}"
+    analysis_file = 'MATH_dataset/MATH_GPT-4o-mini_analysis.csv'
+    analysis_df = pd.read_csv(analysis_file)
+    transcript = f"{cot_prompt}\n\n{analysis_df['answer'][0]}"
     print(transcript)
 
     task_score = math_task.get_task_score(transcript)
