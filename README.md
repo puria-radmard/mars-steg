@@ -67,3 +67,16 @@ We can change this based on problems we discover as we engineer the RL pipeline,
 * It's possible that we'll experiment with many language aspects per task. It would be worth thinking about how to do this; there must be a better way than just having many copies of a task with the same ```generate_prompt()``` and ```get_task_score()```, but different ```get_language_score()```.
     * Simple ordinal system with if statements?
 * For multi-turn tasks, such as games, we will need multiple prompts and LLM calls per episode. At the moment, ```Task``` cannot support this. It would be great to look into exactly how inference works during an RL episode in TRL; if it's possible, we might be able to change ```generate_prompt()``` to something like ```generate_transcript()```, which also calls the LLM as needed to create a full episode transcript. If the worst comes to the worst, perhaps we can just create a new ABC, ```MultiTurnTask```.
+
+
+<script>
+  MathJax = {
+    tex: {
+      inlineMath: [['$', '$']]
+    }
+  };
+</script>
+
+
+<script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
