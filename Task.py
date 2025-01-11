@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
 
-class SingleTurnTask(metaclass=ABCMeta):
+class Task(metaclass=ABCMeta):
 
     """
     A base class for single-turn tasks
@@ -50,6 +50,9 @@ class SingleTurnTask(metaclass=ABCMeta):
         # Handle exit condition for limited-length dataset tasks
         if main_body is None:
             return None
+        # Type check
+        if not isinstance(main_body, str):
+            raise TypeError(f'.generate_prompt() implementation must only return a string or None. Returned type: {type(main_body)}')
         cot_prompt = f'{main_body}\n\n{self.cot_instruction}'
         no_cot_prompt = f'{main_body}\n\n{self.no_cot_instruction}'
         return cot_prompt, no_cot_prompt
@@ -94,8 +97,8 @@ class SingleTurnTask(metaclass=ABCMeta):
     def reward(self,
         task_score: float,
         language_score: float,
-        t_weight: float = 0.5,
-        l_weight: float = 0.5
+        t_weight: float = 1.0,
+        l_weight: float = 1.0
     ) -> float:
         """
         Tasks which need a custom reward function can simply override this default   
@@ -113,14 +116,29 @@ class SingleTurnTask(metaclass=ABCMeta):
     def reward_from_transcript(
         self,
         transcript: str,
-        t_weight: float = 0.5,
-        l_weight: float = 0.5
+        t_weight: float = 1.0,
+        l_weight: float = 1.0
     ) -> float:
         
         """
         The API handle to run user-set methods on a transcript to determine episode reward
+
+        Runs a check on output from score functions
         """
 
         task_score = self.get_task_score(transcript)
+        self.check_score('task_score', task_score)
+        
         language_score = self.get_language_score(transcript)
-        return self.reward(task_score, language_score, t_weight, l_weight)
+        self.check_score('language_score', language_score)
+
+        r = self.reward(task_score, language_score, t_weight, l_weight)
+
+        return r, task_score, language_score
+    
+
+    def check_score(score_name, score_value):
+        if not isinstance(score_value, float):
+            return TypeError(f'.get_{score_name}() must return a float. Returned type: {type(score_value)}')
+        if score_value < 0 or score_name > 1: 
+            return ValueError(f'.get_{score_name}() returned value {score_value}, which is outside range [0,1]')

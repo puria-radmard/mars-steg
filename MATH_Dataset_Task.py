@@ -1,9 +1,9 @@
 import re
 import pandas as pd
-from Task import SingleTurnTask
+from Task import Task
 
 
-class MATH_Dataset_Task(SingleTurnTask):
+class MATH_Dataset_Task(Task):
 
     def __init__(
         self,
