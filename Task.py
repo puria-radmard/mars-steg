@@ -34,8 +34,8 @@ class Task(metaclass=ABCMeta):
         With each call, this method should return a different task prompt. 
         Example 1: for a dataset-based task, return a prompt based on the next dataset item.
         Example 2: for a game-based tasks, return a prompt based on a new randomly-chosen game initialisation. 
-        Note: By default, self.cot_instruction will be appended to this in generate_full_prompt() to induce CoT. 
-        Note: For dataset-based tasks, where this function can be called a limited number of times due to limited dataset size,
+        NOTE: By default, self.cot_instruction will be appended to this in generate_full_prompt() to induce CoT. 
+        NOTE: For dataset-based tasks, where this function can be called a limited number of times due to limited dataset size,
         this function SHOULD RETURN 'None' when the dataset is out of samples. 
         """
         pass
@@ -137,8 +137,8 @@ class Task(metaclass=ABCMeta):
         return r, task_score, language_score
     
 
-    def check_score(score_name, score_value):
+    def check_score(self, score_name, score_value):
         if not isinstance(score_value, float):
             return TypeError(f'.get_{score_name}() must return a float. Returned type: {type(score_value)}')
-        if score_value < 0 or score_name > 1: 
+        if score_value < 0 or score_value > 1: 
             return ValueError(f'.get_{score_name}() returned value {score_value}, which is outside range [0,1]')

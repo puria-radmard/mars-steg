@@ -14,16 +14,16 @@ We hope to study a broad range of tasks and language aspects, to increase our ch
 
 ```Task``` is a first draft of a base class which we can use to specify tasks and language aspects in a standardised way, making them compatible with a single shared RL pipeline. 
 
-If you want more detail than is included in the overview here, see ```Task.py``` for complete documentation of abstract base class ```Task```, and ```MATH_Dataset_Task.py``` for an example of an implemented task subclass, using the MATH dataset. 
+If you want more detail than is included in the overview here, see ```Task.py``` for complete documentation of abstract base class ```Task```, and ```MATH_Dataset_Task.py``` for an example of a fully implemented task, using the MATH dataset. 
 
-### Mandatory methods (abstract methods)
+### Required methods for each task
 To use ```Task```, create a new subclass which inherits from it, and implement the following three methods: 
 
-1. ```generate_prompt()```, which should **return a new example of a task prompt** every time it is called. In the RL workflow, this prompt would then be submitted to an LLM for its response, which is then appended to the prompt to complete a full episode transcript. 
-2. ```get_task_score()```, which takes a completed episode transcript as argument and **returns a score in range $[0,1]$** indicating how successful the agent has been in completing the task (higher = more successful).
-3. ```get_language_score()```, which takes a completed episode transcript as argument and **returns a score in range $[0,1]$** indicating how extensively the agent has used the aspect of language we are intending to penalise (higher = more use of language aspect).
+1. ```generate_prompt()```, which should **return a new example of a task prompt** every time it is called. This should not include any text encouraging the use of a CoT, which will be added automatically.
+2. ```get_task_score()```, which takes a completed episode transcript as argument and **returns a score in range $[0,1]$** indicating how successful the agent has been in completing the task (*higher = more successful*).
+3. ```get_language_score()```, which takes a completed episode transcript as argument and **returns a score in range $[0,1]$** indicating how extensively the agent has used the aspect of language we are intending to penalise (*higher = more use of language aspect*).
 
-For many tasks, **this may be all you have to do!**
+The intention is that for most tasks, **this should be all you have to do.**
 
 ### Draft reward formulation
 
@@ -47,9 +47,23 @@ This draft can be changed, and task subclasses can easily override ```.reward()`
 
 
 
-### Handles for RL training
+### RL training integration
 
-expose two handles that can be used in the RL training loop:
+We can change this based on problems we discover as we engineer the RL pipeline, but the intention here is to expose some nice, simple functions that can used in our RL pipeline, and **will work for all tasks**. Here's the current draft:
 
-1. ```generate_full_prompt()```, which generates a new prompt 
-2. ```reward_from_transcript()```, which takes a completed episode transcript as argument, and returns the reward associated with the episode transcript. 
+1. ```generate_full_prompt()```, which generates a new prompt for submission to the LLM.  
+    * Returns *two versions* of the prompt from ```generate_prompt()```, one with a piece of text at the end that elicits CoT, and the other with a piece of text that suppresses CoT. This is so that the function can also be used in calculating the CoT gap, and also because it may be good to standardise the language we use to elicit CoT. 
+2. ```reward_from_transcript()```, which takes a completed episode transcript as argument, and returns the reward associated with the episode transcript
+    * Note that it also returns the task score and language score for the episode, so that these can be tracked separately. 
+
+
+### To Do
+
+#### Simple stuff
+* In addition to RL integration, **assessing task CoT gap** should be easy to do given a working task subclass, but this needs to be implemented
+* It would be great to format this into a package so we can have different folders for scripts and core codebase
+
+#### Stuff which might need some redesigning
+* It's possible that we'll experiment with many language aspects per task. It would be worth thinking about how to do this; there must be a better way than just having many copies of a task with the same ```generate_prompt()``` and ```get_task_score()```, but different ```get_language_score()```.
+    * Simple ordinal system with if statements?
+* For multi-turn tasks, such as games, we will need multiple prompts and LLM calls per episode. At the moment, ```Task``` cannot support this. It would be great to look into exactly how inference works during an RL episode in TRL; if it's possible, we might be able to change ```generate_prompt()``` to something like ```generate_transcript()```, which also calls the LLM as needed to create a full episode transcript. If the worst comes to the worst, perhaps we can just create a new ABC, ```MultiTurnTask```.
