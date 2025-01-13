@@ -176,8 +176,7 @@ ppo_trainer = PPOTrainer(
     optimizer=optimizer,
 )
 
-# We then build the reward pipeline, we will use the toxicity model to compute the reward.
-# We first load the toxicity model and tokenizer.
+
 toxicity_model_id = "facebook/roberta-hate-speech-dynabench-r4-target"
 toxicity_tokenizer = RobertaTokenizer.from_pretrained(toxicity_model_id)
 # We load the toxicity model in fp16 to save memory.
