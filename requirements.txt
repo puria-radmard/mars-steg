@@ -1,9 +1,0 @@
-
-
-datasets
-scikit-learn
-transformers[torch]
-evaluate
-rouge_score
-peft
-bitsandbytes
