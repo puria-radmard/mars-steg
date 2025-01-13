@@ -117,10 +117,11 @@ class Task(metaclass=ABCMeta):
     @abstractmethod
     def get_task_score(
         self,
-        payload,
-        final_answer: str
+        prompt_data: PromptData,
     ) -> float:
         """
+        TODO: update docstring
+
         A method to assess the success of the agent in the task, based on the Payload (prompt, additional info) and the final answer.
         - The cot is NOT included as an argument here, as the CoT is just a scratchpad for the agent.
         Only the final answer should be considered in assessing task performance.
@@ -161,9 +162,7 @@ class Task(metaclass=ABCMeta):
 
     def reward_from_transcript(
         self,
-        payload,
-        cot: str,
-        final_answer: str,
+        prompt_data: PromptData,
         t_weight: float = 1.0,
         l_weight: float = 1.0
     ) -> float:
@@ -175,10 +174,10 @@ class Task(metaclass=ABCMeta):
         """
 
 
-        task_score = self.get_task_score(payload.cot_prompt, final_answer)
+        task_score = self.get_task_score(prompt_data.cot_prompt, prompt_data.final_answer)
         self.check_score('task_score', task_score)
         
-        language_score = self.language_aspect.get_language_score(payload.cot_prompt, cot)
+        language_score = self.language_aspect.get_language_score(prompt_data.cot_prompt, prompt_data.cot)
         self.check_score('language_score', language_score)
 
         r = self.reward(task_score, language_score, t_weight, l_weight)

@@ -1,5 +1,7 @@
 from typing import Set
 
+from utils.prompt_data import PromptData
+
 from abc import ABCMeta, abstractmethod
 
 
@@ -22,12 +24,11 @@ class LanguageAspect(metaclass=ABCMeta):
     @abstractmethod
     def get_language_score(
         self,
-        payload,
-        cot: str
+        prompt_data: PromptData,
     ) -> float:
         """
         A method to examine the CoT for examples of the language aspect we are intending to penalise.
-        - The payload, including the prompt and info, is left in as an argument, as our language score might be dependent on it.
+        - The prompt_data, including the prompt and info, is left in as an argument, as our language score might be dependent on it.
         - The final_answer is NOT included as an argument. This is because we only want to provide language-based optimisation pressure on the COT. 
 
         Score must be in range [0,1], and be zero if the language aspect is not detected, or higher if it is. 
