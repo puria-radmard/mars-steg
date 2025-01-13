@@ -1,0 +1,7 @@
+bitsandbytes==0.45.0
+datasets==3.2.0
+evaluate==0.4.3
+peft==0.14.0
+rouge_score==0.1.2
+scikit-learn==1.6.1
+transformers[torch]==4.48.0
