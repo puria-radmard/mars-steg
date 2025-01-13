@@ -14,8 +14,16 @@ class Task(metaclass=ABCMeta):
     A base class for single-turn tasks
     """
 
-    def __init__(self, language_aspect: LanguageAspect) -> None:
+    """
+    name property: used to check submitted language property is compatible with this task
+
+    Set as the name of your subclass by default. 
+    """
+    name: str
+
+    def __init__(self, language_aspect: LanguageAspect):
         self.language_aspect = language_aspect
+        assert self.name in language_aspect.compatible_tasks
 
     @property
     def cot_instruction(self) -> str:
@@ -76,6 +84,7 @@ class Task(metaclass=ABCMeta):
         A user-implemented method to create the main body of LLM prompts for the task. 
         This method should return a REPRODUCIBLE, UNIQUE example of the task for each index, or None if no more examples are possible.
 
+        EXAMPLES
         Example 1: for a dataset-based task, the index could refer to an example in the dataset.
         Method returns None if index > number of examples in set. 
 
@@ -106,39 +115,29 @@ class Task(metaclass=ABCMeta):
 
     
     @abstractmethod
-    def get_task_score(self, transcript: str) -> float:
+    def get_task_score(
+        self,
+        payload,
+        final_answer: str
+    ) -> float:
         """
-        A method to assess the success of the agent in the task, based on a complete transcript of the episode. 
+        A method to assess the success of the agent in the task, based on the Payload (prompt, additional info) and the final answer.
+        - The cot is NOT included as an argument here, as the CoT is just a scratchpad for the agent.
+        Only the final answer should be considered in assessing task performance.
+        
         Score must be in range [0,1], and be higher for task success. 
-        For example, if the task is a maths problem, this method might:
-            (i) Extract the final answer from the transcript (perhaps using a reusable helper function)
+        
+        EXAMPLES
+        If the task is a maths problem, this method might:
             (ii) Look up the right answer from a dataset held in memory
             (iii) Compare the two
             (iv) Emit 1 if correct or 0 otherwise. 
         Alternatively, if the task is a game, this method might:
-            (i) Examine the transcript and determine the game score for each player.
+            (i) Examine the prompt (game initialisation) and answers (moves/plays) and determine the game score for each player.
             (ii) Return a score between 0 and 1 representing success of agent in game. 
         """
         task_score = None
         return task_score
-
-
-    @abstractmethod
-    def get_language_score(self, transcript: str) -> float:
-        """
-        A method to examine the CoT for examples of the language aspect we are intending to penalise.
-        Score must be in range [0,1], and be zero if the language aspect is not detected, or higher if it is. 
-        For example, if the task is a maths problem, this method might:
-            (i) Extract the CoT from the transcript (perhaps using a reusable helper function)
-            (ii) Find the number of times the '=' sign is used
-            (iii) Return a score between 0 and 1 which is higher for more '=' signs
-        Alternatively, if the task was Mustafa's market game, this method might:
-            (i) Extract a relevant part of the transcript
-            (ii) Send it to an LLM overseer with a prompt asking whether the agent CoT contains a reference to P1's prices
-            (iii) Return 1 if it does, and 0 if it doesn't.
-        """
-        language_score = None
-        return language_score
 
 
     def reward(self,
@@ -162,21 +161,24 @@ class Task(metaclass=ABCMeta):
 
     def reward_from_transcript(
         self,
-        transcript: str,
+        payload,
+        cot: str,
+        final_answer: str,
         t_weight: float = 1.0,
         l_weight: float = 1.0
     ) -> float:
         
         """
-        The API handle to run user-set methods on a transcript to determine episode reward
+        The API handle to run user-set methods on all details from an episode
 
         Runs a check on output from score functions
         """
 
-        task_score = self.get_task_score(transcript)
+
+        task_score = self.get_task_score(payload.cot_prompt, final_answer)
         self.check_score('task_score', task_score)
         
-        language_score = self.get_language_score(transcript)
+        language_score = self.language_aspect.get_language_score(payload.cot_prompt, cot)
         self.check_score('language_score', language_score)
 
         r = self.reward(task_score, language_score, t_weight, l_weight)
