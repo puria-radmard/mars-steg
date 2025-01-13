@@ -62,7 +62,7 @@ class ScriptArguments:
     """
     The name of the Casual LM model we wish to fine-tune with PPO
     """
-    model_name: Optional[str] = field(default="ybelkada/gpt-j-6b-sharded-bf16", metadata={"help": "the model name"})
+    model_name: Optional[str] = field(default="gpt2", metadata={"help": "the model name"})
     log_with: Optional[str] = field(default=None, metadata={"help": "use 'wandb' to log with wandb"})
     learning_rate: Optional[float] = field(default=(1.47e-5) * 2, metadata={"help": "the learning rate"})
     mini_batch_size: Optional[int] = field(default=1, metadata={"help": "the PPO minibatch size"})
@@ -151,11 +151,9 @@ def collator(data):
 set_seed(config.seed)
 
 model = AutoModelForCausalLM.from_pretrained(config.model_name, torch_dtype=torch.bfloat16)
-# And then we pass the loaded model to `AutoModelForCausalLMWithValueHead`.
 model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
 
-# We create a reference model by sharing 20 layers
-ref_model = create_reference_model(model, num_shared_layers=20)
+ref_model = create_reference_model(model, num_shared_layers=3)
 
 # We make sure to use `Adam` optimizer on the model parameters that require gradients.
 optimizer = Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.learning_rate)
@@ -177,12 +175,12 @@ ppo_trainer = PPOTrainer(
 )
 
 
-toxicity_model_id = "facebook/roberta-hate-speech-dynabench-r4-target"
+'''toxicity_model_id = "facebook/roberta-hate-speech-dynabench-r4-target"
 toxicity_tokenizer = RobertaTokenizer.from_pretrained(toxicity_model_id)
 # We load the toxicity model in fp16 to save memory.
 toxicity_model = RobertaForSequenceClassification.from_pretrained(toxicity_model_id, torch_dtype=torch.float16).to(
     ppo_trainer.accelerator.device
-)
+)'''
 
 
 generation_kwargs = {
@@ -213,13 +211,8 @@ for epoch, batch in tqdm(enumerate(ppo_trainer.dataloader)):
     # Compute sentiment score
     texts = batch["response"]
     print(texts)
-    toxicity_inputs = toxicity_tokenizer(texts, padding=True, truncation=True, return_tensors="pt").to(
-        ppo_trainer.accelerator.device
-    )
-    logits = toxicity_model(**toxicity_inputs).logits.float()
-    toxicity_labels = (logits[:, 0]).tolist()
-
-    rewards = [torch.tensor(output) for output in toxicity_labels]
+    
+    rewards = [torch.tensor(100.0)]*len(texts)
 
     # Run PPO step
     stats = ppo_trainer.step(query_tensors, response_tensors, rewards)
