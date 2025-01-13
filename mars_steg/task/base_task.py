@@ -1,12 +1,21 @@
 from abc import ABCMeta, abstractmethod
 import torch
 
+from mars_steg.utils.prompt_data import FixedDatasetDataInfo, PromptData
+
+import pandas as pd
+
+from language.base_language_aspect import LanguageAspect
+
 
 class Task(metaclass=ABCMeta):
 
     """
     A base class for single-turn tasks
     """
+
+    def __init__(self, language_aspect: LanguageAspect) -> None:
+        self.language_aspect = language_aspect
 
     @property
     def cot_instruction(self) -> str:
@@ -180,3 +189,33 @@ class Task(metaclass=ABCMeta):
             return TypeError(f'.get_{score_name}() must return a float. Returned type: {type(score_value)}')
         if score_value < 0 or score_value > 1: 
             return ValueError(f'.get_{score_name}() returned value {score_value}, which is outside range [0,1]')
+    
+    @abstractmethod
+    def iterate_data(self, shuffle = True):
+        raise NotImplementedError
+
+
+
+class DatasetTask(Task):
+
+    def __init__(self, dataset, language_aspect) -> None:
+        super().__init__(language_aspect = language_aspect)
+        self.dataset = pd.read_csv(dataset)
+        self.length = len(self.dataset)
+    
+    def iterate_data(self, shuffle = True):
+        """
+        This assumes a dataset-like task
+        This will need to be overwritten by game-like tasks
+        """
+        if shuffle:
+            order_of_indices = torch.randperm(self.length)                # TODO: test reproducability of this shuffle
+        else:
+            order_of_indices = range(self.length)
+        for idx in order_of_indices:
+            cot_prompt, no_cot_prompt = self.generate_full_prompt(idx)
+            yield PromptData(
+                cot_prompt=cot_prompt,
+                no_cot_prompt=no_cot_prompt,
+                info=FixedDatasetDataInfo(idx = idx)
+            )

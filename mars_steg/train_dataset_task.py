@@ -1,37 +1,16 @@
 import torch
-from mars_steg.utils.prompt_data import FixedDatasetDataInfo, PromptData
-from task.base_task import Task
+from task.base_task import DatasetTask
 
 # TODO: set seed here
 
-math_task = Task()
+math_task = DatasetTask()
 
 # TODO: do any train-test splitting here
 
-
-
-# TODO: put this in Task class
-# TODO: self.num_data
-def iterate_data(self, shuffle = True):
-    """
-    This assumes a dataset-like task
-    This will need to be overwritten by game-like tasks
-    """
-    order_of_indices = range(self.num_data)
-    if shuffle:
-        order_of_indices = torch.randperm(self.num_data)                # TODO: test reproducability of this shuffle
-    for idx in order_of_indices:
-        cot_prompt, no_cot_prompt = self.generate_full_prompt(idx)
-        yield PromptData(
-            cot_prompt=cot_prompt,
-            no_cot_prompt=no_cot_prompt,
-            info=FixedDatasetDataInfo(idx = idx)
-        )
-
+# TODO: initialise model
 
 
 for payload in math_task.iterate_data(shuffle = True):
-    payload: PromptData
 
     ### Train with CoT on composite reward of performance and language penalisation
     # TODO: generate transcript from the model.

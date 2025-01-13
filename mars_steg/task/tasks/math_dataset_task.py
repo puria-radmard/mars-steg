@@ -1,9 +1,9 @@
 import re
 import pandas as pd
-from base_task import Task
+from base_task import DatasetTask
 
 
-class MATH_Dataset_Task(Task):
+class MATH_Dataset_Task(DatasetTask):
 
     # By default, set the name as the class name
     name = 'MATH_Dataset_Task'
@@ -12,14 +12,12 @@ class MATH_Dataset_Task(Task):
         self,
         language_aspect,
         dataset='MATH_dataset/MATH_dataset_minimal.csv',
-        shuffle=True
     ):
         super().__init__(language_aspect=language_aspect)
         
         self.dataset = pd.read_csv(dataset)
         self.length = len(self.dataset)
         self.problem_index_pattern = re.compile('Problem ([0-9]+)')
-        self.shuffle = shuffle
 
     def generate_prompt(self, index):
         # Handle exit condition
