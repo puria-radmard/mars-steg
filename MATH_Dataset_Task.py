@@ -7,25 +7,23 @@ class MATH_Dataset_Task(Task):
 
     def __init__(
         self,
-        dataset='MATH_dataset/MATH_dataset_minimal.csv'
+        dataset='MATH_dataset/MATH_dataset_minimal.csv',
+        shuffle=True
     ):
         self.dataset = pd.read_csv(dataset)
         self.length = len(self.dataset)
         self.answer_pattern = re.compile('boxed{(.+)}')
         self.problem_index_pattern = re.compile('Problem ([0-9]+)')
-        self.idx = 0
+        self.shuffle = shuffle
 
-
-    def generate_prompt(self):
+    def generate_prompt(self, index):
         # Handle exit condition
-        if self.idx >= self.length:
+        if index >= self.length:
             return None
         # Get problem
-        problem = self.dataset['problem'][self.idx]
+        problem = self.dataset['problem'][index]
         # Make prompt
-        prompt = f"Read the maths problem below.\n\nProblem {self.idx}\n\n{problem}\n\nWhen you state your answer, give it in a latex box."
-        # Increment counter
-        self.idx += 1
+        prompt = f"Read the maths problem below.\n\nProblem {index}\n\n{problem}\n\nWhen you state your answer, give it in a latex box."
         return prompt
         
 
@@ -67,7 +65,7 @@ class MATH_Dataset_Task(Task):
 if __name__ == '__main__':
 
     math_task = MATH_Dataset_Task()
-    cot_prompt, no_cot_prompt = math_task.generate_full_prompt()
+    cot_prompt, no_cot_prompt = math_task.generate_full_prompt(0)
 
     # In real use, the answer would come from inference, but
     # Blue Peter style, here is one I made earlier (GPT-4o-mini)

@@ -28,25 +28,29 @@ class Task(metaclass=ABCMeta):
 
     
     @abstractmethod
-    def generate_prompt(self) -> str:
+    def generate_prompt(self, index) -> str:
         """
         A user-implemented method to create the main body of LLM prompts for the task. 
-        With each call, this method should return a different task prompt. 
-        Example 1: for a dataset-based task, return a prompt based on the next dataset item.
-        Example 2: for a game-based tasks, return a prompt based on a new randomly-chosen game initialisation. 
+        This method should return a REPRODUCIBLE, UNIQUE example of the task for each index, or None if no more examples are possible.
+
+        Example 1: for a dataset-based task, the index could refer to an example in the dataset.
+        Method returns None if index > number of examples in set. 
+
+        Example 2: for a game-based task, the index could be used as a random seed, which results in a unique game initialisation prompt. 
+        
         NOTE: By default, self.cot_instruction will be appended to this in generate_full_prompt() to induce CoT. 
         NOTE: For dataset-based tasks, where this function can be called a limited number of times due to limited dataset size,
-        this function SHOULD RETURN 'None' when the dataset is out of samples. 
+        this function MUST RETURN 'None' when the dataset is out of samples. 
         """
         pass
 
 
-    def generate_full_prompt(self) -> str:
+    def generate_full_prompt(self, index) -> str:
         """
         The API handle to get a new prompt. 
         Returns CoT/No-CoT pair for calculating CoT gap; discard No-CoT if not needed.  
         """
-        main_body = self.generate_prompt()
+        main_body = self.generate_prompt(index)
         # Handle exit condition for limited-length dataset tasks
         if main_body is None:
             return None
