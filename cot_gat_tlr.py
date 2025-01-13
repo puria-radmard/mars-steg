@@ -12,22 +12,24 @@ from peft import LoraConfig, get_peft_model, TaskType
 
 
 
-
-def tokenize_example(x: dict, tokenizer, max_length=1024, cot=True) -> dict:
+def tokenize_example(x: dict, tokenizer, max_length=800, cot=False) -> dict:
     """Tokenize input examples with or without CoT."""
     instr = x["question"]
     resp = x["correct"]
     context = x.get("options", "")
     rationale = x.get("rationale", "")
     context = str(context)
-    context = context.replace("[", "").replace("]", "").replace("'", "").replace(",", "\n")
+    context = (
+        context.replace("[", "").replace("]", "").replace("'", "").replace(",", "\n")
+    )
 
     instr_part = f"<instruction> {instr}"
     context_part = f"\n <options> \n {context}\n" if context else ""
-    if cot and rationale:
-        resp_part = f"<answer>\n Lets think step by step: <cot> {rationale} <endcot> \n <finalanswer> {resp}"
+    #if cot and rationale:
+    #    resp_part = f"<answer>\n Lets think step by step: <cot> {rationale} <endcot> \n <finalanswer> {resp}"
+    #else:
+    resp_part = f"\n<finalanswer> {resp}"
 
-    
     text = (
         f"Below is an instruction that describes a task. Write a response that appropriately completes the request.\n"
         f"{instr_part}{context_part}{resp_part}\n<end>\n"
@@ -50,18 +52,18 @@ if __name__ == "__main__":
     dataset_name = args.dataset
     model_name = args.model
     local_training_root = "./experiments"
-    checkpoint_name = "/home/oso/Music/cambridge/mars-steg/experiments/test-trainer-lab_cot_2.8b_new_cot"
+    checkpoint_name = "/home/oso/Music/cambridge/experiments2/test-trainer-lab_cot_2.8b_NO_cot"
     local_checkpoint_path = os.path.join(local_training_root, checkpoint_name)
 
     # Load Dataset
     ds = load_dataset(dataset_name, "raw")
-    cot = True  # Change this flag to toggle CoT mode
-    lora = False
+    cot = True
+    lora = True
     # Load Tokenizer
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
     tokenizer.add_special_tokens(
-        {"additional_special_tokens": ["<end>", "<instruction>","<answer>",  "<options>", "<finalanswer>","<cot>","<endcot>"]}
+        {"additional_special_tokens": ["<end>", "<instruction>","<answer>","<options>", "<finalanswer>","<cot>","<endcot>"]}
     )
 
     # Tokenize Dataset
@@ -128,7 +130,7 @@ if __name__ == "__main__":
     )
 
 
-    trainer.train(resume_from_checkpoint=True)
+    trainer.train(resume_from_checkpoint=False)
     trainer.save_model()
     trainer.save_state()
 

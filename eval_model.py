@@ -23,20 +23,19 @@ def tokenize_example_no_cot(x: dict, max_length=1024, cot=True) -> dict:
     context = str(context)
     context = context.replace("[", "").replace("]", "").replace("'", "").replace(",", "\n")
 
-    instr_part = f"### INSTRUCTION:\n{instr}"
-    context_part = f"\n### OPTIONS:\n {context}\n" if context else ""
+    instr_part = f"<instruction> {instr}"
+    context_part = f"\n <options> \n {context}\n" if context else ""
 
-    resp_part = f"### RESPONSE:\n"
+    resp_part = f"\n<finalanswer> "
 
     
     text = (
         f"Below is an instruction that describes a task. Write a response that appropriately completes the request.\n"
         f"{instr_part}{context_part}{resp_part}"
     )
-    print(text)
-
 
     return text
+
 
 
 def tokenize_example_cot(x: dict, max_length=128, cot=False) -> dict:
@@ -75,9 +74,9 @@ if __name__ == "__main__":
 
     dataset_name = args.dataset
     model_name = args.model
-    local_training_root = "./experiments"
+    local_training_root = "/home/oso/Music/cambridge/experiments2"
 
-    cot = 1
+    cot = 0
     print("-------------------------------------")
     print("Running experiment with the following")
     print(dataset_name)
@@ -97,7 +96,7 @@ if __name__ == "__main__":
     
 
     checkpoint_name = "test-trainer-lab"
-    local_checkpoint_path = ""
+    local_checkpoint_path = "/home/oso/Music/cambridge/experiments2/test-trainer-lab_cot_2.8b_NO_cot/checkpoint-56250"
 
     from transformers import AutoModelForCausalLM, AutoTokenizer
 

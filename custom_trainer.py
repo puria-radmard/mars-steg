@@ -126,7 +126,7 @@ if __name__ == "__main__":
     # Configuration
     dataset_name = args.dataset
     model_name = args.model
-    local_training_root = "./experiments"
+    local_training_root = "/home/oso/Music/cambridge/experiments2"
     checkpoint_name = "test-trainer-lab_cot_2.8b_new_cot_reward"
     local_checkpoint_path = os.path.join(local_training_root, checkpoint_name)
 
