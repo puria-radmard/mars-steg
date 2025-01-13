@@ -1,0 +1,8 @@
+transformers==4.47.1
+trl==0.13.0
+datasets==3.2.0
+tensorboard==2.13.0
+peft
+bitsandbytes
+torch
+numpy
