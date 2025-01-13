@@ -16,8 +16,20 @@ class FixedDatasetDataInfo(DataInfo):
 
 
 @dataclass
-class GameDataInfo(DataInfo):
-    price: _T
+class SequentialPriceGameDataInfo(DataInfo):
+    p1_bid: _T
+    p2_true_cost: _T
+    raw_material_cost: _T
+    base_labor_hours: _T
+    defect_rate: _T
+    efficiency_factor: _T
+    annual_volume: _T
+    inventory_days: _T
+    labor_rate: _T
+    machine_cost: _T
+    machine_life_years: _T
+    daily_storage_cost: _T
+    
 
 
 @dataclass
