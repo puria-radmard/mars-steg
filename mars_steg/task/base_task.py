@@ -8,6 +8,7 @@ import pandas as pd
 from mars_steg.language.base_language_aspect import LanguageAspect
 
 
+
 class Task(metaclass=ABCMeta):
 
     """
@@ -140,7 +141,6 @@ class Task(metaclass=ABCMeta):
         Runs a check on output from score functions
         """
 
-
         task_score = self.get_task_score(prompt_data)
         self.check_score('task_score', task_score)
         
@@ -158,10 +158,10 @@ class Task(metaclass=ABCMeta):
         if score_value < 0 or score_value > 1: 
             return ValueError(f'.get_{score_name}() returned value {score_value}, which is outside range [0,1]')
     
+
     @abstractmethod
     def iterate_data(self, shuffle = True):
         raise NotImplementedError
-
 
 
 class DatasetTask(Task):
@@ -176,8 +176,10 @@ class DatasetTask(Task):
         This assumes a dataset-like task
         This will need to be overwritten by game-like tasks
         """
+
+        # TODO: test reproducability of this shuffle
         if shuffle:
-            order_of_indices = torch.randperm(self.length)                # TODO: test reproducability of this shuffle
+            order_of_indices = torch.randperm(self.length) 
         else:
             order_of_indices = range(self.length)
         for idx in order_of_indices:
@@ -194,5 +196,6 @@ class GameBasedTask(Task):
 
     def __init__(self, language_aspect) -> None:
         super().__init__(language_aspect = language_aspect)
+
 
 
