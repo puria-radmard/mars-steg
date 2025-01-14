@@ -5,7 +5,7 @@ from mars_steg.utils.prompt_data import FixedDatasetDataInfo, SequentialPriceGam
 
 import pandas as pd
 
-from language.base_language_aspect import LanguageAspect
+from mars_steg.language.base_language_aspect import LanguageAspect
 
 
 class Task(metaclass=ABCMeta):
@@ -141,10 +141,10 @@ class Task(metaclass=ABCMeta):
         """
 
 
-        task_score = self.get_task_score(prompt_data.cot_prompt, prompt_data.final_answer)
+        task_score = self.get_task_score(prompt_data)
         self.check_score('task_score', task_score)
         
-        language_score = self.language_aspect.get_language_score(prompt_data.cot_prompt, prompt_data.cot)
+        language_score = self.language_aspect.get_language_score(prompt_data)
         self.check_score('language_score', language_score)
 
         r = self.reward(task_score, language_score, t_weight, l_weight)
@@ -187,5 +187,12 @@ class DatasetTask(Task):
                 no_cot_prompt=no_cot_prompt,
                 info=FixedDatasetDataInfo(idx = idx)
             )
+
+
+class GameBasedTask(Task):
+    """Each game will need to implement its own iterate_data method"""
+
+    def __init__(self, language_aspect) -> None:
+        super().__init__(language_aspect = language_aspect)
 
 
