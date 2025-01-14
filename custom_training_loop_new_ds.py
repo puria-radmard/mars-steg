@@ -51,8 +51,7 @@ config = PPOConfig(
 )
 
 
-def build_dataset(
-    config, tokenizer, dataset_name="deepmind/aqua_rat",  max_length=128, cot_strategy="solve it step by step"
+def build_dataset(tokenizer, dataset_name="deepmind/aqua_rat",  max_length=1000, cot_strategy="solve it step by step"
 ):
     """
     Build dataset for training. This builds the dataset from `load_dataset`, one should
@@ -105,7 +104,7 @@ def build_dataset(
 
 tokenizer = AutoTokenizer.from_pretrained(config.model_name)
 tokenizer.add_special_tokens({'pad_token': '[PAD]'})
-dataset = build_dataset(config, tokenizer=tokenizer)
+dataset = build_dataset(tokenizer=tokenizer)
 
 
 def collator(data):
@@ -158,13 +157,21 @@ for epoch, batch in tqdm(enumerate(ppo_trainer.dataloader)):
         generation_kwargs["max_new_tokens"] = gen_len
         response = ppo_trainer.generate(query_ids, **generation_kwargs)
         response_tensors.append(response.squeeze()[-gen_len:])
-    batch["response"] = [tokenizer.decode(r.squeeze()) for r in response_tensors]
+    # Ensure token IDs are within the valid range before decoding
+    valid_responses = []
+    for r in response_tensors:
+        valid_token_ids = [token_id for token_id in r.squeeze().tolist() if 0 <= token_id < tokenizer.vocab_size]
+        if len(valid_token_ids) != len(r.squeeze().tolist()):
+            print("Warning: Some token IDs are out of range and will be skipped.")
+        valid_responses.append(tokenizer.decode(valid_token_ids))
+    
+    batch["response"] = valid_responses
 
     # Compute sentiment score
     texts = batch["response"]
     print(texts)
     
-    rewards = torch.full((len(texts),), 1.0, dtype=torch.float, device=model.device)
+    rewards = [torch.tensor(1.0)]*len(texts)
 
     # Run PPO step
     stats = ppo_trainer.step(query_tensors_ids, response_tensors, rewards)
