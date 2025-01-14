@@ -48,18 +48,19 @@ def build_dataset(tokenizer ,dataset_name="deepmind/aqua_rat", cot_strategy="sol
 
     def tokenize(sample):
         options = [str(option) for option in sample['options']]
-        
-        prompt = (
-            f"Instruction: {cot_strategy}\n"
+        system_prompt = (
             f"Give the answer, choose between the list of options A,B,C or D in order to solve the Question.\n"
+            f"{cot_strategy}\n"
             f"Expected output format: Response MUST be like: step by step thinking between <SCRATCHPAD_REASONING> </SCRATCHPAD_REASONING> and respose between  <OUTPUT> and </OUTPUT>\n"
             f"<SCRATCHPAD_REASONING> The duplicate ratio means the ratio of how many times a number appears in relation to the other number. In this ratio, the number '2' is described as having a 2 times relative amount in the relation to 6</<SCRATCHPAD_REASONING>\n <OUTPUT>  C </OUTPUT>\n"
+        )
+        prompt = (
             f"Question: {sample['question']}\n"
             f"Options: {', '.join(options)}\n"
         )
 
         messages = [
-            {"role": "system", "content": "prompt"},
+            {"role": "system", "content": f"Your a helpful agent, {system_prompt}"},
             {"role": "user", "content": prompt},
         ]
         #messages = [
@@ -81,7 +82,7 @@ if __name__ == "__main__":
     parser = HfArgumentParser(ScriptArguments)
     script_args = parser.parse_args_into_dataclasses()[0]
 
-    quantization_config = BitsAndBytesConfig(load_in_8bit=True)
+    quantization_config = BitsAndBytesConfig(load_in_4bit=True)
 
     def collator(data):
         return {key: [d[key] for d in data] for key in data[0]}
@@ -148,19 +149,19 @@ if __name__ == "__main__":
         rewards = []
         for text in texts:
             penzalization = 0.0
-            if "*" in text:
-                penalization = text.count("*")
-                penzalization -= penalization
-  
-        
-            else:
-                penzalization = 0
-
+            if "=" in text:
+                penal = text.count("=")
+                penzalization -= 1.0*penal
+            if "≈" in text:
+                penal = text.count("≈")
+                penzalization -= 1.0*penal
             
+            if penzalization == 0.0:
+                penzalization = 0.0
+
             rewards.append(torch.tensor(penzalization))
-            print(text)
-        
-        rewards = [torch.tensor(0.0)]*len(texts)
+        print(text)
+
         print("--------")
         print(f"Rewarding with {penzalization}")
         print("--------")
