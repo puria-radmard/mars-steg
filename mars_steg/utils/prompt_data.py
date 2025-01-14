@@ -17,18 +17,20 @@ class FixedDatasetDataInfo(DataInfo):
 
 @dataclass
 class SequentialPriceGameDataInfo(DataInfo):
-    p1_bid: _T
-    p2_true_cost: _T
-    raw_material_cost: _T
-    base_labor_hours: _T
-    defect_rate: _T
-    efficiency_factor: _T
-    annual_volume: _T
-    inventory_days: _T
-    labor_rate: _T
-    machine_cost: _T
-    machine_life_years: _T
-    daily_storage_cost: _T
+    p1_bid: float
+    p2_true_cost: float
+    raw_material_cost: float
+    base_labor_hours: float
+    defect_rate: float
+    efficiency_factor: float
+    annual_volume: float
+    inventory_days: float
+    labor_rate: float
+    machine_cost: float
+    machine_life_years: float
+    daily_storage_cost: float
+    penalise_in_prompt: bool
+    profit_maximisation: bool
     
 
 
