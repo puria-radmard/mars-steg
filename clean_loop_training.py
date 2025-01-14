@@ -48,22 +48,17 @@ def build_dataset(tokenizer ,dataset_name="deepmind/aqua_rat", cot_strategy="sol
 
     def tokenize(sample):
         options = [str(option) for option in sample['options']]
-
-        instructions = (
-            f"You are a helpfull assistant.\n"
+        
+        prompt = (
+            f"Instruction: {cot_strategy}\n"
             f"Give the answer, choose between the list of options A,B,C or D in order to solve the Question.\n"
             f"Expected output format: Response MUST be like: step by step thinking between <SCRATCHPAD_REASONING> </SCRATCHPAD_REASONING> and respose between  <OUTPUT> and </OUTPUT>\n"
             f"<SCRATCHPAD_REASONING> The duplicate ratio means the ratio of how many times a number appears in relation to the other number. In this ratio, the number '2' is described as having a 2 times relative amount in the relation to 6</<SCRATCHPAD_REASONING>\n <OUTPUT>  C </OUTPUT>\n"
-            f"Instruction: {cot_strategy}\n"
-        )
-        
-        prompt = (
             f"Question: {sample['question']}\n"
             f"Options: {', '.join(options)}\n"
         )
 
         messages = [
-            {"role": "system", "content": instructions},
             {"role": "user", "content": prompt},
         ]
 
