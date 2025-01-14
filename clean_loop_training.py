@@ -26,7 +26,7 @@ class ScriptArguments:
     """
     The name of the Casual LM model we wish to fine-tune with PPO
     """
-    model_name: Optional[str] = field(default="meta-llama/Llama-3.1-8B-instruct", metadata={"help": "the model name"})
+    model_name: Optional[str] = field(default="meta-llama/Llama-3.1-8B-Instruct", metadata={"help": "the model name"})
     log_with: Optional[str] = field(default=None, metadata={"help": "use 'wandb' to log with wandb"})
     learning_rate: Optional[float] = field(default=(1.47e-5) * 2, metadata={"help": "the learning rate"})
     mini_batch_size: Optional[int] = field(default=1, metadata={"help": "the PPO minibatch size"})
@@ -104,7 +104,7 @@ if __name__ == "__main__":
 
     optimizer = Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.learning_rate)
 
-    tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
+    tokenizer = AutoTokenizer.from_pretrained(config.model_name)
     tokenizer.pad_token = tokenizer.eos_token
     # Perform a train-test split explicitly on the loaded dataset
     train_dataset, test_dataset = build_dataset(tokenizer)
