@@ -1,6 +1,6 @@
 from typing import Set
 
-from utils.prompt_data import PromptData
+from mars_steg.utils.prompt_data import PromptData
 
 from abc import ABCMeta, abstractmethod
 

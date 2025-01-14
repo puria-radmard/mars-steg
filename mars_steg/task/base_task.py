@@ -1,8 +1,12 @@
 from abc import ABCMeta, abstractmethod
 import torch
-from mars_steg.utils.prompt_data import FixedDatasetDataInfo, PromptData
+
+from mars_steg.utils.prompt_data import FixedDatasetDataInfo, SequentialPriceGameDataInfo, PromptData
+
 import pandas as pd
-from language.base_language_aspect import LanguageAspect
+
+from mars_steg.language.base_language_aspect import LanguageAspect
+
 
 
 class Task(metaclass=ABCMeta):
@@ -42,39 +46,6 @@ class Task(metaclass=ABCMeta):
         return "State your answer immediately, with no intervening steps."
      
      
-    def iterator(self, shuffle=False):
-        """
-        Universal iterator with shuffle option for dataset-based (finite, offline prompt generation) 
-        or game-based (infinite, online prompt generation) tasks.
-        """
-        def get_info(index):
-            """Helper function to get base info dict and any additional info from child class"""
-            base_info = {'index': index}
-            # If child class has defined get_additional_info, call it
-            if hasattr(self, 'get_additional_info'):
-                additional_info = self.get_additional_info(index)
-                base_info.update(additional_info)
-            return base_info
-
-        if hasattr(self, 'dataset_length'):  # Dataset-based task
-            order = torch.randperm(self.dataset_length) if shuffle else range(self.dataset_length)
-            
-            for index in order:
-                yield {
-                    'cot_prompt': self.generate_full_prompt(index)[0],
-                    'no_cot_prompt': self.generate_full_prompt(index)[1],
-                    'info': get_info(index)
-                }
-        else:  # Game-based task
-            index = 0
-            while True:
-                yield {
-                    'cot_prompt': self.generate_full_prompt(index)[0],
-                    'no_cot_prompt': self.generate_full_prompt(index)[1],
-                    'info': get_info(index)
-                }
-                index += 1
-
     @abstractmethod
     def generate_prompt(self, index) -> str:
         """
@@ -218,3 +189,13 @@ class DatasetTask(Task):
                 no_cot_prompt=no_cot_prompt,
                 info=FixedDatasetDataInfo(idx = idx)
             )
+
+
+class GameBasedTask(Task):
+    """Each game will need to implement its own iterate_data method"""
+
+    def __init__(self, language_aspect) -> None:
+        super().__init__(language_aspect = language_aspect)
+
+
+
