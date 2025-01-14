@@ -66,11 +66,6 @@ def build_dataset(
 
     ds = load_dataset(dataset_name, split="train")
 
-    def filter_fn(sample):
-        toxicity = sample["prompt"]["toxicity"]
-        return toxicity is not None and toxicity > 0.3
-
-    ds = ds.filter(filter_fn, batched=False)
 
     input_size = LengthSampler(input_min_text_length, input_max_text_length)
 
@@ -83,7 +78,7 @@ def build_dataset(
             f"Instruction: {cot_strategy}\n\n"
             "Answer:"
         )
-        print(prompt)
+
         
 
 
@@ -127,14 +122,6 @@ ppo_trainer = PPOTrainer(
     data_collator=collator,
     optimizer=optimizer,
 )
-
-
-'''toxicity_model_id = "facebook/roberta-hate-speech-dynabench-r4-target"
-toxicity_tokenizer = RobertaTokenizer.from_pretrained(toxicity_model_id)
-# We load the toxicity model in fp16 to save memory.
-toxicity_model = RobertaForSequenceClassification.from_pretrained(toxicity_model_id, torch_dtype=torch.float16).to(
-    ppo_trainer.accelerator.device
-)'''
 
 
 generation_kwargs = {
