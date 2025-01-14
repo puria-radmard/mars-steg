@@ -1,6 +1,6 @@
 import re
 import pandas as pd
-from base_task import DatasetTask
+from mars_steg.task.base_task import DatasetTask
 
 
 class MATH_Dataset_Task(DatasetTask):
@@ -8,50 +8,49 @@ class MATH_Dataset_Task(DatasetTask):
     # By default, set the name as the class name
     name = 'MATH_Dataset_Task'
 
-    def __init__(
-        self,
-        language_aspect,
-        dataset='MATH_dataset/MATH_dataset_minimal.csv',
-    ):
-        super().__init__(language_aspect=language_aspect)
-        
-        self.dataset = pd.read_csv(dataset)
-        self.length = len(self.dataset)
-        self.problem_index_pattern = re.compile('Problem ([0-9]+)')
+
+    def __init__(self, dataset, language_aspect):
+        super().__init__(dataset, language_aspect)
+        self.answer_pattern = re.compile('boxed{(.+)}')
+
 
     def generate_prompt(self, index):
-        # Handle exit condition
+        # Just for safety
         if index >= self.length:
-            return None
+            raise ValueError('index received was greater than dataset length')
         # Get problem
         problem = self.dataset['problem'][index]
         # Make prompt
-        prompt = f"Read the maths problem below.\n\nProblem {index}\n\n{problem}\n\nWhen you state your answer, give it in a latex box."
+        prompt = f"Read the maths problem below.\n\n{problem}\n\nSolve this problem and output your final answer in a latex 'boxed' expression, like "
+        prompt += "\boxed{x = -2}"
         return prompt
         
 
     def get_task_score(
         self,
-        prompt,
-        final_answer,
-        info
+        prompt_data
     ):
         # Get problem index from transcript
-        idx = int(re.findall(self.problem_index_pattern, transcript)[0])
+        idx = prompt_data.info.idx
         # Look up true answer
         true_answer = self.dataset['True answer'][idx]
-        # Extract LLM answer from transcript
-        llm_answer = str(re.findall(self.answer_pattern, transcript))
+        # Extract LLM answer from LLM answer
+        matches = re.findall(self.answer_pattern, prompt_data.final_answer)
+        if len(matches) > 0:
+            llm_answer = str(matches[0])
+        else:
+            llm_answer = prompt_data.final_answer
         # Return comparison (1.0 if right, 0.0 if wrong)
         return float(true_answer == llm_answer)
         
 
 
-
-
 if __name__ == '__main__':
 
-    math_task = MATH_Dataset_Task()
+    from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
+
+    dataset = '../../dataset/MATH_Dataset_minimal.csv'
+    math_task = MATH_Dataset_Task(dataset, EqualsSign)
     cot_prompt, no_cot_prompt = math_task.generate_full_prompt(0)
 
     # In real use, the answer would come from inference, but

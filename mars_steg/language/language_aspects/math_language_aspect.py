@@ -6,6 +6,7 @@ class EqualsSign(LanguageAspect):
 
     compatible_tasks = {'MATH_Dataset_Task'}
 
+
     def __init__(
         self,
         penalise_substring = '=',
@@ -15,23 +16,25 @@ class EqualsSign(LanguageAspect):
         self.penalise_substring = penalise_substring
         self.max_freq = max_freq
 
+
     def get_language_score(
         self,
-        prompt,
-        cot
+        prompt_data
     ):
 
-        #Note: prompt not used in this case. This is fine; prompt might be important
-        # for other language aspects.  
-
         # Count equals signs in cot
+        cot = prompt_data.cot
         n_equals_signs = cot.count(self.penalise_substring)
+
         # We want to drive down the number of equals signs
         # We will punish based on use up to a maximum number of times
         n_equals_signs = min(n_equals_signs, self.max_freq)
         language_score = float(n_equals_signs/self.max_freq)
         return language_score
     
+
+
+
 
 # Just test code
 if __name__ == '__main__':
