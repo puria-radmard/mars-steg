@@ -1,17 +1,3 @@
-# Copyright 2025 The HuggingFace Team. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 from dataclasses import dataclass, field
 from typing import Optional
 
@@ -23,8 +9,6 @@ from transformers import (
     AutoModelForCausalLM,
     AutoTokenizer,
     HfArgumentParser,
-    RobertaForSequenceClassification,
-    RobertaTokenizer,
     set_seed,
 )
 
@@ -34,29 +18,6 @@ from trl.core import LengthSampler
 
 tqdm.pandas()
 
-########################################################################
-# This is a fully working simple example to use trl with accelerate.
-#
-# This example fine-tunes a GPTJ model to generate less toxic contents
-# by using allenai/real-toxicity-prompts dataset. We use PPO
-#  (proximal policy optimization) to optimize the model.
-# in any of the following settings (with the same script):
-#   - single CPU or single GPU
-#   - multi GPUS (using PyTorch distributed mode)
-#   - multi GPUS (using DeepSpeed ZeRO-Offload stages 1 & 2)
-#   - fp16 (mixed-precision) or fp32 (normal precision)
-#
-# To run it in each of these various modes, first initialize the accelerate
-# configuration with `accelerate config`
-#
-########################################################################
-
-
-# We first define the configuration of the experiment, defining the model, the dataset,
-# the training parameters, and the PPO parameters.
-# Check the default arguments in the `PPOConfig` class for more details.
-# If you want to log with tensorboard, add the kwarg
-# `project_kwargs={"logging_dir": PATH_TO_LOGS}` to the PPOConfig.
 @dataclass
 class ScriptArguments:
     """
@@ -71,7 +32,7 @@ class ScriptArguments:
         default=1, metadata={"help": "the number of gradient accumulation steps"}
     )
     model_save_path: Optional[str] = field(
-        default="./gpt-j-6B-detoxified-long-context-26-shl-1e4-final",
+        default="./gpt2",
         metadata={"help": "the path to save the model"},
     )
 
@@ -90,11 +51,8 @@ config = PPOConfig(
 )
 
 
-# Below is an example function to build the dataset. In our case, we use the IMDB dataset
-# from the `datasets` library. One should customize this function to train the model on
-# its own dataset.
 def build_dataset(
-    config, dataset_name="allenai/real-toxicity-prompts", input_min_text_length=5, input_max_text_length=10
+    config, tokenizer, dataset_name="deepmind/aqua_rat",  max_length=128, cot_strategy="solve it step by step"
 ):
     """
     Build dataset for training. This builds the dataset from `load_dataset`, one should
@@ -108,39 +66,53 @@ def build_dataset(
         dataloader (`torch.utils.data.DataLoader`):
             The dataloader for the dataset.
     """
-    tokenizer = AutoTokenizer.from_pretrained(config.model_name)
-    tokenizer.pad_token = tokenizer.eos_token
-
     ds = load_dataset(dataset_name, split="train")
 
-    def filter_fn(sample):
-        toxicity = sample["prompt"]["toxicity"]
-        return toxicity is not None and toxicity > 0.3
+    def tokenize(element):
+        # Prepare the prompt using the question and options
+        options = [str(option) for option in element['options']]
+        
+        prompt = (
+            f"Question: {element['question']}\n"
+            f"Options: {', '.join(options)}\n"
+            f"Instruction: {cot_strategy}\n\n"
+            "Answer:"
+        )
+        
+        # Tokenize the prompt
+        outputs = tokenizer(
+            prompt,
+            truncation=True,
+            max_length=max_length,
+            padding="max_length",
+        )
 
-    ds = ds.filter(filter_fn, batched=False)
+        # Remove original fields (question, options, rationale, etc.) from the result
+        result = {
+            "input_ids": outputs["input_ids"],
+            "attention_mask": outputs["attention_mask"],
+            "labels": outputs["input_ids"],  # If you're using input_ids as labels
+        }
+        
+        return result
+    
+    # Apply the tokenization function to the dataset
+    tokenized_dataset = ds.map(
+        tokenize,
+        batched=False,
+        remove_columns=["question", "options", "rationale", "correct"],  # Remove unnecessary fields
+    )
 
-    input_size = LengthSampler(input_min_text_length, input_max_text_length)
+    tokenized_dataset.set_format(type="torch")
 
-    def tokenize(sample):
-        prompt = sample["prompt"]["text"]
-        continuation = sample["continuation"]["text"]
+    tokenized_dataset = tokenized_dataset.train_test_split(test_size=0.2, shuffle=False)["train"]
 
-        sample["input_ids"] = tokenizer.encode(prompt + continuation)[: input_size()]
-        sample["query"] = tokenizer.decode(sample["input_ids"])
-        return sample
-
-    ds = ds.map(tokenize, batched=False)
-    ds.set_format(type="torch")
-
-    ds = ds.train_test_split(test_size=0.2, shuffle=False)["train"]
-
-    return ds
+    return tokenized_dataset
 
 
-# We retrieve the dataloader by calling the `build_dataset` function.
-min_input_length = 30
-max_input_length = 40
-dataset = build_dataset(config, input_min_text_length=min_input_length, input_max_text_length=max_input_length)
+tokenizer = AutoTokenizer.from_pretrained(config.model_name)
+tokenizer.add_special_tokens({'pad_token': '[PAD]'})
+dataset = build_dataset(config, tokenizer=tokenizer)
 
 
 def collator(data):
@@ -150,18 +122,13 @@ def collator(data):
 # set seed before initializing value head for deterministic eval
 set_seed(config.seed)
 
-model = AutoModelForCausalLM.from_pretrained(config.model_name, torch_dtype=torch.bfloat16)
+model = AutoModelForCausalLM.from_pretrained(config.model_name)
 model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
 
 ref_model = create_reference_model(model, num_shared_layers=3)
 
 # We make sure to use `Adam` optimizer on the model parameters that require gradients.
 optimizer = Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.learning_rate)
-
-# GPT-2 / GPT-J tokenizer has a pad token, but it is not eos_token by default. We need to set it to eos_token.
-# only for this model.
-tokenizer = AutoTokenizer.from_pretrained(config.model_name)
-tokenizer.pad_token = tokenizer.eos_token
 
 # We then build the PPOTrainer, passing the model, the reference model, the tokenizer
 ppo_trainer = PPOTrainer(
@@ -173,14 +140,6 @@ ppo_trainer = PPOTrainer(
     data_collator=collator,
     optimizer=optimizer,
 )
-
-
-'''toxicity_model_id = "facebook/roberta-hate-speech-dynabench-r4-target"
-toxicity_tokenizer = RobertaTokenizer.from_pretrained(toxicity_model_id)
-# We load the toxicity model in fp16 to save memory.
-toxicity_model = RobertaForSequenceClassification.from_pretrained(toxicity_model_id, torch_dtype=torch.float16).to(
-    ppo_trainer.accelerator.device
-)'''
 
 
 generation_kwargs = {
