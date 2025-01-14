@@ -26,7 +26,7 @@ class ScriptArguments:
     """
     The name of the Casual LM model we wish to fine-tune with PPO
     """
-    model_name: Optional[str] = field(default="google/gemma-2-2b-it", metadata={"help": "the model name"})
+    model_name: Optional[str] = field(default="meta-llama/Llama-3.1-8B-instruct", metadata={"help": "the model name"})
     log_with: Optional[str] = field(default=None, metadata={"help": "use 'wandb' to log with wandb"})
     learning_rate: Optional[float] = field(default=(1.47e-5) * 2, metadata={"help": "the learning rate"})
     mini_batch_size: Optional[int] = field(default=1, metadata={"help": "the PPO minibatch size"})
@@ -59,10 +59,14 @@ def build_dataset(tokenizer ,dataset_name="deepmind/aqua_rat", cot_strategy="sol
         )
 
         messages = [
+            {"role": "system", "content": "prompt"},
             {"role": "user", "content": prompt},
         ]
+        #messages = [
+        #    {"role": "user", "content": prompt},
+        #] Gemma
 
-        sample = tokenizer.apply_chat_template(messages, return_tensors="pt", return_dict=True)
+        sample = tokenizer.apply_chat_template(messages, return_tensors="pt",add_generation_prompt=True, return_dict=True)
         return sample
 
     train_ds = train_ds.map(tokenize, batched=False)
@@ -100,7 +104,7 @@ if __name__ == "__main__":
 
     optimizer = Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.learning_rate)
 
-    tokenizer = AutoTokenizer.from_pretrained(config.model_name)
+    tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-3.1-8B")
     tokenizer.pad_token = tokenizer.eos_token
     # Perform a train-test split explicitly on the loaded dataset
     train_dataset, test_dataset = build_dataset(tokenizer)
@@ -119,8 +123,10 @@ if __name__ == "__main__":
 
     generation_kwargs = {
         "min_length": 30,
-        "top_k": 0.0,
-        "top_p": 1.0,
+        #"top_k": 0.0,
+        #"top_p": 1.0,
+        "num_beams": 3,
+        "temperature":0.3,
         "do_sample": True,
         "pad_token_id": tokenizer.eos_token_id,
         "max_new_tokens":512,
@@ -142,8 +148,8 @@ if __name__ == "__main__":
         rewards = []
         for text in texts:
             penzalization = 0.0
-            if "a" in text:
-                penalization = text.count("a")
+            if "*" in text:
+                penalization = text.count("*")
                 penzalization -= penalization
   
         
