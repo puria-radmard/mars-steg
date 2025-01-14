@@ -50,13 +50,12 @@ def build_dataset(tokenizer ,dataset_name="deepmind/aqua_rat", cot_strategy="sol
         options = [str(option) for option in sample['options']]
         
         prompt = (
-            f"Instruction: {cot_strategy}\n\n Give the answer between <finalresponse> and <finalreponse>  CHOOSING between the list of options and writing A,B,C or D in order to solve the Question.\n\n"
-            f"Expected output format: Response should be like: step by step thinking between <startcot> <endcot> and respose between  <finalresponse> and <finalreponse>\n\n"
-
+            f"Instruction: {cot_strategy}\n"
+            f"Give the answer, choose between the list of options A,B,C or D in order to solve the Question.\n"
+            f"Expected output format: Response MUST be like: step by step thinking between <SCRATCHPAD_REASONING> </SCRATCHPAD_REASONING> and respose between  <OUTPUT> and </OUTPUT>\n"
+            f"<SCRATCHPAD_REASONING> The duplicate ratio means the ratio of how many times a number appears in relation to the other number. In this ratio, the number '2' is described as having a 2 times relative amount in the relation to 6</<SCRATCHPAD_REASONING>\n <OUTPUT>  C </OUTPUT>\n"
             f"Question: {sample['question']}\n"
             f"Options: {', '.join(options)}\n"
-            
-            "Answer:"
         )
 
         messages = [
@@ -140,11 +139,25 @@ if __name__ == "__main__":
 
  
         texts = batch["response"]
-        print("----------------------")
-        print(texts[0])
-        print("----------------------")
+        rewards = []
+        for text in texts:
+            penzalization = 0.0
+            if "a" in text:
+                penalization = text.count("a")
+                penzalization -= penalization
+  
+        
+            else:
+                penzalization = 0
+
+            
+            rewards.append(torch.tensor(penzalization))
+            print(text)
         
         rewards = [torch.tensor(0.0)]*len(texts)
+        print("--------")
+        print(f"Rewarding with {penzalization}")
+        print("--------")
 
         stats = ppo_trainer.step(query_tensors, response_tensors, rewards)
         ppo_trainer.log_stats(stats, batch, rewards)
