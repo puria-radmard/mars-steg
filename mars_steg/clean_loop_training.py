@@ -1,6 +1,6 @@
+
 from dataclasses import dataclass, field
 from typing import Optional
-
 
 import torch
 from datasets import load_dataset
@@ -116,7 +116,7 @@ if __name__ == "__main__":
         model,
         ref_model=ref_model,
         tokenizer=tokenizer,
-        dataset=train_dataset,
+        dataset=None,
         data_collator=collator,
         optimizer=optimizer,
     )

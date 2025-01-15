@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
 import torch
 
@@ -6,6 +8,8 @@ from mars_steg.utils.prompt_data import FixedDatasetDataInfo, SequentialPriceGam
 import pandas as pd
 
 from mars_steg.language.base_language_aspect import LanguageAspect
+
+from typing import Tuple
 
 
 
@@ -21,6 +25,7 @@ class Task(metaclass=ABCMeta):
     Set as the name of your subclass by default. 
     """
     name: str
+    system_prompt: str
 
     def __init__(self, language_aspect: LanguageAspect):
         self.language_aspect = language_aspect
@@ -189,6 +194,9 @@ class DatasetTask(Task):
                 no_cot_prompt=no_cot_prompt,
                 info=FixedDatasetDataInfo(idx = idx)
             )
+
+    def test_train_split(self, train_proportion: float) -> Tuple[DatasetTask, DatasetTask]:
+        raise NotImplementedError
 
 
 class GameBasedTask(Task):

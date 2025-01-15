@@ -9,6 +9,9 @@ class SequentialPriceTask(GameBasedTask):
 
     name = 'SequentialPriceTask'
 
+    # TODO
+    system_prompt = 'asdf'
+
     def __init__(self, language_aspect, penalise_in_prompt=False, profit_maximisation=False,
                  minimum_margin=5):
         super().__init__(language_aspect=language_aspect)

@@ -19,6 +19,13 @@ from mars_steg.task.tasks.math_dataset_task import MATH_Dataset_Task
 from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
 
 
+all_dataset = MATH_Dataset_Task()
+
+for prompt_data in tqdm(all_dataset.iterate_data(shuffle = True)):
+
+    import pdb; pdb.set_trace()
+    pass
+
 
 ## Set-up before __name__ check in case we want to import this stuff from somewhere else
 
@@ -62,43 +69,47 @@ ppo_trainer = PPOTrainer(
 if __name__ == '__main__':
 
 
-    # TODO: Train-test split here!
-    train_dataset = MATH_Dataset_Task()
-    test_dataset = MATH_Dataset_Task()
-    generation_kwargs = GenerationKwargs.from_yaml("generation_kwargs.yaml").to_dict()
+    # TODO: Train-test split here! --> Mustafa
+    all_dataset = MATH_Dataset_Task()
+    train_dataset, test_dataset = all_dataset.split(train_proportion = 0.7)
+    generation_kwargs = GenerationKwargs.from_yaml("mars_steg/configs//.yaml").to_dict()
     generation_kwargs["batch_size"] = script_args.batch_size
 
-    #TODO datasets obejcts shoudl have a system_prompt attribute to give the system a prompt to use
+    # TODO: task objects should have a system_prompt attribute to give the system a prompt to use
+    # TODO: get model-specific system prompt
+    # -->  Connor
     messages = [
         {"role": "system", "content": f"{train_dataset.system_prompt}"},
     ]
 
+
     # TODO (low prioirity): if we are doing more than 1 epoch (here epoch = repeat over all data, so probably not doing more than 1), 
         # we have to shuffle the data multiple times.
         # We should make sure this is reproducable
+    # --> later
     
 
     for _ in range(script_args.num_train_epochs):
 
         batch_ticker = 1
         
-        # TODO: incorporate tqdm here
         for prompt_data in tqdm(train_dataset.iterate_data(shuffle = True)):
 
-            # TODO: Puria has no idea how this works
+            # TODO: message wrapping config --> Connor
             messages.append({"role": "user", "content": prompt_data.cot_prompt})
             formatted_chat = tokenizer.apply_chat_template(messages, return_tensors="pt",add_generation_prompt=True, return_dict=True)
-            # 3: Tokenize the chat (This can be combined with the previous step using tokenize=True)
+
+            # Tokenize the chat (This can be combined with the previous step using tokenize=True)
             inputs = tokenizer(formatted_chat, return_tensors="pt", add_special_tokens=False)
             print("Tokenized inputs:\n", inputs)
+
             # Generate the with-CoT transcript (no-CoT transcript not needed during training)
-            # TODO: We are replacing `*query`` here. This will be a combination of prompt_data.cot_prompt and any other data that is needed (put this in prompt_data.info)
             transcript_responses = ppo_trainer.generate(inputs["input_ids"], **generation_kwargs)
             decoded_responses = [tokenizer.decode(r.squeeze()) for r in transcript_responses]
 
-            # TODO: some tokenisation of the response here! i.e. to replicate `batch["response"] = [tokenizer.decode(r.squeeze()) for r in response_tensors]`
-            # TODO: extraction of answer and cot (because cot_mode = True) parts of the transcript
-            prompt_data.register_transcript(transcript_responses, cot_mode = True)
+            # TODO: extraction of answer and cot (because cot_mode = True) parts of the transcript --> Connor
+            prompt_data.cot_transcript = decoded_responses
+            prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = extract_parts(decoded_responses)    # TODO: Connor
 
             composite_reward, task_score, language_score = train_dataset.reward_from_transcript(prompt_data)
 
@@ -115,9 +126,10 @@ if __name__ == '__main__':
             ppo_trainer.log_stats(stats, inputs, composite_reward)
             
             # Save model every 100 batchs
-            if batch_ticker % 100 == 0:
+            if batch_ticker % save_frequency == 0:
                 if ppo_trainer.accelerator.is_main_process:
                     ppo_trainer.save_pretrained(script_args.model_save_path)
+
             batch_ticker += 1
 
 

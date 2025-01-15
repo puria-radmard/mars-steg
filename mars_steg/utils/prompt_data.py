@@ -47,18 +47,10 @@ class PromptData:
     no_cot_transcript: Optional[str] = None
 
     # After (TODO) separates answers into cot and response
-    cot: Optional[str] = None
-    final_answer: Optional[str] = None
+    extracted_cot: Optional[str] = None
+    extracted_final_answer_with_cot: Optional[str] = None
+    extracted_final_answer_without_cot: Optional[str] = None
 
-    def register_transcript(self, transcript: str, cot_mode: bool):
-        if cot_mode:
-            self.cot_transcript = transcript
-        else:
-            self.no_cot_transcript = transcript
-
-    def register_response_extraction(self, extraction: str, cot_mode: bool):
-        raise NotImplementedError("2025.01.15 - Puria thinks this is where Connor's CoT extraction should happen, but happy to be corrected")
-        if cot_mode:
-            self.cot = extraction
-        else:
-            self.final_answer = extraction
+    # TODO --> Puria after wandb
+    def save(self,):
+        raise NotImplementedError
