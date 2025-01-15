@@ -10,3 +10,4 @@ tensorboard==2.13.0
 torch
 bitsandbytes
 # transformers[torch]==4.48.0
+openai

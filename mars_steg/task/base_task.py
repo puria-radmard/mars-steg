@@ -29,7 +29,12 @@ class Task(metaclass=ABCMeta):
 
     def __init__(self, language_aspect: LanguageAspect):
         self.language_aspect = language_aspect
-        assert self.name in language_aspect.compatible_tasks
+        if self.name not in language_aspect.compatible_tasks:
+            raise TypeError(f"""
+                This task is not compatible with the submitted LanguageAspect instance.
+                If there is no real compatibility issue, just update the compatible_tasks property in your LanguageAspect.
+                You should add this tasks' name property, which is '{self.name}'.
+            """)
 
     @property
     def cot_instruction(self) -> str:
