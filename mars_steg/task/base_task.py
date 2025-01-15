@@ -196,9 +196,12 @@ class DatasetTask(Task):
             )
 
     def test_train_split(self, train_proportion: float) -> Tuple[DatasetTask, DatasetTask]:
-        raise NotImplementedError
-
-
+        assert 0 < train_proportion < 1, "train_proportion must be between 0 and 1"
+        train_size = int(self.length * train_proportion)
+        train_dataset = self.dataset.iloc[:train_size]
+        test_dataset = self.dataset.iloc[train_size:]
+        return DatasetTask(train_dataset, self.language_aspect), DatasetTask(test_dataset, self.language_aspect)
+        
 class GameBasedTask(Task):
     """Each game will need to implement its own iterate_data method"""
 
