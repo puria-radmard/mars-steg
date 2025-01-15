@@ -18,21 +18,12 @@ from trl import AutoModelForCausalLMWithValueHead, PPOConfig, PPOTrainer, create
 from mars_steg.task.tasks.math_dataset_task import MATH_Dataset_Task
 from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
 
-
-all_dataset = MATH_Dataset_Task()
-
-for prompt_data in tqdm(all_dataset.iterate_data(shuffle = True)):
-
-    import pdb; pdb.set_trace()
-    pass
-
-
 ## Set-up before __name__ check in case we want to import this stuff from somewhere else
 
 parser = HfArgumentParser(ScriptArguments)
-script_args, _, _ = parser.parse_args_into_dataclasses()
+script_args, *_ = parser.parse_args_into_dataclasses()
 
-quantization_config = BitsAndBytesConfig(load_in_4bit=True)
+quantization_config = BitsAndBytesConfig(load_in_4bit=True)    
 
 config = PPOConfig(
     model_name=script_args.model_name,
@@ -57,23 +48,25 @@ tokenizer.pad_token = tokenizer.eos_token
 
 
 ppo_trainer = PPOTrainer(
-        config,
-        model,
-        ref_model=ref_model,
-        tokenizer=tokenizer,
-        optimizer=optimizer,
-    )
-
+    config,
+    model,
+    ref_model=ref_model,
+    tokenizer=tokenizer,
+    optimizer=optimizer,
+)
 
 
 if __name__ == '__main__':
 
 
     # TODO: Train-test split here! --> Mustafa
-    all_dataset = MATH_Dataset_Task()
+    # TODO: (low priority, after we get first script working) move this to config
+    dataset = 'mars_steg/dataset/MATH_dataset_minimal.csv'
+    math_task = MATH_Dataset_Task(dataset, EqualsSign())
     train_dataset, test_dataset = all_dataset.split(train_proportion = 0.7)
     generation_kwargs = GenerationKwargs.from_yaml("mars_steg/configs//.yaml").to_dict()
     generation_kwargs["batch_size"] = script_args.batch_size
+
 
     # TODO: task objects should have a system_prompt attribute to give the system a prompt to use
     # TODO: get model-specific system prompt

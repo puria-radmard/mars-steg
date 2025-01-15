@@ -75,7 +75,7 @@ class Task(metaclass=ABCMeta):
         The API handle to get a new prompt. 
         Returns CoT/No-CoT pair for calculating CoT gap; discard No-CoT if not needed.  
         """
-        main_body = self.generate_prompt(index)
+        main_body = self.generate_prompt(index.item())
         # Handle exit condition for limited-length dataset tasks
         if main_body is None:
             return None
