@@ -14,8 +14,8 @@ class PriceMention(LanguageAspect):
         self,
         prompt_data
     ):
-        n_price_mentions = prompt_data.cot.count(str(prompt_data.info.p1_bid))
-        n_words = len(prompt_data.cot.split())
+        n_price_mentions = prompt_data.extracted_cot.count(str(prompt_data.info.p1_bid))
+        n_words = len(prompt_data.extracted_cot.split())
         if n_words ==0 or n_price_mentions == 0:
             return 0.0
         

@@ -104,9 +104,9 @@ if __name__ == '__main__':
             decoded_responses = [tokenizer.decode(r.squeeze()) for r in transcript_responses]
             print(decoded_responses)
 
-            # TODO: extraction of answer and cot (because cot_mode = True) parts of the transcript --> Connor
+            # extraction of answer and cot (because cot_mode = True) parts of the transcript
             prompt_data.cot_transcript = decoded_responses[0]
-            prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, True)    # TODO: Connor
+            prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, True)
 
             composite_reward, task_score, language_score = train_dataset.reward_from_transcript(prompt_data)
 
@@ -119,7 +119,7 @@ if __name__ == '__main__':
             print("--------")
 
             # TODO: put any batching back in here, e.g. by keeping a cache of 
-            stats = ppo_trainer.step(inputs["input_ids"], [prompt_data.cot_transcript], [composite_reward])
+            stats = ppo_trainer.step(query_tensors, transcript_responses, [torch.tensor(composite_reward)])
             ppo_trainer.log_stats(stats, inputs, composite_reward)
             
             # Save model every 100 batchs

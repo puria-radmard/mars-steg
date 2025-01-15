@@ -23,7 +23,7 @@ class EqualsSign(LanguageAspect):
     ):
 
         # Count equals signs in cot
-        cot = prompt_data.cot
+        cot = prompt_data.extracted_cot
         n_equals_signs = cot.count(self.penalise_substring)
 
         # We want to drive down the number of equals signs
