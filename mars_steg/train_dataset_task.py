@@ -16,6 +16,7 @@ from trl import AutoModelForCausalLMWithValueHead, PPOConfig, PPOTrainer, create
 
 from mars_steg.task.tasks.math_dataset_task import MATH_Dataset_Task
 from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
+from mars_steg.utils.common import parse_model_output
 
 
 ## Set-up before __name__ check in case we want to import this stuff from somewhere else
@@ -108,7 +109,7 @@ if __name__ == '__main__':
 
             # TODO: extraction of answer and cot (because cot_mode = True) parts of the transcript --> Connor
             prompt_data.cot_transcript = decoded_responses
-            prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = extract_parts(decoded_responses)    # TODO: Connor
+            prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(decoded_responses, True)    # TODO: Connor
 
             composite_reward, task_score, language_score = train_dataset.reward_from_transcript(prompt_data)
 
