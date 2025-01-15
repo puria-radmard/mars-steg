@@ -15,7 +15,7 @@ class MATH_Dataset_Task(DatasetTask):
 
     def __init__(self, dataset, language_aspect):
         super().__init__(dataset, language_aspect)
-        self.answer_pattern = re.compile('boxed{(.+)}')
+        self.answer_pattern = re.compile('boxed{(.+)}', re.S)
 
 
     def generate_prompt(self, index):
@@ -50,6 +50,7 @@ class MATH_Dataset_Task(DatasetTask):
         )
 
         # Extract LLM answer from LLM answer
+        import pdb; pdb.set_trace()
         matches = re.findall(self.answer_pattern, answer)
         if len(matches) > 0:
             llm_answer = str(matches)

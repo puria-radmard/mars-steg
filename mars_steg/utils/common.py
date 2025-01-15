@@ -26,9 +26,7 @@ def set_seed(seed: int = 42) -> None:
 
 
 class LLMTranscriptExtractionError(Exception):
-    def __init__(self, message) -> None:
-        super().__init__()
-        self.message = message
+    pass
 
 
 def parse_model_output(model_output: str, cot: bool = False) -> tuple[Optional[str], str]:

@@ -75,7 +75,7 @@ class Task(metaclass=ABCMeta):
         The API handle to get a new prompt. 
         Returns CoT/No-CoT pair for calculating CoT gap; discard No-CoT if not needed.  
         """
-        main_body = self.generate_prompt(index.item())
+        main_body = self.generate_prompt(index)
         # Handle exit condition for limited-length dataset tasks
         if main_body is None:
             return None
@@ -189,9 +189,9 @@ class DatasetTask(Task):
         if shuffle:
             order_of_indices = torch.randperm(self.length) 
         else:
-            order_of_indices = range(self.length)
+            order_of_indices = torch.tensor(range(self.length))
         for idx in order_of_indices:
-            cot_prompt, no_cot_prompt = self.generate_full_prompt(idx)
+            cot_prompt, no_cot_prompt = self.generate_full_prompt(idx.item())
             yield PromptData(
                 cot_prompt=cot_prompt,
                 no_cot_prompt=no_cot_prompt,
