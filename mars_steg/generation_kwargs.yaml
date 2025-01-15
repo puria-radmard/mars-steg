@@ -1,0 +1,10 @@
+min_length: 0
+top_k: 0.0
+top_p: 1.0
+num_beams: 1
+temperature: 1.0
+do_sample: false
+pad_token_id: 0
+max_new_tokens: 512
+return_prompt: False
+generate_ref_response: False
