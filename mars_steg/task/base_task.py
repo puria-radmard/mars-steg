@@ -3,7 +3,7 @@ from __future__ import annotations
 from abc import ABCMeta, abstractmethod
 import torch
 
-from mars_steg.utils.prompt_data import FixedDatasetDataInfo, SequentialPriceGameDataInfo, PromptData
+from mars_steg.utils.prompt_data import FixedDatasetDataInfo, PromptData
 
 import pandas as pd
 
@@ -178,6 +178,9 @@ class DatasetTask(Task):
         self.dataset_name = dataset
         self.dataset = pd.read_csv(dataset)
         self.length = len(self.dataset)
+
+    def generate_prompt_from_idx(self, idx: int) -> FixedDatasetDataInfo:
+        return FixedDatasetDataInfo(idx = idx)
     
     def iterate_data(self, shuffle = True):
         """
@@ -195,7 +198,7 @@ class DatasetTask(Task):
             yield PromptData(
                 cot_prompt=cot_prompt,
                 no_cot_prompt=no_cot_prompt,
-                info=FixedDatasetDataInfo(idx = idx.item())
+                info=self.generate_prompt_from_idx(idx.item())
             )
 
     def test_train_split(self, train_proportion: float) -> Tuple[DatasetTask, DatasetTask]:

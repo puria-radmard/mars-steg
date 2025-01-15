@@ -14,24 +14,9 @@ class DataInfo(ABC):
 class FixedDatasetDataInfo(DataInfo):
     idx: int
 
-
 @dataclass
-class SequentialPriceGameDataInfo(DataInfo):
+class SequentialPriceTaskDataInfo(FixedDatasetDataInfo):
     p1_bid: float
-    p2_true_cost: float
-    raw_material_cost: float
-    base_labor_hours: float
-    defect_rate: float
-    efficiency_factor: float
-    annual_volume: float
-    inventory_days: float
-    labor_rate: float
-    machine_cost: float
-    machine_life_years: float
-    daily_storage_cost: float
-    penalise_in_prompt: bool
-    profit_maximisation: bool
-    
 
 
 @dataclass
