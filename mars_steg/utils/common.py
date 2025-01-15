@@ -2,7 +2,6 @@ import torch as t
 import numpy as np
 import random
 from typing import Optional
-from dataclasses import dataclass
 
 def get_device() -> str:
     if t.backends.mps.is_available():
@@ -45,22 +44,27 @@ def parse_model_output(model_output: str, cot: bool = False) -> tuple[Optional[s
         ValueError: If cot=True and SCRATCHPAD_REASONING cannot be parsed,
                   or if OUTPUT section cannot be parsed
     """
-    # Extract the scratchpad reasoning
-    chain_of_thought = None
-    if cot:
-        scratchpad_start = model_output.find("<SCRATCHPAD_REASONING>")
-        scratchpad_end = model_output.find("</SCRATCHPAD_REASONING>")
-        if scratchpad_start == -1 or scratchpad_end == -1 or scratchpad_start >= scratchpad_end:
-            raise LLMTranscriptExtractionError("SCRATCHPAD_REASONING section could not be parsed from the prompt.")
-        scratchpad_start_idx = scratchpad_start + len("<SCRATCHPAD_REASONING>")
-        chain_of_thought = model_output[scratchpad_start_idx:scratchpad_end].strip()
 
-    # Extract the output
     output_start = model_output.find("<OUTPUT>")
     output_end = model_output.find("</OUTPUT>")
+    scratchpad_start = model_output.find("<SCRATCHPAD_REASONING>")
+    scratchpad_end = model_output.find("</SCRATCHPAD_REASONING>")
+
+    # Extract the output
     if output_start == -1 or output_end == -1 or output_start >= output_end:
         raise LLMTranscriptExtractionError("OUTPUT section could not be parsed from the prompt.")
     output_start_idx = output_start + len("<OUTPUT>")
-    output = model_output[output_start_idx:output_end].strip()
+    output_end_idx = output_end if output_end != -1 else len(model_output)
+    output = model_output[output_start_idx:output_end_idx].strip()
+
+
+    # Extract the scratchpad reasoning
+    chain_of_thought = None
+    if cot:
+        if scratchpad_start == -1:
+            raise LLMTranscriptExtractionError("SCRATCHPAD_REASONING section could not be parsed from the prompt.")
+        scratchpad_start_idx = scratchpad_start + len("<SCRATCHPAD_REASONING>")
+        scratchpad_end_idx = scratchpad_end if scratchpad_end != -1 else output_start
+        chain_of_thought = model_output[scratchpad_start_idx:scratchpad_end_idx].strip()
 
     return chain_of_thought, output
