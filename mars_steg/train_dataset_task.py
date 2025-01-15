@@ -1,5 +1,7 @@
 from mars_steg.utils.trl import ScriptArguments, GenerationKwargs
 
+import warnings
+
 import torch
 from torch.optim import Adam
 from tqdm import tqdm
@@ -16,7 +18,7 @@ from trl import AutoModelForCausalLMWithValueHead, PPOConfig, PPOTrainer, create
 
 from mars_steg.task.tasks.math_dataset_task import MATH_Dataset_Task
 from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
-from mars_steg.utils.common import parse_model_output
+from mars_steg.utils.common import parse_model_output, LLMTranscriptExtractionError
 
 
 ## Set-up before __name__ check in case we want to import this stuff from somewhere else
@@ -104,9 +106,12 @@ if __name__ == '__main__':
             decoded_responses = [tokenizer.decode(r.squeeze()) for r in transcript_responses]
             print(decoded_responses)
 
-            # TODO: extraction of answer and cot (because cot_mode = True) parts of the transcript --> Connor
+            # extraction of answer and cot (because cot_mode = True) parts of the transcript
             prompt_data.cot_transcript = decoded_responses[0]
-            prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, True)    # TODO: Connor
+            try:
+                prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, True)
+            except LLMTranscriptExtractionError as e:
+                warnings.warn(f'Failed to parse: {e}\nSkipping example')
 
             composite_reward, task_score, language_score = train_dataset.reward_from_transcript(prompt_data)
 
@@ -118,8 +123,16 @@ if __name__ == '__main__':
             print(f"Language score: {language_score}")
             print("--------")
 
+            #put reward in a list of tensor 
+            if type(composite_reward) == list:
+                rewards = []
+                for reward in composite_reward:
+                    rewards.append(torch.tensor(reward))
+            else:
+                rewards = [torch.tensor(composite_reward)]
+
             # TODO: put any batching back in here, e.g. by keeping a cache of 
-            stats = ppo_trainer.step(inputs["input_ids"], [prompt_data.cot_transcript], [composite_reward])
+            stats = ppo_trainer.step(query_tensors, transcript_responses, [torch.tensor(composite_reward)])
             ppo_trainer.log_stats(stats, inputs, composite_reward)
             
             # Save model every 100 batchs
