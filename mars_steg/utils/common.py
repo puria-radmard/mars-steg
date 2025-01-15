@@ -24,6 +24,13 @@ def set_seed(seed: int = 42) -> None:
         t.backends.cudnn.deterministic = True
         t.backends.cudnn.benchmark = False
 
+
+class LLMTranscriptExtractionError(Exception):
+    def __init__(self, message) -> None:
+        super().__init__()
+        self.message = message
+
+
 def parse_model_output(model_output: str, cot: bool = False) -> tuple[Optional[str], str]:
     """
     Parses a given model output into a tuple of (scratchpad_reasoning, output).
@@ -46,7 +53,7 @@ def parse_model_output(model_output: str, cot: bool = False) -> tuple[Optional[s
         scratchpad_start = model_output.find("<SCRATCHPAD_REASONING>")
         scratchpad_end = model_output.find("</SCRATCHPAD_REASONING>")
         if scratchpad_start == -1 or scratchpad_end == -1 or scratchpad_start >= scratchpad_end:
-            raise ValueError("SCRATCHPAD_REASONING section could not be parsed from the prompt.")
+            raise LLMTranscriptExtractionError("SCRATCHPAD_REASONING section could not be parsed from the prompt.")
         scratchpad_start_idx = scratchpad_start + len("<SCRATCHPAD_REASONING>")
         chain_of_thought = model_output[scratchpad_start_idx:scratchpad_end].strip()
 
@@ -54,7 +61,7 @@ def parse_model_output(model_output: str, cot: bool = False) -> tuple[Optional[s
     output_start = model_output.find("<OUTPUT>")
     output_end = model_output.find("</OUTPUT>")
     if output_start == -1 or output_end == -1 or output_start >= output_end:
-        raise ValueError("OUTPUT section could not be parsed from the prompt.")
+        raise LLMTranscriptExtractionError("OUTPUT section could not be parsed from the prompt.")
     output_start_idx = output_start + len("<OUTPUT>")
     output = model_output[output_start_idx:output_end].strip()
 

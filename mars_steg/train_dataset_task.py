@@ -1,5 +1,7 @@
 from mars_steg.utils.trl import ScriptArguments, GenerationKwargs
 
+import warnings
+
 import torch
 from torch.optim import Adam
 from tqdm import tqdm
@@ -16,7 +18,7 @@ from trl import AutoModelForCausalLMWithValueHead, PPOConfig, PPOTrainer, create
 
 from mars_steg.task.tasks.math_dataset_task import MATH_Dataset_Task
 from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
-from mars_steg.utils.common import parse_model_output
+from mars_steg.utils.common import parse_model_output, LLMTranscriptExtractionError
 
 
 ## Set-up before __name__ check in case we want to import this stuff from somewhere else
@@ -106,7 +108,10 @@ if __name__ == '__main__':
 
             # extraction of answer and cot (because cot_mode = True) parts of the transcript
             prompt_data.cot_transcript = decoded_responses[0]
-            prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, True)
+            try:
+                prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, True)
+            except LLMTranscriptExtractionError as e:
+                warnings.warn(f'Failed to parse: {e}\nSkipping example')
 
             composite_reward, task_score, language_score = train_dataset.reward_from_transcript(prompt_data)
 
