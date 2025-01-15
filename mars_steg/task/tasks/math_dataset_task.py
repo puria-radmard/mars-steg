@@ -53,12 +53,8 @@ if __name__ == '__main__':
     math_task = MATH_Dataset_Task(dataset, EqualsSign)
     cot_prompt, no_cot_prompt = math_task.generate_full_prompt(0)
 
-    # In real use, the answer would come from inference, but
-    # Blue Peter style, here is one I made earlier (GPT-4o-mini)
-    analysis_file = 'MATH_dataset/MATH_GPT-4o-mini_analysis.csv'
-    analysis_df = pd.read_csv(analysis_file)
-    transcript = f"{cot_prompt}\n\n{analysis_df['answer'][0]}"
-    print(transcript)
+
+    
 
     task_score = math_task.get_task_score(transcript)
 
