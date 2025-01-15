@@ -25,7 +25,7 @@ from mars_steg.utils.common import parse_model_output, LLMTranscriptExtractionEr
 
 parser = HfArgumentParser(ScriptArguments)
 script_args, *_ = parser.parse_args_into_dataclasses()
-save_frequency = 100
+save_frequency = 100 # WE SHOULD PUT THIS ON YAML
 
 quantization_config = BitsAndBytesConfig(load_in_4bit=True)    
 
@@ -42,7 +42,7 @@ set_seed(config.seed)
 
 model = AutoModelForCausalLM.from_pretrained(config.model_name, torch_dtype=torch.bfloat16,quantization_config=quantization_config,)
 model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
-ref_model = create_reference_model(model, num_shared_layers=3)
+ref_model = create_reference_model(model, num_shared_layers=30) # WE SHOULD NUMBER SHARED LAYERS IN YAML
 
 optimizer = Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.learning_rate)
 
