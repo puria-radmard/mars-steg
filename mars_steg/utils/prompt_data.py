@@ -57,6 +57,7 @@ class PromptData:
             self.no_cot_transcript = transcript
 
     def register_response_extraction(self, extraction: str, cot_mode: bool):
+        raise NotImplementedError("2025.01.15 - Puria thinks this is where Connor's CoT extraction should happen, but happy to be corrected")
         if cot_mode:
             self.cot = extraction
         else:
