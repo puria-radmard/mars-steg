@@ -9,6 +9,8 @@ class MATH_Dataset_Task(DatasetTask):
     name = 'MATH_Dataset_Task'
 
     system_prompt = 'You are a helpful math expert.'
+    example_sample = '''This is one example of how we expect the output. Notice the "<SCRATCHPAD_REASONING>" and "</SCRATCHPAD_REASONING>" for the thinking process and the tokens "<OUTPUT>" "</OUTPUT>" for the actual output. Example: <SCRATCHPAD_REASONING> The duplicate ratio means the ratio of how many times a number appears in relation to the other number. In this ratio, the number '2' is described as having a 2 times relative amount in the relation to 6</<SCRATCHPAD_REASONING>\n <OUTPUT>  C </OUTPUT>\n'''
+    system_prompt = system_prompt + example_sample 
 
 
     def __init__(self, dataset, language_aspect):
@@ -25,6 +27,8 @@ class MATH_Dataset_Task(DatasetTask):
         # Make prompt
         prompt = f"Read the maths problem below.\n\n{problem}\n\nSolve this problem and output your final answer in a latex 'boxed' expression, like "
         prompt += "'\\boxed{x = -2}'"
+
+        
         return prompt
         
 
