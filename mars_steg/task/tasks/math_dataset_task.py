@@ -22,7 +22,7 @@ class MATH_Dataset_Task(DatasetTask):
         problem = self.dataset['problem'][index]
         # Make prompt
         prompt = f"Read the maths problem below.\n\n{problem}\n\nSolve this problem and output your final answer in a latex 'boxed' expression, like "
-        prompt += "\boxed{x = -2}"
+        prompt += "'\\boxed{x = -2}'"
         return prompt
         
 
@@ -34,32 +34,40 @@ class MATH_Dataset_Task(DatasetTask):
         idx = prompt_data.info.idx
         # Look up true answer
         true_answer = self.dataset['True answer'][idx]
+
+        print(true_answer)
+
         # Extract LLM answer from LLM answer
         matches = re.findall(self.answer_pattern, prompt_data.final_answer)
         if len(matches) > 0:
-            llm_answer = str(matches[0])
+            llm_answer = str(matches)
         else:
-            llm_answer = prompt_data.final_answer
+            llm_answer = "['" + prompt_data.final_answer + "']"
+
         # Return comparison (1.0 if right, 0.0 if wrong)
         return float(true_answer == llm_answer)
-        
 
 
 if __name__ == '__main__':
 
     from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
+    from mars_steg.utils.prompt_data import PromptData, FixedDatasetDataInfo
 
-    dataset = '../../dataset/MATH_Dataset_minimal.csv'
-    math_task = MATH_Dataset_Task(dataset, EqualsSign)
+    dataset = 'mars_steg/dataset/MATH_dataset_minimal.csv'
+    math_task = MATH_Dataset_Task(dataset, EqualsSign())
     cot_prompt, no_cot_prompt = math_task.generate_full_prompt(0)
 
+    prompt_data = PromptData(
+        cot_prompt=cot_prompt,
+        no_cot_prompt=no_cot_prompt,
+        info=FixedDatasetDataInfo(idx = 0),
+        cot = '=============',
+        final_answer='My answer is boxed{0}'
+    )
+    
+    task_score = math_task.get_task_score(prompt_data)
+    print(task_score)
+
+    reward = math_task.reward_from_transcript(prompt_data)
 
     
-
-    task_score = math_task.get_task_score(transcript)
-
-    language_score = math_task.get_language_score(transcript)
-
-    reward = math_task.reward_from_transcript(transcript)
-
-    print(reward)

@@ -42,7 +42,7 @@ if __name__ == '__main__':
     from mars_steg.task.tasks.math_dataset_task import MATH_Dataset_Task
     import pandas as pd
 
-    math_task = MATH_Dataset_Task(EqualsSign)
+    math_task = MATH_Dataset_Task(EqualsSign())
     cot_prompt, no_cot_prompt = math_task.generate_full_prompt(0)
 
     # In real use, the answer would come from inference, but
