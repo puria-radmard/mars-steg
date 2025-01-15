@@ -8,3 +8,4 @@ pad_token_id: 0
 max_new_tokens: 512
 return_prompt: False
 generate_ref_response: False
+batch_size: 1

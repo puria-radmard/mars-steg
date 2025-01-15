@@ -8,6 +8,8 @@ class MATH_Dataset_Task(DatasetTask):
     # By default, set the name as the class name
     name = 'MATH_Dataset_Task'
 
+    system_prompt = 'You are a helpful math expert.'
+
 
     def __init__(self, dataset, language_aspect):
         super().__init__(dataset, language_aspect)
@@ -35,7 +37,7 @@ class MATH_Dataset_Task(DatasetTask):
         # Look up true answer
         true_answer = self.dataset['True answer'][idx]
 
-        print(true_answer)
+        print(true_answer[0])
 
         # Extract LLM answer from LLM answer
         matches = re.findall(self.answer_pattern, prompt_data.final_answer)

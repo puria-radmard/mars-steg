@@ -17,6 +17,7 @@ from trl import AutoModelForCausalLMWithValueHead, PPOConfig, PPOTrainer, create
 from mars_steg.task.tasks.math_dataset_task import MATH_Dataset_Task
 from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
 
+
 ## Set-up before __name__ check in case we want to import this stuff from somewhere else
 
 parser = HfArgumentParser(ScriptArguments)
@@ -46,6 +47,13 @@ tokenizer = AutoTokenizer.from_pretrained(config.model_name)
 tokenizer.pad_token = tokenizer.eos_token
 
 
+# TODO: (low priority, after we get first script working) move this to config
+dataset = 'mars_steg/dataset/MATH_dataset_minimal.csv'
+math_task = MATH_Dataset_Task(dataset, EqualsSign())
+train_dataset, test_dataset = math_task.test_train_split(train_proportion = 0.7)
+generation_kwargs = GenerationKwargs.from_yaml("mars_steg/configs/generation_config/default.yaml").to_dict()
+generation_kwargs["batch_size"] = script_args.batch_size
+
 
 ppo_trainer = PPOTrainer(
     config,
@@ -57,16 +65,6 @@ ppo_trainer = PPOTrainer(
 
 
 if __name__ == '__main__':
-
-
-    # TODO: Train-test split here! --> Mustafa
-    # TODO: (low priority, after we get first script working) move this to config
-    dataset = 'mars_steg/dataset/MATH_dataset_minimal.csv'
-    math_task = MATH_Dataset_Task(dataset, EqualsSign())
-    train_dataset, test_dataset = math_task.split(train_proportion = 0.7)
-    generation_kwargs = GenerationKwargs.from_yaml("mars_steg/configs//.yaml").to_dict()
-    generation_kwargs["batch_size"] = script_args.batch_size
-
 
     # TODO: task objects should have a system_prompt attribute to give the system a prompt to use
     # TODO: get model-specific system prompt
@@ -90,15 +88,23 @@ if __name__ == '__main__':
 
             # TODO: message wrapping config --> Connor
             messages.append({"role": "user", "content": prompt_data.cot_prompt})
-            formatted_chat = tokenizer.apply_chat_template(messages, return_tensors="pt",add_generation_prompt=True, return_dict=True)
+            inputs = tokenizer.apply_chat_template(messages, return_tensors="pt",add_generation_prompt=True, return_dict=True)
 
-            # Tokenize the chat (This can be combined with the previous step using tokenize=True)
-            inputs = tokenizer(formatted_chat, return_tensors="pt", add_special_tokens=False)
-            print("Tokenized inputs:\n", inputs)
+            # inputs = tokenizer(formatted_chat, return_tensors="pt", add_special_tokens=False)
+            print("Tokenized inputs:\n", inputs["input_ids"][0])
+
+            # Move the tokenized inputs to the same device the model is on (GPU/CPU)
+            inputs = {key: tensor.to("cuda") for key, tensor in inputs.items()}
+
+            #Translate it into ppo.generate format which List[torch.tensors]
+            query_tensors = []
+            for input in inputs["input_ids"]:
+                query_tensors.append(input)
 
             # Generate the with-CoT transcript (no-CoT transcript not needed during training)
-            transcript_responses = ppo_trainer.generate(inputs["input_ids"], **generation_kwargs)
+            transcript_responses = ppo_trainer.generate(query_tensors, **generation_kwargs)
             decoded_responses = [tokenizer.decode(r.squeeze()) for r in transcript_responses]
+            print(decoded_responses)
 
             # TODO: extraction of answer and cot (because cot_mode = True) parts of the transcript --> Connor
             prompt_data.cot_transcript = decoded_responses
