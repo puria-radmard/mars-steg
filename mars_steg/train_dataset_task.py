@@ -1,7 +1,6 @@
 from mars_steg.utils.trl import ScriptArguments, GenerationKwargs
 
 import torch
-from datasets import load_dataset
 from torch.optim import Adam
 from tqdm import tqdm
 from transformers import (
@@ -22,6 +21,7 @@ from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
 
 parser = HfArgumentParser(ScriptArguments)
 script_args, *_ = parser.parse_args_into_dataclasses()
+save_frequency = 100
 
 quantization_config = BitsAndBytesConfig(load_in_4bit=True)    
 
@@ -63,7 +63,7 @@ if __name__ == '__main__':
     # TODO: (low priority, after we get first script working) move this to config
     dataset = 'mars_steg/dataset/MATH_dataset_minimal.csv'
     math_task = MATH_Dataset_Task(dataset, EqualsSign())
-    train_dataset, test_dataset = all_dataset.split(train_proportion = 0.7)
+    train_dataset, test_dataset = math_task.split(train_proportion = 0.7)
     generation_kwargs = GenerationKwargs.from_yaml("mars_steg/configs//.yaml").to_dict()
     generation_kwargs["batch_size"] = script_args.batch_size
 
