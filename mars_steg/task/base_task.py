@@ -91,6 +91,7 @@ class Task(metaclass=ABCMeta):
     def get_task_score(
         self,
         prompt_data: PromptData,
+        with_cot: bool
     ) -> float:
         """
         TODO: update docstring
@@ -139,14 +140,15 @@ class Task(metaclass=ABCMeta):
         t_weight: float = 1.0,
         l_weight: float = 1.0
     ) -> float:
-        
         """
         The API handle to run user-set methods on all details from an episode
 
         Runs a check on output from score functions
+
+        Full thing assumes we prompted with cot
         """
 
-        task_score = self.get_task_score(prompt_data)
+        task_score = self.get_task_score(prompt_data, with_cot = True)
         self.check_score('task_score', task_score)
         
         language_score = self.language_aspect.get_language_score(prompt_data)
@@ -193,7 +195,7 @@ class DatasetTask(Task):
             yield PromptData(
                 cot_prompt=cot_prompt,
                 no_cot_prompt=no_cot_prompt,
-                info=FixedDatasetDataInfo(idx = idx)
+                info=FixedDatasetDataInfo(idx = idx.item())
             )
 
     def test_train_split(self, train_proportion: float) -> Tuple[DatasetTask, DatasetTask]:

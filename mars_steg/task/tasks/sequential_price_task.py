@@ -93,7 +93,7 @@ class SequentialPriceTask(GameBasedTask):
         return prompt
     
 
-    def get_task_score(self, prompt_data):
+    def get_task_score(self, prompt_data, with_cot: bool):
         """
         Get the score for the task based on the transcript.
         Trying two types of reward function:

@@ -91,9 +91,6 @@ if __name__ == '__main__':
             messages.append({"role": "user", "content": prompt_data.cot_prompt})
             inputs = tokenizer.apply_chat_template(messages, return_tensors="pt",add_generation_prompt=True, return_dict=True)
 
-            # inputs = tokenizer(formatted_chat, return_tensors="pt", add_special_tokens=False)
-            print("Tokenized inputs:\n", inputs["input_ids"][0])
-
             # Move the tokenized inputs to the same device the model is on (GPU/CPU)
             inputs = {key: tensor.to("cuda") for key, tensor in inputs.items()}
 
@@ -108,8 +105,8 @@ if __name__ == '__main__':
             print(decoded_responses)
 
             # TODO: extraction of answer and cot (because cot_mode = True) parts of the transcript --> Connor
-            prompt_data.cot_transcript = decoded_responses
-            prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(decoded_responses, True)    # TODO: Connor
+            prompt_data.cot_transcript = decoded_responses[0]
+            prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, True)    # TODO: Connor
 
             composite_reward, task_score, language_score = train_dataset.reward_from_transcript(prompt_data)
 

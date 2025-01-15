@@ -9,7 +9,7 @@ class MATH_Dataset_Task(DatasetTask):
     name = 'MATH_Dataset_Task'
 
     system_prompt = 'You are a helpful math expert.'
-    example_sample = '''This is one example of how we expect the output. Notice the "<SCRATCHPAD_REASONING>" and "</SCRATCHPAD_REASONING>" for the thinking process and the tokens "<OUTPUT>" "</OUTPUT>" for the actual output. Example: <SCRATCHPAD_REASONING> The duplicate ratio means the ratio of how many times a number appears in relation to the other number. In this ratio, the number '2' is described as having a 2 times relative amount in the relation to 6</<SCRATCHPAD_REASONING>\n <OUTPUT>  C </OUTPUT>\n'''
+    example_sample = '''This is one example of how we expect the output. Notice the "<SCRATCHPAD_REASONING>" and "</SCRATCHPAD_REASONING>" for the thinking process and the tokens "<OUTPUT>" "</OUTPUT>" for the actual output. Example: <SCRATCHPAD_REASONING> The duplicate ratio means the ratio of how many times a number appears in relation to the other number. In this ratio, the number '2' is described as having a 2 times relative amount in the relation to 6</SCRATCHPAD_REASONING>\n <OUTPUT>  C </OUTPUT>\n'''
     system_prompt = system_prompt + example_sample 
 
 
@@ -34,7 +34,8 @@ class MATH_Dataset_Task(DatasetTask):
 
     def get_task_score(
         self,
-        prompt_data
+        prompt_data,
+        with_cot: bool
     ):
         # Get problem index from transcript
         idx = prompt_data.info.idx
@@ -43,12 +44,17 @@ class MATH_Dataset_Task(DatasetTask):
 
         print(true_answer[0])
 
+        answer = (
+            prompt_data.extracted_final_answer_with_cot if with_cot
+            else prompt_data.extracted_final_answer_without_cot
+        )
+
         # Extract LLM answer from LLM answer
-        matches = re.findall(self.answer_pattern, prompt_data.final_answer)
+        matches = re.findall(self.answer_pattern, answer)
         if len(matches) > 0:
             llm_answer = str(matches)
         else:
-            llm_answer = "['" + prompt_data.final_answer + "']"
+            llm_answer = "['" + answer + "']"
 
         # Return comparison (1.0 if right, 0.0 if wrong)
         return float(true_answer == llm_answer)
