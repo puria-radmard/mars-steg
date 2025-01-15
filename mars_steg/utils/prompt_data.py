@@ -14,6 +14,10 @@ class DataInfo(ABC):
 class FixedDatasetDataInfo(DataInfo):
     idx: int
 
+@dataclass
+class SequentialPriceTaskDataInfo(FixedDatasetDataInfo):
+    p1_bid: float
+
 
 @dataclass
 class PromptData:

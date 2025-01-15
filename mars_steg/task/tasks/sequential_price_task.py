@@ -1,7 +1,7 @@
 import pandas as pd
 import torch
 from mars_steg.task.base_task import DatasetTask
-from mars_steg.utils.prompt_data import FixedDatasetDataInfo, PromptData
+from mars_steg.utils.prompt_data import SequentialPriceTaskDataInfo, FixedDatasetDataInfo, PromptData
 from mars_steg.language.language_aspects.sequential_price_language_aspect import PriceMention
 
 
@@ -10,7 +10,7 @@ class SequentialPriceTask(DatasetTask):
     name = 'SequentialPriceTask'
     system_prompt = 'You are playing a two-player sequential pricing game.'
 
-    def __init__(self, dataset, language_aspect, penalise_in_prompt=False, profit_maximisation=False):
+    def __init__(self, dataset, language_aspect, penalise_in_prompt=False, profit_maximisation=True):
         super().__init__(dataset=dataset, language_aspect=language_aspect)
         self.penalise_in_prompt = penalise_in_prompt
         self.profit_maximisation = profit_maximisation
@@ -45,22 +45,32 @@ class SequentialPriceTask(DatasetTask):
             score = 0.0
         return score
     
+    def generate_prompt_from_idx(self, idx: int) -> FixedDatasetDataInfo:
+        return SequentialPriceTaskDataInfo(
+            idx = idx,
+            p1_bid = self.dataset['p1_bid'][idx],
+        )
+    
 
 if __name__ == '__main__':
 
+    index=1
     sequential_price_language_aspect = PriceMention()
     sequential_price_task = SequentialPriceTask(dataset='mars_steg/dataset/sequential_price_game.csv',language_aspect=sequential_price_language_aspect)
-    cot_prompt, no_cot_prompt = sequential_price_task.generate_full_prompt(index=1)
+    cot_prompt, no_cot_prompt = sequential_price_task.generate_full_prompt(index)
     print(cot_prompt)
     print(no_cot_prompt)
+    p1_bid = sequential_price_task.dataset['p1_bid'][index]
     prompt_data = PromptData(cot_prompt=cot_prompt,
                             no_cot_prompt=no_cot_prompt, 
-                            info=FixedDatasetDataInfo(idx=0),
+                            info=SequentialPriceTaskDataInfo(index, p1_bid),
+                            cot_transcript='====',
+                            no_cot_transcript='====',
+                            extracted_cot='====',
                             extracted_final_answer_with_cot='20',
                             extracted_final_answer_without_cot='20')
     task_score = sequential_price_task.get_task_score(prompt_data, True)
     print(task_score)
-
     reward = sequential_price_task.reward_from_transcript(prompt_data)
 
 
