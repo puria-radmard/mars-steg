@@ -118,6 +118,14 @@ if __name__ == '__main__':
             print(f"Language score: {language_score}")
             print("--------")
 
+            #put reward in a list of tensor 
+            if type(composite_reward) == list:
+                rewards = []
+                for reward in composite_reward:
+                    rewards.append(torch.tensor(reward))
+            else:
+                rewards = [torch.tensor(composite_reward)]
+
             # TODO: put any batching back in here, e.g. by keeping a cache of 
             stats = ppo_trainer.step(query_tensors, transcript_responses, [torch.tensor(composite_reward)])
             ppo_trainer.log_stats(stats, inputs, composite_reward)
