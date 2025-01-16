@@ -1,23 +1,20 @@
 import numpy as np
-from mars_steg.utils.trl import ScriptArguments, GenerationKwargs
+from mars_steg.utils.trl import GenerationKwargs
 
 import warnings
 import wandb
-import os
+import sys
 
 import torch
 from tqdm import tqdm
 from transformers import set_seed
-from torch.utils.data import DataLoader
 
 from trl import PPOConfig, PPOTrainer, create_reference_model
 
-from mars_steg.config import ConfigLoader
+from mars_steg.config import ConfigLoader, ExperimentArgs
 
-
-from mars_steg.task.tasks.math_dataset_task import MATH_Torch_Dataset_Task
-from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
 from mars_steg.utils.common import (
+    get_dataloaders,
     batchize_conversation,
     get_optimizer,
     get_tokenizer,
@@ -53,37 +50,27 @@ set_seed(config.seed)
 
 
 tokenizer = get_tokenizer(model_config.model_name)
-
-# Get model
 model = get_model(model_config, tokenizer)
-
-# Get optimizer
 optimizer = get_optimizer(optimizer_config=optimizer_config, model=model)
-
 
 if train_config.create_ref_model is True:
     ref_model = create_reference_model(
         model, num_shared_layers=train_config.number_shared_layers_for_ref_model
     )
 
+experiment_args = ExperimentArgs.from_yaml(sys.argv[1])
 
-# TODO: (low priority, after we get first script working) move this to config
-dataset = "mars_steg/dataset/MATH_dataset_minimal.csv"
-math_task = MATH_Torch_Dataset_Task(dataset, EqualsSign())
-train_dataset, test_dataset = math_task.test_train_split(
-    train_proportion=train_config.train_proportion
+
+train_dataset, test_dataset, train_loader, test_loader = get_dataloaders(
+    dataset_class_name = experiment_args.dataset_class_name,
+    penalisation_class_name = experiment_args.penalisation_class_name,
+    dataset_class_kwargs = experiment_args.dataset_class_kwargs,
+    penalisation_class_kwargs = experiment_args.penalisation_class_kwargs,
+    train_proportion = train_config.train_proportion,
+    batch_size = train_config.batch_size
 )
-train_loader, test_loader = DataLoader(
-    train_dataset,
-    batch_size=train_config.batch_size,
-    shuffle=True,
-    collate_fn=math_task.prompt_data_collate_fn,
-), DataLoader(
-    test_dataset,
-    batch_size=train_config.batch_size,
-    shuffle=True,
-    collate_fn=math_task.prompt_data_collate_fn,
-)
+
+
 generation_kwargs = GenerationKwargs.from_yaml(
     "mars_steg/configs/generation_config/default.yaml"
 ).to_dict()

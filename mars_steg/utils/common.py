@@ -8,7 +8,41 @@ from typing import List
 
 from transformers import AutoTokenizer
 from mars_steg.config import ModelConfig, OptimizerConfig
-from mars_steg.model import BaseModel, GPT2Model
+from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct
+
+from torch.utils.data import DataLoader
+
+from mars_steg import task
+from mars_steg import language
+from mars_steg.task import TorchDatasetTask
+from mars_steg.language import LanguageAspect
+
+
+def get_dataloaders(
+    dataset_class_name, penalisation_class_name, dataset_class_kwargs, penalisation_class_kwargs, train_proportion, batch_size
+):
+
+    language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**dataset_class_kwargs)
+    task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, **penalisation_class_kwargs)
+
+    train_dataset, test_dataset = task_class.test_train_split(
+        train_proportion=train_proportion
+    )
+    train_loader, test_loader = DataLoader(
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        collate_fn=task_class.prompt_data_collate_fn,
+    ), DataLoader(
+        test_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        collate_fn=task_class.prompt_data_collate_fn,
+    )
+
+    return train_dataset, test_dataset, train_loader, test_loader
+
+
 
 
 def get_tokenizer(model_name: str):
@@ -30,8 +64,10 @@ def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> BaseModel:
     model_name = model_config.model_name
     if model_name == "gpt2":
         return GPT2Model(model_config=model_config, tokenizer=tokenizer)
+    if model_name == 'meta-llama/Llama-3.1-8B-Instruct':
+        return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer)
     else:
-        raise ValueError
+        raise ValueError(model_name)
 
 
 def get_device() -> str:

@@ -1,6 +1,6 @@
 import re
 import pandas as pd
-from mars_steg.task.base_task import DatasetTask, TorchDatasetTask
+from mars_steg.task.base_task import TorchDatasetTask
 
 
 class MATH_Torch_Dataset_Task(TorchDatasetTask):

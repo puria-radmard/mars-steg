@@ -1,9 +1,19 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 import yaml
 from typing import Tuple
 from dataclasses import asdict
-from typing import Optional
+from typing import Optional, Dict
 
+
+def load_yaml(yaml_file: str) -> dict:
+    """
+    Load a YAML file into a dictionary.
+    """
+    file_path = f"{yaml_file}"
+    with open(file_path, "r") as file:
+        return yaml.safe_load(file)
 
 @dataclass(frozen=True)
 class ModelConfig:
@@ -35,6 +45,21 @@ class OptimizerConfig:
     max_grad_norm: float
 
 
+
+@dataclass
+class ExperimentArgs:
+    dataset_class_name: str
+    penalisation_class_name: str
+    dataset_class_kwargs: Dict
+    penalisation_class_kwargs: Dict
+
+    @classmethod
+    def from_yaml(cls, yaml_file: str) -> ExperimentArgs:
+        config_dict = load_yaml(yaml_file)
+        return cls(**config_dict)
+
+
+
 @dataclass
 class TrainConfig:
     log_with: Optional[str]  # e.g., "wandb" or None
@@ -51,22 +76,15 @@ class TrainConfig:
     create_ref_model: bool
 
 
+
 class ConfigLoader:
-    @staticmethod
-    def load_yaml(yaml_file: str) -> dict:
-        """
-        Load a YAML file into a dictionary.
-        """
-        file_path = f"{yaml_file}"
-        with open(file_path, "r") as file:
-            return yaml.safe_load(file)
 
     @staticmethod
     def load_config(yaml_file: str) -> Tuple[ModelConfig, OptimizerConfig, TrainConfig]:
         """
         Load YAML data and map it to configuration dataclasses.
         """
-        config_dict = ConfigLoader.load_yaml(yaml_file)
+        config_dict = load_yaml(yaml_file)
 
         # Create instances of the dataclasses
         model_config = ModelConfig(**config_dict["Model"])
