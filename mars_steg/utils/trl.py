@@ -25,6 +25,8 @@ class ScriptArguments:
     num_train_epochs: Optional[int] = field(default=1, metadata={"help": "The number of training epochs"})
     num_eval_episodes: Optional[int] = field(default=10, metadata={"help": "The number of evaluation episodes"})
     save_frequency: Optional[int] = field(default=100, metadata={"help": "The frequency to save the model relative to the number of training data batches"})
+    ppo_epochs: Optional[int] = field(default=100, metadata={"help": "The number of PPO epochs"})
+    train_proportion: Optional[float] = field(default=0.7, metadata={"help": "The proportion of the data to use for training"})
 
     @classmethod
     def from_yaml(cls, yaml_path: str):

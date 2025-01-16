@@ -34,16 +34,17 @@ try:
     print(f"Loaded configuration from {config_path}")
 except FileNotFoundError or IsADirectoryError:
     print(f"Config file {config_path} not found. Using default or command-line arguments.")
-save_frequency = script_args.save_frequency
-print()
 
-# quantization_config = BitsAndBytesConfig(load_in_4bit=True)    
+
+save_frequency = script_args.save_frequency
+
+quantization_config = BitsAndBytesConfig(load_in_4bit=True)    
 
 config = PPOConfig(
     model_name=script_args.model_name,
     learning_rate=script_args.learning_rate,
     log_with=script_args.log_with,
-    ppo_epochs=100,
+    ppo_epochs=script_args.ppo_epochs,
     mini_batch_size=script_args.mini_batch_size,
     batch_size=script_args.batch_size,
     gradient_accumulation_steps=script_args.gradient_accumulation_steps,
@@ -63,7 +64,7 @@ tokenizer.pad_token = tokenizer.eos_token
 # TODO: (low priority, after we get first script working) move this to config
 dataset = 'mars_steg/dataset/MATH_dataset_minimal.csv'
 math_task = MATH_Dataset_Task(dataset, EqualsSign())
-train_dataset, test_dataset = math_task.test_train_split(train_proportion = 0.7)
+train_dataset, test_dataset = math_task.test_train_split(train_proportion = script_args.train_proportion)
 generation_kwargs = GenerationKwargs.from_yaml("mars_steg/configs/generation_config/default.yaml").to_dict()
 generation_kwargs["batch_size"] = script_args.batch_size
 
