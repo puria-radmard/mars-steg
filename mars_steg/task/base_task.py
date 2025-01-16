@@ -2,14 +2,15 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 import torch
+from torch.utils.data import Dataset
 
-from mars_steg.utils.prompt_data import FixedDatasetDataInfo, PromptData
+from mars_steg.utils.prompt_data import FixedDatasetDataInfo, PromptData, BatchPromptData
 
 import pandas as pd
 
 from mars_steg.language.base_language_aspect import LanguageAspect
 
-from typing import Tuple
+from typing import List, Tuple
 
 
 
@@ -214,8 +215,58 @@ class DatasetTask(Task):
         test_dataset.dataset = test_dataset_pd
         test_dataset.length = len(test_dataset_pd)
         return train_dataset, test_dataset
+    
 
+class TorchDatasetTask(Task, Dataset):
 
+    def __init__(self, dataset: str, language_aspect: LanguageAspect) -> None:
+        super().__init__(language_aspect = language_aspect)
+        self.dataset_name = dataset
+        self.dataset = pd.read_csv(dataset)
+        self.length = len(self.dataset)
+
+    def generate_prompt_from_idx(self, idx: int) -> FixedDatasetDataInfo:
+        return FixedDatasetDataInfo(idx = idx)
+    
+    def __len__(self):
+        return self.length
+    
+    def __getitem__(self, idx):
+        """
+        This assumes a dataset-like task
+        This will need to be overwritten by game-like tasks
+        """
+
+        cot_prompt, no_cot_prompt = self.generate_full_prompt(idx)
+        return PromptData(
+            cot_prompt=cot_prompt,
+            no_cot_prompt=no_cot_prompt,
+            info=self.generate_prompt_from_idx(idx)
+        )
+    def test_train_split(self, train_proportion: float) -> Tuple[DatasetTask, DatasetTask]:
+        assert 0 < train_proportion < 1, "train_proportion must be between 0 and 1"
+        train_size = int(self.length * train_proportion)
+        train_dataset_pd = self.dataset.iloc[:train_size]
+        test_dataset_pd = self.dataset.iloc[train_size:]
+        cls = self.__class__
+        train_dataset = cls(self.dataset_name, self.language_aspect)
+        train_dataset.dataset = train_dataset_pd
+        train_dataset.length = len(train_dataset_pd)
+        test_dataset = cls(self.dataset_name, self.language_aspect)
+        test_dataset.dataset = test_dataset_pd
+        test_dataset.length = len(test_dataset_pd)
+        return train_dataset, test_dataset
+    
+    def iterate_data(self, shuffle = True):
+        """
+        Will need to be modified at the end of the branch completed
+        """
+        pass
+    
+    def prompt_data_collate_fn(self, batch: List[PromptData]) -> BatchPromptData:
+
+        return BatchPromptData(prompt_datas = batch)
+        
 
 class GameBasedTask(Task):
     """Each game will need to implement its own iterate_data method"""

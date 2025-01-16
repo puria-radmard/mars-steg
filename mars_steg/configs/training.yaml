@@ -1,13 +1,14 @@
-model_name: "meta-llama/Llama-3.1-8B-Instruct"  # The model name
+model_name: "meta-llama/Llama-3.2-1B-Instruct"  # The model name
 log_with: null  # Use 'wandb' to log with wandb
 learning_rate: 2.94e-5  # The learning rate
 mini_batch_size: 1  # The PPO minibatch size
-batch_size: 1  # The batch size
+batch_size: 4  # The batch size
 gradient_accumulation_steps: 1  # The number of gradient accumulation steps
 model_save_path: "./experiment"  # The path to save the model
 seed: 42  # The seed for reproducibility
 num_train_epochs: 1  # The number of training epochs
 num_eval_episodes: 10  # The number of evaluation episodes
 save_frequency: 100  # The frequency to save the model relative to the number of training data batches
-ppo_epochs: 100 @  # The number of PPO epochs
+ppo_epochs: 100  # The number of PPO epochs
 train_proportion : 0.8  # The proportion of the training data
+number_shared_layers_for_ref_model: 6 # The number of shared layers for the reference model in PPO RLHF

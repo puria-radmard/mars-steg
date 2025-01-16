@@ -27,6 +27,7 @@ class ScriptArguments:
     save_frequency: Optional[int] = field(default=100, metadata={"help": "The frequency to save the model relative to the number of training data batches"})
     ppo_epochs: Optional[int] = field(default=100, metadata={"help": "The number of PPO epochs"})
     train_proportion: Optional[float] = field(default=0.7, metadata={"help": "The proportion of the data to use for training"})
+    number_shared_layers_for_ref_model: Optional[int] = field(default=0, metadata={"help": "The number of shared layers between the model and the reference model"})
 
     @classmethod
     def from_yaml(cls, yaml_path: str):
@@ -53,7 +54,6 @@ class GenerationKwargs:
     do_sample: bool
     pad_token_id: int
     max_new_tokens: int
-    batch_size: int
     return_prompt: bool
     generate_ref_response: bool
     length_sampler: Optional[Callable] = None
