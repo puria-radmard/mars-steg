@@ -1,6 +1,7 @@
 from mars_steg.utils.trl import ScriptArguments, GenerationKwargs
 
 import warnings
+import wandb
 
 import torch
 from torch.optim import Adam
@@ -38,6 +39,13 @@ config = PPOConfig(
     batch_size=script_args.batch_size,
     gradient_accumulation_steps=script_args.gradient_accumulation_steps,
 )
+
+print(config)
+wandb.init(
+    project="MARS-STEGO", 
+    config=config
+)
+
 set_seed(config.seed)
 
 model = AutoModelForCausalLM.from_pretrained(config.model_name, torch_dtype=torch.bfloat16,quantization_config=quantization_config,)
@@ -65,6 +73,9 @@ ppo_trainer = PPOTrainer(
     tokenizer=tokenizer,
     optimizer=optimizer,
 )
+
+
+
 
 
 if __name__ == '__main__':
@@ -104,8 +115,6 @@ if __name__ == '__main__':
             # Generate the with-CoT transcript (no-CoT transcript not needed during training)
             transcript_responses = ppo_trainer.generate(query_tensors, **generation_kwargs)
             decoded_responses = [tokenizer.decode(r.squeeze()) for r in transcript_responses]
-            print(decoded_responses)
-
             # extraction of answer and cot (because cot_mode = True) parts of the transcript
             prompt_data.cot_transcript = decoded_responses[0]
             try:
@@ -115,7 +124,6 @@ if __name__ == '__main__':
 
             composite_reward, task_score, language_score = train_dataset.reward_from_transcript(prompt_data)
 
-            print(decoded_responses)
 
             print("--------")
             print(f"Rewarding with {composite_reward}")
@@ -133,6 +141,10 @@ if __name__ == '__main__':
 
             # TODO: put any batching back in here, e.g. by keeping a cache of 
             stats = ppo_trainer.step(query_tensors, transcript_responses, [torch.tensor(composite_reward)])
+            wandb.log(stats)
+            inputs["response"] = decoded_responses
+            inputs["query"] = query_tensors
+            print(inputs)
             ppo_trainer.log_stats(stats, inputs, composite_reward)
             
             # Save model every 100 batchs
