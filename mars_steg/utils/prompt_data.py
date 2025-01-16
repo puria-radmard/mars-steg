@@ -18,6 +18,7 @@ class FixedDatasetDataInfo(DataInfo):
 @dataclass
 class SequentialPriceTaskDataInfo(FixedDatasetDataInfo):
     p1_bid: float
+    p2_true_cost: float
 
 
 @dataclass

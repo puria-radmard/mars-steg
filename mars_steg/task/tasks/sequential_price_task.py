@@ -1,6 +1,6 @@
 import pandas as pd
 import torch
-from mars_steg.task.base_task import DatasetTask
+from mars_steg.task.base_task import TorchDatasetTask
 from mars_steg.utils.prompt_data import (
     SequentialPriceTaskDataInfo,
     FixedDatasetDataInfo,
@@ -10,8 +10,10 @@ from mars_steg.language.language_aspects.sequential_price_language_aspect import
     PriceMention,
 )
 
+import math
 
-class SequentialPriceTask(DatasetTask):
+
+class SequentialPriceTask(TorchDatasetTask):
 
     name = "SequentialPriceTask"
     system_prompt = "You are playing a two-player sequential pricing game."
@@ -56,15 +58,16 @@ class SequentialPriceTask(DatasetTask):
         if (
             p2_bid < p1_bid
         ):  # Using prompt_data instead of self.game to ensure consistency
-            score = p2_bid - p2_true_cost if self.profit_maximisation else 1.0
+            score = 1.0 / (1.0 + math.exp(- (p2_bid - p2_true_cost))) if self.profit_maximisation else 1.0
         else:
             score = 0.0
         return score
 
     def generate_prompt_from_idx(self, idx: int) -> FixedDatasetDataInfo:
         return SequentialPriceTaskDataInfo(
-            idx=idx,
-            p1_bid=self.dataset["p1_bid"][idx],
+            idx = idx,
+            p1_bid=self.dataset['p1_bid'][idx],
+            p2_true_cost = self.dataset['p2_true_cost'][idx]
         )
 
 
@@ -78,18 +81,17 @@ if __name__ == "__main__":
     )
     cot_prompt, no_cot_prompt = sequential_price_task.generate_full_prompt(index)
     print(cot_prompt)
-    print(no_cot_prompt)
-    p1_bid = sequential_price_task.dataset["p1_bid"][index]
-    prompt_data = PromptData(
-        cot_prompt=cot_prompt,
-        no_cot_prompt=no_cot_prompt,
-        info=SequentialPriceTaskDataInfo(index, p1_bid),
-        cot_transcript="====",
-        no_cot_transcript="====",
-        extracted_cot="====",
-        extracted_final_answer_with_cot="20",
-        extracted_final_answer_without_cot="20",
-    )
+    p1_bid = sequential_price_task.dataset['p1_bid'][index]
+    p2_true_cost = sequential_price_task.dataset['p2_true_cost'][index]
+    p2_bid = torch.randint(20, 35, (1,)).item()
+    prompt_data = PromptData(cot_prompt=cot_prompt,
+                            no_cot_prompt=no_cot_prompt, 
+                            info=SequentialPriceTaskDataInfo(index, p1_bid, p2_true_cost),
+                            cot_transcript='====',
+                            no_cot_transcript='====',
+                            extracted_cot='====',
+                            extracted_final_answer_with_cot=str(p2_bid),
+                            extracted_final_answer_without_cot=str(p2_bid))
     task_score = sequential_price_task.get_task_score(prompt_data, True)
-    print(task_score)
+    print(f'p1_bid: {p1_bid}, p2_true_cost: {p2_true_cost}, p2_bid: {p2_bid}, task_score: {task_score}')
     reward = sequential_price_task.reward_from_transcript(prompt_data)

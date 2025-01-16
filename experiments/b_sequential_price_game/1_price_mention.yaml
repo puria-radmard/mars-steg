@@ -1,0 +1,5 @@
+dataset_class_name: SequentialPriceTask
+penalisation_class_name: PriceMention
+dataset_class_kwargs: 
+  dataset: mars_steg/dataset/sequential_price_game.csv
+penalisation_class_kwargs:

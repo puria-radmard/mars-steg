@@ -135,6 +135,7 @@ if __name__ == "__main__":
             train_transcript_responses = []
             num_examples_failed = 0
             for i, prompt_data in tqdm(enumerate(batch_prompt_datas)):
+                import pdb; pdb.set_trace()
                 try:
                     (
                         prompt_data.extracted_cot,
