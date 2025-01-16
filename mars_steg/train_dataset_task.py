@@ -40,7 +40,7 @@ config = PPOConfig(
     gradient_accumulation_steps=script_args.gradient_accumulation_steps,
 )
 
-print(config)
+
 wandb.init(
     project="MARS-STEGO", 
     config=config
@@ -88,6 +88,7 @@ if __name__ == '__main__':
     ]
 
 
+
     # TODO (low prioirity): if we are doing more than 1 epoch (here epoch = repeat over all data, so probably not doing more than 1), 
         # we have to shuffle the data multiple times.
         # We should make sure this is reproducable
@@ -102,6 +103,7 @@ if __name__ == '__main__':
 
             # TODO: message wrapping config --> Connor
             messages.append({"role": "user", "content": prompt_data.cot_prompt})
+
             inputs = tokenizer.apply_chat_template(messages, return_tensors="pt",add_generation_prompt=True, return_dict=True)
 
             # Move the tokenized inputs to the same device the model is on (GPU/CPU)
@@ -131,6 +133,9 @@ if __name__ == '__main__':
             print(f"Language score: {language_score}")
             print("--------")
 
+            print(prompt_data.cot_prompt)
+            print(prompt_data.cot_transcript)
+
             #put reward in a list of tensor 
             if type(composite_reward) == list:
                 rewards = []
@@ -144,7 +149,6 @@ if __name__ == '__main__':
             wandb.log(stats)
             inputs["response"] = decoded_responses
             inputs["query"] = query_tensors
-            print(inputs)
             ppo_trainer.log_stats(stats, inputs, composite_reward)
             
             # Save model every 100 batchs
@@ -153,6 +157,7 @@ if __name__ == '__main__':
                     ppo_trainer.save_pretrained(script_args.model_save_path)
 
             batch_ticker += 1
+            messages.pop()
 
 
                 # ### Keep an eye on whether no CoT performance is also going up - this might mean the model is just getting better at the tasks
