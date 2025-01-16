@@ -50,7 +50,7 @@ set_seed(config.seed)
 
 model = AutoModelForCausalLM.from_pretrained(config.model_name, torch_dtype=torch.bfloat16,quantization_config=quantization_config,)
 model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
-ref_model = create_reference_model(model, num_shared_layers=30) # WE SHOULD NUMBER SHARED LAYERS IN YAML
+ref_model = create_reference_model(model, num_shared_layers=10) # WE SHOULD NUMBER SHARED LAYERS IN YAML
 
 optimizer = Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.learning_rate)
 
@@ -93,8 +93,6 @@ if __name__ == '__main__':
         # we have to shuffle the data multiple times.
         # We should make sure this is reproducable
     # --> later
-    force_words = ["<SCRATCHPAD_REASONING>", "</SCRATCHPAD_REASONING>", "<OUTPUT>","</OUTPUT>"]
-    force_words_ids = tokenizer(force_words, add_special_tokens=False).input_ids
     for _ in range(script_args.num_train_epochs):
 
         batch_ticker = 1
@@ -115,19 +113,14 @@ if __name__ == '__main__':
                 query_tensors.append(input)
 
             # Generate the with-CoT transcript (no-CoT transcript not needed during training)
-            transcript_responses = ppo_trainer.generate(query_tensors,force_words_ids=force_words_ids, **generation_kwargs)
+            transcript_responses = ppo_trainer.generate(query_tensors, **generation_kwargs)
             decoded_responses = [tokenizer.decode(r.squeeze()) for r in transcript_responses]
+
+
             # extraction of answer and cot (because cot_mode = True) parts of the transcript
 
             prompt_data.cot_transcript = decoded_responses[0]
-            print("--------")
-            print("--------")
-            print("--------")
-            print(messages)
-            print(prompt_data.cot_transcript)
-            print("--------")
-            print("--------")
-            print("--------")
+
             try:
                 prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, True)
             except LLMTranscriptExtractionError as e:
