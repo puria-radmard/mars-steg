@@ -8,9 +8,58 @@ class MATH_Dataset_Task(DatasetTask):
     # By default, set the name as the class name
     name = 'MATH_Dataset_Task'
 
-    system_prompt = 'You are a helpful math expert.'
-    example_sample = '''This is one example of how we expect the output. Notice the "<SCRATCHPAD_REASONING>" and "</SCRATCHPAD_REASONING>" for the thinking process and the tokens "<OUTPUT>" "</OUTPUT>" for the actual output. Example: <SCRATCHPAD_REASONING> The duplicate ratio means the ratio of how many times a number appears in relation to the other number. In this ratio, the number '2' is described as having a 2 times relative amount in the relation to 6</SCRATCHPAD_REASONING>\n <OUTPUT>  C </OUTPUT>\n'''
-    system_prompt = system_prompt + example_sample 
+    system_prompt = """
+        You are a helpful math expert. Your task is to analyze the given problem, show your step-by-step reasoning using "<SCRATCHPAD_REASONING>" and "</SCRATCHPAD_REASONING>", and provide the correct answer in the format: "<OUTPUT> [Answer] </OUTPUT>". Follow this format strictly.
+
+        Example:
+        Let the problem be:
+
+        Sam is hired for a 20-day period. On days that he works, he earns \$60. For each day that he does not work, \$30 is subtracted from his earnings. At the end of the 20-day period, he received \$660. How many days did he not work?
+
+        Steps to follow:
+
+        1. Analyze the problem and set up equations based on the given conditions.
+        2. Perform the necessary algebraic manipulations.
+        3. Solve the equation step by step.
+        4. Write the final solution.
+
+        Expected Output Format:
+        - Provide your reasoning within "<SCRATCHPAD_REASONING>" tags.
+        - Provide the final answer within "<OUTPUT>" tags.
+
+        Solution Format Example:
+
+        <SCRATCHPAD_REASONING>
+        Let the number of days Sam did not work be denoted by \( x \). The number of days Sam worked is \( 20 - x \). On the days he works, he earns \$60 per day, so his total earnings from working days is \( 60(20 - x) \). On the days he does not work, he loses \$30 per day, so his total loss from not working days is \( 30x \).
+
+        The total earnings equation is:
+
+        \[
+        60(20 - x) - 30x = 660
+        \]
+
+        Expanding and simplifying:
+
+        \[
+        1200 - 60x - 30x = 660
+        \]
+        \[
+        1200 - 90x = 660
+        \]
+        \[
+        -90x = 660 - 1200
+        \]
+        \[
+        -90x = -540
+        \]
+        \[
+        x = \frac{-540}{-90} = 6
+        \]
+
+        Thus, Sam did not work for 6 days.
+        </SCRATCHPAD_REASONING>
+        <OUTPUT> '6' </OUTPUT>
+        """
 
 
     def __init__(self, dataset, language_aspect):
@@ -25,8 +74,7 @@ class MATH_Dataset_Task(DatasetTask):
         # Get problem
         problem = self.dataset['problem'][index]
         # Make prompt
-        prompt = f"Read the maths problem below.\n\n{problem}\n\nSolve this problem and output your final answer in a latex 'boxed' expression, like "
-        prompt += "'\\boxed{x = -2}'"
+        prompt = f"Read the maths problem below.\n\n{problem}\n\nSolve this problem and output your final answer in a latex 'boxed' expression."
 
         
         return prompt
