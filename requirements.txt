@@ -9,5 +9,5 @@ trl==0.11.0
 tensorboard==2.13.0
 torch
 bitsandbytes
-# transformers[torch]==4.48.0
 wandb
+openai

@@ -9,6 +9,8 @@ from mars_steg.utils.prompt_data import (
     PromptData,
     BatchPromptData,
 )
+from mars_steg.utils.common import check_score
+
 
 import pandas as pd
 
@@ -32,7 +34,12 @@ class Task(metaclass=ABCMeta):
 
     def __init__(self, language_aspect: LanguageAspect):
         self.language_aspect = language_aspect
-        assert self.name in language_aspect.compatible_tasks
+        if self.name not in language_aspect.compatible_tasks:
+            raise TypeError(f"""
+                This task is not compatible with the submitted LanguageAspect instance.
+                If there is no real compatibility issue, just update the compatible_tasks property in your LanguageAspect.
+                You should add this tasks' name property, which is '{self.name}'.
+            """)
 
     @property
     def cot_instruction(self) -> str:
@@ -108,8 +115,7 @@ class Task(metaclass=ABCMeta):
             (i) Examine the prompt (game initialisation) and answers (moves/plays) and determine the game score for each player.
             (ii) Return a score between 0 and 1 representing success of agent in game.
         """
-        task_score = None
-        return task_score
+        raise NotImplementedError
 
     def reward(
         self,
@@ -141,25 +147,15 @@ class Task(metaclass=ABCMeta):
         Full thing assumes we prompted with cot
         """
 
-        task_score = self.get_task_score(prompt_data, with_cot=True)
-        self.check_score("task_score", task_score)
-
+        task_score = self.get_task_score(prompt_data, with_cot = True)
+        task_score = check_score('task_score', task_score)
+        
         language_score = self.language_aspect.get_language_score(prompt_data)
-        self.check_score("language_score", language_score)
+        language_score = check_score('language_score', language_score)
 
         r = self.reward(task_score, language_score, t_weight, l_weight)
 
         return r, task_score, language_score
-
-    def check_score(self, score_name, score_value):
-        if not isinstance(score_value, float):
-            return TypeError(
-                f".get_{score_name}() must return a float. Returned type: {type(score_value)}"
-            )
-        if score_value < 0 or score_value > 1:
-            return ValueError(
-                f".get_{score_name}() returned value {score_value}, which is outside range [0,1]"
-            )
 
 
 class TorchDatasetTask(Task, Dataset):
