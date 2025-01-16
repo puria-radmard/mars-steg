@@ -165,56 +165,7 @@ class Task(metaclass=ABCMeta):
             return TypeError(f'.get_{score_name}() must return a float. Returned type: {type(score_value)}')
         if score_value < 0 or score_value > 1: 
             return ValueError(f'.get_{score_name}() returned value {score_value}, which is outside range [0,1]')
-    
 
-    # @abstractmethod
-    # def iterate_data(self, shuffle = True):
-    #     raise NotImplementedError
-
-
-# class DatasetTask(Task):
-
-#     def __init__(self, dataset: str, language_aspect: LanguageAspect) -> None:
-#         super().__init__(language_aspect = language_aspect)
-#         self.dataset_name = dataset
-#         self.dataset = pd.read_csv(dataset)
-#         self.length = len(self.dataset)
-
-#     def generate_prompt_from_idx(self, idx: int) -> FixedDatasetDataInfo:
-#         return FixedDatasetDataInfo(idx = idx)
-    
-#     def iterate_data(self, shuffle = True):
-#         """
-#         This assumes a dataset-like task
-#         This will need to be overwritten by game-like tasks
-#         """
-
-#         # TODO: test reproducability of this shuffle
-#         if shuffle:
-#             order_of_indices = torch.randperm(self.length) 
-#         else:
-#             order_of_indices = torch.tensor(range(self.length))
-#         for idx in order_of_indices:
-#             cot_prompt, no_cot_prompt = self.generate_full_prompt(idx.item())
-#             yield PromptData(
-#                 cot_prompt=cot_prompt,
-#                 no_cot_prompt=no_cot_prompt,
-#                 info=self.generate_prompt_from_idx(idx.item())
-#             )
-
-#     def test_train_split(self, train_proportion: float) -> Tuple[DatasetTask, DatasetTask]:
-#         assert 0 < train_proportion < 1, "train_proportion must be between 0 and 1"
-#         train_size = int(self.length * train_proportion)
-#         train_dataset_pd = self.dataset.iloc[:train_size]
-#         test_dataset_pd = self.dataset.iloc[train_size:]
-#         cls = self.__class__
-#         train_dataset = cls(self.dataset_name, self.language_aspect)
-#         train_dataset.dataset = train_dataset_pd
-#         train_dataset.length = len(train_dataset_pd)
-#         test_dataset = cls(self.dataset_name, self.language_aspect)
-#         test_dataset.dataset = test_dataset_pd
-#         test_dataset.length = len(test_dataset_pd)
-#         return train_dataset, test_dataset
     
 
 class TorchDatasetTask(Task, Dataset):

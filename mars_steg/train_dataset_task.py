@@ -18,7 +18,7 @@ from trl import AutoModelForCausalLMWithValueHead, PPOConfig, PPOTrainer, create
 from torch.utils.data import DataLoader
 
 
-from mars_steg.task.tasks.math_dataset_task import MATH_Dataset_Task, MATH_Torch_Dataset_Task
+from mars_steg.task.tasks.math_dataset_task import MATH_Torch_Dataset_Task
 from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
 from mars_steg.utils.common import parse_model_output, LLMTranscriptExtractionError
 
@@ -62,7 +62,8 @@ set_seed(config.seed)
 model = AutoModelForCausalLM.from_pretrained(config.model_name, torch_dtype=torch.float16).to(device)
 model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
 #TODO create a boolean to check if we want to use the ref model
-ref_model = create_reference_model(model, num_shared_layers=script_args.number_shared_layers_for_ref_model)
+if script_args.create_ref_model is True:
+    ref_model = create_reference_model(model, num_shared_layers=script_args.number_shared_layers_for_ref_model)
 
 optimizer = Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.learning_rate)
 
@@ -79,13 +80,22 @@ generation_kwargs = GenerationKwargs.from_yaml("mars_steg/configs/generation_con
 generation_kwargs["batch_size"] = script_args.batch_size
 
 
-ppo_trainer = PPOTrainer(
-    config,
-    model,
-    ref_model=ref_model,
-    tokenizer=tokenizer,
-    optimizer=optimizer,
-)
+if script_args.create_ref_model is True:
+    ppo_trainer = PPOTrainer(
+        config,
+        model,
+        ref_model=ref_model,
+        tokenizer=tokenizer,
+        optimizer=optimizer,
+    )
+else:
+    ppo_trainer = PPOTrainer(
+        config,
+        model,
+        ref_model=None,
+        tokenizer=tokenizer,
+        optimizer=optimizer,
+    )
 
 def batchize_conversation(system_prompt, user_prompts):
     batch_messages = []

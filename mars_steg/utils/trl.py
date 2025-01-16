@@ -28,6 +28,7 @@ class ScriptArguments:
     ppo_epochs: Optional[int] = field(default=100, metadata={"help": "The number of PPO epochs"})
     train_proportion: Optional[float] = field(default=0.7, metadata={"help": "The proportion of the data to use for training"})
     number_shared_layers_for_ref_model: Optional[int] = field(default=0, metadata={"help": "The number of shared layers between the model and the reference model"})
+    create_ref_model: Optional[bool] = field(default=False, metadata={"help": "Whether to create a reference model for PPO RLHF"})
 
     @classmethod
     def from_yaml(cls, yaml_path: str):
