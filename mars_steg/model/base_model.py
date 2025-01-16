@@ -11,6 +11,8 @@ from trl import AutoModelForCausalLMWithValueHead
 
 from transformers import BitsAndBytesConfig
 
+import warnings
+
 
 class BaseModel(metaclass=ABCMeta):
     def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer):
@@ -29,13 +31,15 @@ class BaseModel(metaclass=ABCMeta):
             quantization_config=quantization_config,
         )
         model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
-        model.resize_token_embeddings(len(self.tokenizer))
+        warnings.warn('Reintroduce: model.resize_token_embeddings(len(self.tokenizer)) ?')
         if self.lora:
             lora_config = LoraConfig(
                 task_type=TaskType.CAUSAL_LM, **self.model_config.lora_params
             )
             model = get_peft_model(model, lora_config)
             model.print_trainable_parameters()
+        else:
+            warnings.warn('Reintroduce LoRA!')
         return model
 
     @abstractmethod

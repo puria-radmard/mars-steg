@@ -1,0 +1,4 @@
+
+class LLMTranscriptExtractionError(Exception):
+    pass
+

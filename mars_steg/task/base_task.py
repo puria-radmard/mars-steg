@@ -9,7 +9,7 @@ from mars_steg.utils.prompt_data import (
     PromptData,
     BatchPromptData,
 )
-from mars_steg.utils.common import check_score
+from mars_steg.utils.score import check_score
 
 
 import pandas as pd
@@ -17,6 +17,7 @@ import pandas as pd
 from mars_steg.language.base_language_aspect import LanguageAspect
 
 from typing import List, Tuple
+
 
 
 class Task(metaclass=ABCMeta):

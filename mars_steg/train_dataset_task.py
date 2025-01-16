@@ -11,8 +11,8 @@ from transformers import set_seed
 
 from trl import PPOConfig, PPOTrainer, create_reference_model
 
+from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.config import ConfigLoader, ExperimentArgs
-
 from mars_steg.utils.common import (
     get_dataloaders,
     batchize_conversation,
@@ -23,6 +23,8 @@ from mars_steg.utils.common import (
     parse_model_output,
     LLMTranscriptExtractionError,
 )
+
+
 
 
 device = get_device()
@@ -51,7 +53,7 @@ set_seed(config.seed)
 
 tokenizer = get_tokenizer(model_config.model_name)
 model = get_model(model_config, tokenizer)
-optimizer = get_optimizer(optimizer_config=optimizer_config, model=model)
+optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
 
 if train_config.create_ref_model is True:
     ref_model = create_reference_model(
@@ -100,7 +102,7 @@ if __name__ == "__main__":
         for batch_prompt_datas in tqdm(train_loader):
 
             batch_messages = batchize_conversation(
-                train_dataset.system_prompt, batch_prompt_datas.cot_prompts
+                train_dataset.system_prompt, batch_prompt_datas.cot_prompts, model
             )
             inputs = tokenizer.apply_chat_template(
                 batch_messages,
@@ -131,7 +133,7 @@ if __name__ == "__main__":
             composite_reward_list, task_score_list, language_score_list = [], [], []
             train_query_tensors = []
             train_transcript_responses = []
-            error = 0
+            num_examples_failed = 0
             for i, prompt_data in tqdm(enumerate(batch_prompt_datas)):
                 try:
                     (
@@ -147,16 +149,16 @@ if __name__ == "__main__":
                     train_query_tensors.append(query_tensors[i])
                     train_transcript_responses.append(transcript_responses[i])
                 except LLMTranscriptExtractionError as e:
-                    error += 1
+                    num_examples_failed += 1
                     warnings.warn(f"Failed to parse: {e}\nSkipping example")
 
-            if error == len(batch_prompt_datas):
-                raise ValueError(
+            if num_examples_failed == len(batch_prompt_datas):
+                raise LLMTranscriptExtractionError(
                     "No examples were successfully parsed for reward function. Check the data and the parsing function."
                 )
-            elif error != 0:
+            elif num_examples_failed != 0:
                 warnings.warn(
-                    f"Failed to parse {error} examples out of {len(batch_prompt_datas)}"
+                    f"Failed to parse {num_examples_failed} examples out of {len(batch_prompt_datas)}"
                 )
             else:
                 print("All examples parsed successfully")

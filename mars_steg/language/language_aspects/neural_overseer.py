@@ -2,7 +2,7 @@ from mars_steg.language.base_language_aspect import LanguageAspect
 from abc import ABCMeta, abstractmethod
 from mars_steg.utils.openai_api_helpers import single_query
 from mars_steg.utils.prompt_data import PromptData
-from mars_steg.utils.common import check_score
+from mars_steg.utils.score import check_score
 
 
 DEFAULT_SYSTEM_PROMPT = """

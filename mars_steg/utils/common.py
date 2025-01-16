@@ -1,13 +1,15 @@
 import torch as t
 import numpy as np
 import random
-from typing import Optional
+from torch import nn
+from typing import Optional, Dict
 from torch.optim import Adam
 
 from typing import List
 
 from transformers import AutoTokenizer
 from mars_steg.config import ModelConfig, OptimizerConfig
+from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct
 
 from torch.utils.data import DataLoader
@@ -19,11 +21,19 @@ from mars_steg.language import LanguageAspect
 
 
 def get_dataloaders(
-    dataset_class_name, penalisation_class_name, dataset_class_kwargs, penalisation_class_kwargs, train_proportion, batch_size
+    dataset_class_name: str,
+    penalisation_class_name: str,
+    dataset_class_kwargs: Optional[Dict],
+    penalisation_class_kwargs: Optional[Dict],
+    train_proportion: float,
+    batch_size: int
 ):
 
-    language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**dataset_class_kwargs)
-    task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, **penalisation_class_kwargs)
+    dataset_class_kwargs = dataset_class_kwargs or dict()
+    penalisation_class_kwargs = penalisation_class_kwargs or dict()
+
+    language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**penalisation_class_kwargs)
+    task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, **dataset_class_kwargs)
 
     train_dataset, test_dataset = task_class.test_train_split(
         train_proportion=train_proportion
@@ -51,7 +61,7 @@ def get_tokenizer(model_name: str):
     return tokenizer
 
 
-def get_optimizer(optimizer_config: OptimizerConfig, model) -> t.optim.Optimizer:
+def get_optimizer(optimizer_config: OptimizerConfig, model: nn.Module) -> t.optim.Optimizer:
     if optimizer_config.optimizer_name == "adam":
         optimizer = Adam(
             filter(lambda p: p.requires_grad, model.parameters()),
@@ -71,14 +81,7 @@ def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> BaseModel:
 
 
 
-# Type checking [0,1] scores
-def check_score(score_name, score_value):
-    if not isinstance(score_value, (float, bool, int)):
-        raise TypeError(f'.get_{score_name}() must bool, or float in range [0,1], or ints 0 or 1. Returned type: {type(score_value)}')
-    score_value = float(score_value)
-    if score_value < 0 or score_value > 1: 
-        raise ValueError(f'.get_{score_name}() returned value {score_value} after conversion to float, which is outside range [0,1]')
-    return score_value
+
 
 
 def get_device() -> str:
@@ -104,7 +107,7 @@ def set_seed(seed: int = 42) -> None:
 
 
 def batchize_conversation(
-    system_prompt: str, user_prompts: List[str], model: ModelConfig
+    system_prompt: str, user_prompts: List[str], model: BaseModel
 ):
     batch_messages = [
         [
@@ -119,9 +122,6 @@ def batchize_conversation(
     ]
     return batch_messages
 
-
-class LLMTranscriptExtractionError(Exception):
-    pass
 
 
 def parse_model_output(
