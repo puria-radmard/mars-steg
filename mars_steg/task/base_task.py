@@ -2,14 +2,15 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 import torch
+from torch.utils.data import Dataset
 
-from mars_steg.utils.prompt_data import FixedDatasetDataInfo, PromptData
+from mars_steg.utils.prompt_data import FixedDatasetDataInfo, PromptData, BatchPromptData
 
 import pandas as pd
 
 from mars_steg.language.base_language_aspect import LanguageAspect
 
-from typing import Tuple
+from typing import List, Tuple
 
 
 
@@ -164,14 +165,10 @@ class Task(metaclass=ABCMeta):
             return TypeError(f'.get_{score_name}() must return a float. Returned type: {type(score_value)}')
         if score_value < 0 or score_value > 1: 
             return ValueError(f'.get_{score_name}() returned value {score_value}, which is outside range [0,1]')
+
     
 
-    @abstractmethod
-    def iterate_data(self, shuffle = True):
-        raise NotImplementedError
-
-
-class DatasetTask(Task):
+class TorchDatasetTask(Task, Dataset):
 
     def __init__(self, dataset: str, language_aspect: LanguageAspect) -> None:
         super().__init__(language_aspect = language_aspect)
@@ -182,26 +179,22 @@ class DatasetTask(Task):
     def generate_prompt_from_idx(self, idx: int) -> FixedDatasetDataInfo:
         return FixedDatasetDataInfo(idx = idx)
     
-    def iterate_data(self, shuffle = True):
+    def __len__(self):
+        return self.length
+    
+    def __getitem__(self, idx):
         """
         This assumes a dataset-like task
         This will need to be overwritten by game-like tasks
         """
 
-        # TODO: test reproducability of this shuffle
-        if shuffle:
-            order_of_indices = torch.randperm(self.length) 
-        else:
-            order_of_indices = torch.tensor(range(self.length))
-        for idx in order_of_indices:
-            cot_prompt, no_cot_prompt = self.generate_full_prompt(idx.item())
-            yield PromptData(
-                cot_prompt=cot_prompt,
-                no_cot_prompt=no_cot_prompt,
-                info=self.generate_prompt_from_idx(idx.item())
-            )
-
-    def test_train_split(self, train_proportion: float) -> Tuple[DatasetTask, DatasetTask]:
+        cot_prompt, no_cot_prompt = self.generate_full_prompt(idx)
+        return PromptData(
+            cot_prompt=cot_prompt,
+            no_cot_prompt=no_cot_prompt,
+            info=self.generate_prompt_from_idx(idx)
+        )
+    def test_train_split(self, train_proportion: float) -> Tuple[TorchDatasetTask, TorchDatasetTask]:
         assert 0 < train_proportion < 1, "train_proportion must be between 0 and 1"
         train_size = int(self.length * train_proportion)
         train_dataset_pd = self.dataset.iloc[:train_size]
@@ -214,8 +207,17 @@ class DatasetTask(Task):
         test_dataset.dataset = test_dataset_pd
         test_dataset.length = len(test_dataset_pd)
         return train_dataset, test_dataset
+    
+    def iterate_data(self, shuffle = True):
+        """
+        Will need to be modified at the end of the branch completed
+        """
+        pass
+    
+    def prompt_data_collate_fn(self, batch: List[PromptData]) -> BatchPromptData:
 
-
+        return BatchPromptData(prompt_datas = batch)
+        
 
 class GameBasedTask(Task):
     """Each game will need to implement its own iterate_data method"""

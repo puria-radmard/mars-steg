@@ -1,9 +1,10 @@
 import re
 import pandas as pd
-from mars_steg.task.base_task import DatasetTask
+from mars_steg.task.base_task import DatasetTask, TorchDatasetTask
 
 
-class MATH_Dataset_Task(DatasetTask):
+
+class MATH_Torch_Dataset_Task(TorchDatasetTask):
 
     # By default, set the name as the class name
     name = 'MATH_Dataset_Task'
@@ -85,9 +86,10 @@ if __name__ == '__main__':
     from mars_steg.utils.prompt_data import PromptData, FixedDatasetDataInfo
 
     dataset = 'mars_steg/dataset/MATH_dataset_minimal.csv'
-    math_task = MATH_Dataset_Task(dataset, EqualsSign())
+    math_task = MATH_Torch_Dataset_Task(dataset, EqualsSign())
     cot_prompt, no_cot_prompt = math_task.generate_full_prompt(0)
 
+    #TODO --> Broken 
     prompt_data = PromptData(
         cot_prompt=cot_prompt,
         no_cot_prompt=no_cot_prompt,
