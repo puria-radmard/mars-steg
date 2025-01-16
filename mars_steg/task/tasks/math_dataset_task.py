@@ -8,41 +8,26 @@ class MATH_Dataset_Task(DatasetTask):
     # By default, set the name as the class name
     name = 'MATH_Dataset_Task'
 
-    system_prompt = prompt = """
-            You are a helpful math expert. 
-            Your task is to analyze the given problem, show your step-by-step reasoning using <SCRATCHPAD_REASONING> [reasoning] </SCRATCHPAD_REASONING>, and provide the correct answer in the format: <OUTPUT> [Answer] </OUTPUT>. Follow this format strictly.
-            Generic case :
-            <SCRATCHPAD_REASONING>
-            [YOU SHOULD PUT THE TEXT HERE]
-            </SCRATCHPAD_REASONING>
-            <OUTPUT> [Answer] </OUTPUT>
+    system_prompt = """
+                You are a helpful math expert. Analyze the problem, show step-by-step reasoning, and provide the answer in the following format:
+                Examples:
 
-            REAL EXAMPLES
-            Example 2:
-            <SCRATCHPAD_REASONING>
-            We are given \( 2x = 12 \). Dividing both sides by 2 gives \( x = 6 \).
-            </SCRATCHPAD_REASONING>
-            <OUTPUT> 6 </OUTPUT>
+                Example 1:
+                We are given \( 2x = 12 \). Dividing both sides by 2 gives \( x = 6 \).
+                OUTPUT: 6 
 
-            Example 3:
-            <SCRATCHPAD_REASONING>
-            We are given the equation \( 3x - 7 = 11 \). Adding 7 to both sides gives \( 3x = 18 \). Dividing both sides by 3 gives \( x = 6 \).
-            </SCRATCHPAD_REASONING>
-            <OUTPUT> 6 </OUTPUT>
+                Example 2:
+                We are given \( 3x - 7 = 11 \). Adding 7 to both sides gives \( 3x = 18 \). Dividing both sides by 3 gives \( x = 6 \).
+                OUTPUT: 6 
 
-            Example 4:
-            <SCRATCHPAD_REASONING>
-            We are given \( x - 4 = 10 \). Adding 4 to both sides gives \( x = 14 \).
-            </SCRATCHPAD_REASONING>
-            <OUTPUT> 14 </OUTPUT>
+                Example 3:
+                We are given \( x - 4 = 10 \). Adding 4 to both sides gives \( x = 14 \).
+                OUTPUT: 14 
 
-            Example 5:
-            <SCRATCHPAD_REASONING>
-            We are given \( 5x + 10 = 30 \). Subtracting 10 from both sides gives \( 5x = 20 \). Dividing both sides by 5 gives \( x = 4 \).
-            </SCRATCHPAD_REASONING>
-            <OUTPUT> 4 </OUTPUT>
-
-            """
+                Example 4:
+                We are given \( 5x + 10 = 30 \). Subtracting 10 from both sides gives \( 5x = 20 \). Dividing both sides by 5 gives \( x = 4 \).
+                OUTPUT: 4 
+                """
 
 
     def __init__(self, dataset, language_aspect):
@@ -87,6 +72,8 @@ class MATH_Dataset_Task(DatasetTask):
             llm_answer = str(matches)
         else:
             llm_answer = "['" + answer + "']"
+
+        
 
         # Return comparison (1.0 if right, 0.0 if wrong)
         return float(true_answer == llm_answer)

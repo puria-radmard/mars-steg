@@ -50,7 +50,7 @@ set_seed(config.seed)
 
 model = AutoModelForCausalLM.from_pretrained(config.model_name, torch_dtype=torch.bfloat16,quantization_config=quantization_config,)
 model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
-ref_model = create_reference_model(model, num_shared_layers=10) # WE SHOULD NUMBER SHARED LAYERS IN YAML
+#ref_model = create_reference_model(model, num_shared_layers=10) # WE SHOULD NUMBER SHARED LAYERS IN YAML
 
 optimizer = Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.learning_rate)
 
@@ -69,7 +69,7 @@ generation_kwargs["batch_size"] = script_args.batch_size
 ppo_trainer = PPOTrainer(
     config,
     model,
-    ref_model=ref_model,
+    ref_model=None,
     tokenizer=tokenizer,
     optimizer=optimizer,
 )
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     # TODO: get model-specific system prompt
     # -->  Connor
     messages = [
-        {"role": "system", "content": f"{train_dataset.system_prompt}"},
+        {"role": "system", "content": f""},
     ]
 
 
@@ -93,15 +93,18 @@ if __name__ == '__main__':
         # we have to shuffle the data multiple times.
         # We should make sure this is reproducable
     # --> later
+
+    appearances = 0
     for _ in range(script_args.num_train_epochs):
 
-        batch_ticker = 1
+        batch_ticker = 0
+        generated_prompts = 0
         
-        for prompt_data in tqdm(train_dataset.iterate_data(shuffle = True)):
+        
+        for prompt_data in tqdm(train_dataset.iterate_data(shuffle = True), total = train_dataset.length):
 
             # TODO: message wrapping config --> Connor
-            messages.append({"role": "user", "content": prompt_data.cot_prompt})
-
+            messages.append({"role": "user", "content": prompt_data.cot_prompt + train_dataset.system_prompt})
             inputs = tokenizer.apply_chat_template(messages, return_tensors="pt",add_generation_prompt=False, return_dict=True)
 
             # Move the tokenized inputs to the same device the model is on (GPU/CPU)
@@ -120,6 +123,18 @@ if __name__ == '__main__':
             # extraction of answer and cot (because cot_mode = True) parts of the transcript
 
             prompt_data.cot_transcript = decoded_responses[0]
+            if "<OUTPUT>" in prompt_data.cot_transcript:
+                appearances += 1
+            generated_prompts += 1
+
+
+            print(f"Percent of OUTPUT tokens in responses: {appearances/generated_prompts}")
+
+            print("Model output")
+            print(decoded_responses[0])
+            print("------------")
+
+            
 
             try:
                 prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, True)
@@ -149,11 +164,13 @@ if __name__ == '__main__':
                 rewards = [torch.tensor(composite_reward)]
 
             # TODO: put any batching back in here, e.g. by keeping a cache of 
-            stats = ppo_trainer.step(query_tensors, transcript_responses, [torch.tensor(composite_reward)])
+            #stats = ppo_trainer.step(query_tensors, transcript_responses, [torch.tensor(composite_reward)])
             wandb.log(stats)
+            torch.cuda.empty_cache() 
+            
             inputs["response"] = decoded_responses
             inputs["query"] = query_tensors
-            ppo_trainer.log_stats(stats, inputs, composite_reward)
+            #ppo_trainer.log_stats(stats, inputs, composite_reward)
             
             # Save model every 100 batchs
             if batch_ticker % save_frequency == 0:
@@ -161,6 +178,7 @@ if __name__ == '__main__':
                     ppo_trainer.save_pretrained(script_args.model_save_path)
 
             batch_ticker += 1
+            
             messages.pop()
 
 
