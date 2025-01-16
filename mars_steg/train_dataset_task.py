@@ -1,6 +1,7 @@
 from mars_steg.utils.trl import ScriptArguments, GenerationKwargs
 
 import warnings
+import os
 
 import torch
 from torch.optim import Adam
@@ -10,7 +11,7 @@ from transformers import (
     AutoTokenizer,
     HfArgumentParser,
     set_seed,
-    BitsAndBytesConfig
+    # BitsAndBytesConfig
 )
 
 from trl import AutoModelForCausalLMWithValueHead, PPOConfig, PPOTrainer, create_reference_model
@@ -25,9 +26,18 @@ from mars_steg.utils.common import parse_model_output, LLMTranscriptExtractionEr
 
 parser = HfArgumentParser(ScriptArguments)
 script_args, *_ = parser.parse_args_into_dataclasses()
-save_frequency = 100 # WE SHOULD PUT THIS ON YAML
+# Optionally load configuration from YAML
+config_path = os.path.join(os.path.abspath(""),"mars_steg", "configs", "training.yaml") 
+print(config_path) # Replace with the actual path to your YAML file
+try:
+    yaml_args = ScriptArguments.from_yaml(config_path)
+    print(f"Loaded configuration from {config_path}")
+except FileNotFoundError or IsADirectoryError:
+    print(f"Config file {config_path} not found. Using default or command-line arguments.")
+save_frequency = script_args.save_frequency
+print()
 
-quantization_config = BitsAndBytesConfig(load_in_4bit=True)    
+# quantization_config = BitsAndBytesConfig(load_in_4bit=True)    
 
 config = PPOConfig(
     model_name=script_args.model_name,
