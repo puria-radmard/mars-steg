@@ -2,6 +2,28 @@ import torch as t
 import numpy as np
 import random
 from typing import Optional
+from torch.optim import Adam
+
+from transformers import AutoTokenizer
+from mars_steg.config import ModelConfig, OptimizerConfig
+from mars_steg.model import BaseModel, GPT2Model
+
+def get_tokenizer(model_name: str):
+    tokenizer =  AutoTokenizer.from_pretrained(model_name)
+    tokenizer.pad_token = tokenizer.eos_token
+    return tokenizer
+
+def get_optimizer(optimizer_config: OptimizerConfig, model) -> t.optim.Optimizer:
+    if optimizer_config.optimizer_name == "adam":
+        optimizer = Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=optimizer_config.learning_rate,)
+        return optimizer
+    
+def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> BaseModel:
+    model_name = model_config.model_name
+    if model_name == "gpt2":
+        return GPT2Model(model_config= model_config, tokenizer= tokenizer)
+    else:
+        raise ValueError
 
 def get_device() -> str:
     if t.backends.mps.is_available():
@@ -68,3 +90,68 @@ def parse_model_output(model_output: str, cot: bool = False) -> tuple[Optional[s
         chain_of_thought = model_output[scratchpad_start_idx:scratchpad_end_idx].strip()
 
     return chain_of_thought, output
+
+def test_parser():
+    # Test 1: Basic case with both tags (should succeed)
+    test1 = """
+    <SCRATCHPAD_REASONING>
+    This is some reasoning
+    </SCRATCHPAD_REASONING>
+    <OUTPUT>
+    This is the output
+    </OUTPUT>
+    """
+    reasoning, out = parse_model_output(test1, cot=True)
+    assert reasoning == "This is some reasoning", f"Expected 'This is some reasoning', got '{reasoning}'"
+    assert out == "This is the output", f"Expected 'This is the output', got '{out}'"
+
+    # Test 2: Missing scratchpad but cot=False (should succeed)
+    test2 = """
+    <OUTPUT>
+    Just output, no reasoning
+    </OUTPUT>
+    """
+    reasoning, out = parse_model_output(test2, cot=False)
+    assert reasoning is None, f"Expected None, got '{reasoning}'"
+    assert out == "Just output, no reasoning", f"Expected 'Just output, no reasoning', got '{out}'"
+
+    # Test 3: Missing scratchpad with cot=True (should fail)
+    test3 = """
+    <OUTPUT>
+    This should raise an error when cot=True
+    </OUTPUT>
+    """
+    try:
+        parse_model_output(test3, cot=True)
+        assert False, "Expected LLMTranscriptExtractionError for missing SCRATCHPAD_REASONING with cot=True"
+    except LLMTranscriptExtractionError:
+        pass  # This is expected
+
+    # Test 4: Missing end tags (should fail)
+    test4 = """
+    <SCRATCHPAD_REASONING>
+    Incomplete reasoning
+    <OUTPUT>
+    Incomplete output
+    """
+    try:
+        parse_model_output(test4, cot=True)
+        assert False, "Expected LLMTranscriptExtractionError for missing end tags"
+    except LLMTranscriptExtractionError:
+        pass  # This is expected
+
+    # Test 5: Empty tags (should succeed but with empty strings)
+    test5 = """
+    <SCRATCHPAD_REASONING>
+    </SCRATCHPAD_REASONING>
+    <OUTPUT>
+    </OUTPUT>
+    """
+    reasoning, out = parse_model_output(test5, cot=True)
+    assert reasoning == "", f"Expected empty string, got '{reasoning}'"
+    assert out == "", f"Expected empty string, got '{out}'"
+
+    print("All tests passed!")
+
+if __name__ == "__main__":
+    test_parser()

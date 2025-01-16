@@ -3,51 +3,46 @@ from mars_steg.utils.trl import ScriptArguments, GenerationKwargs
 import warnings
 
 import torch
-from torch.optim import Adam
 from tqdm import tqdm
 from transformers import (
-    AutoModelForCausalLM,
-    AutoTokenizer,
     HfArgumentParser,
     set_seed,
-    BitsAndBytesConfig
 )
 
-from trl import AutoModelForCausalLMWithValueHead, PPOConfig, PPOTrainer, create_reference_model
+from trl import PPOConfig, PPOTrainer, create_reference_model
 
 
 from mars_steg.task.tasks.math_dataset_task import MATH_Dataset_Task
 from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
-from mars_steg.utils.common import parse_model_output, LLMTranscriptExtractionError
+from mars_steg.utils.common import get_optimizer, get_tokenizer, get_model, parse_model_output, LLMTranscriptExtractionError
 
 
 ## Set-up before __name__ check in case we want to import this stuff from somewhere else
 
-parser = HfArgumentParser(ScriptArguments)
-script_args, *_ = parser.parse_args_into_dataclasses()
-save_frequency = 100
 
-quantization_config = BitsAndBytesConfig(load_in_4bit=True)    
+model_config, optimizer_config, train_config = ConfigLoader.load_config("mars_steg/configs/config.yaml")
 
 config = PPOConfig(
-    model_name=script_args.model_name,
-    learning_rate=script_args.learning_rate,
-    log_with=script_args.log_with,
-    ppo_epochs=100,
-    mini_batch_size=script_args.mini_batch_size,
-    batch_size=script_args.batch_size,
-    gradient_accumulation_steps=script_args.gradient_accumulation_steps,
+    model_name=model_config.model_name,
+    learning_rate=optimizer_config.learning_rate,
+    log_with=train_config.log_with,
+    ppo_epochs=train_config.ppo_epochs,
+    mini_batch_size=train_config.mini_batch_size,
+    batch_size=train_config.batch_size,
+    gradient_accumulation_steps=train_config.gradient_accumulation_steps,
 )
+
 set_seed(config.seed)
 
-model = AutoModelForCausalLM.from_pretrained(config.model_name, torch_dtype=torch.bfloat16,quantization_config=quantization_config,)
-model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
-ref_model = create_reference_model(model, num_shared_layers=3)
+# Get tokenizer
+tokenizer = get_tokenizer(model_config.model_name)
 
-optimizer = Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.learning_rate)
+# Get model
+model = get_model(model_config, tokenizer)
+ref_model = create_reference_model(model.model, num_shared_layers=3)
 
-tokenizer = AutoTokenizer.from_pretrained(config.model_name)
-tokenizer.pad_token = tokenizer.eos_token
+# Get optimizer
+optimizer = get_optimizer(optimizer_config=optimizer_config, model=model)
 
 
 # TODO: (low priority, after we get first script working) move this to config
@@ -55,26 +50,25 @@ dataset = 'mars_steg/dataset/MATH_dataset_minimal.csv'
 math_task = MATH_Dataset_Task(dataset, EqualsSign())
 train_dataset, test_dataset = math_task.test_train_split(train_proportion = 0.7)
 generation_kwargs = GenerationKwargs.from_yaml("mars_steg/configs/generation_config/default.yaml").to_dict()
-generation_kwargs["batch_size"] = script_args.batch_size
+generation_kwargs["batch_size"] = train_config.batch_size
 
 
 ppo_trainer = PPOTrainer(
     config,
-    model,
+    model.model,
     ref_model=ref_model,
     tokenizer=tokenizer,
     optimizer=optimizer,
 )
 
-
 if __name__ == '__main__':
+
+
 
     # TODO: task objects should have a system_prompt attribute to give the system a prompt to use
     # TODO: get model-specific system prompt
     # -->  Connor
-    messages = [
-        {"role": "system", "content": f"{train_dataset.system_prompt}"},
-    ]
+    messages = [model.get_message("system", train_dataset.system_prompt),]
 
 
     # TODO (low prioirity): if we are doing more than 1 epoch (here epoch = repeat over all data, so probably not doing more than 1), 
@@ -83,14 +77,14 @@ if __name__ == '__main__':
     # --> later
     
 
-    for _ in range(script_args.num_train_epochs):
+    for _ in range(train_config.num_train_epochs):
 
         batch_ticker = 1
         
         for prompt_data in tqdm(train_dataset.iterate_data(shuffle = True)):
 
             # TODO: message wrapping config --> Connor
-            messages.append({"role": "user", "content": prompt_data.cot_prompt})
+            messages.append(model.get_message("user", prompt_data.cot_prompt))
             inputs = tokenizer.apply_chat_template(messages, return_tensors="pt",add_generation_prompt=True, return_dict=True)
 
             # Move the tokenized inputs to the same device the model is on (GPU/CPU)
@@ -136,9 +130,9 @@ if __name__ == '__main__':
             ppo_trainer.log_stats(stats, inputs, composite_reward)
             
             # Save model every 100 batchs
-            if batch_ticker % save_frequency == 0:
+            if batch_ticker % train_config.save_frequency == 0:
                 if ppo_trainer.accelerator.is_main_process:
-                    ppo_trainer.save_pretrained(script_args.model_save_path)
+                    ppo_trainer.save_pretrained(model_config.model_save_path)
 
             batch_ticker += 1
 
