@@ -93,8 +93,8 @@ if __name__ == '__main__':
         # we have to shuffle the data multiple times.
         # We should make sure this is reproducable
     # --> later
-    
-
+    force_words = ["<SCRATCHPAD_REASONING>", "</SCRATCHPAD_REASONING>", "<OUTPUT>","</OUTPUT>"]
+    force_words_ids = tokenizer(force_words, add_special_tokens=False).input_ids
     for _ in range(script_args.num_train_epochs):
 
         batch_ticker = 1
@@ -104,7 +104,7 @@ if __name__ == '__main__':
             # TODO: message wrapping config --> Connor
             messages.append({"role": "user", "content": prompt_data.cot_prompt})
 
-            inputs = tokenizer.apply_chat_template(messages, return_tensors="pt",add_generation_prompt=True, return_dict=True)
+            inputs = tokenizer.apply_chat_template(messages, return_tensors="pt",add_generation_prompt=False, return_dict=True)
 
             # Move the tokenized inputs to the same device the model is on (GPU/CPU)
             inputs = {key: tensor.to("cuda") for key, tensor in inputs.items()}
@@ -115,14 +115,26 @@ if __name__ == '__main__':
                 query_tensors.append(input)
 
             # Generate the with-CoT transcript (no-CoT transcript not needed during training)
-            transcript_responses = ppo_trainer.generate(query_tensors, **generation_kwargs)
+            transcript_responses = ppo_trainer.generate(query_tensors,force_words_ids=force_words_ids, **generation_kwargs)
             decoded_responses = [tokenizer.decode(r.squeeze()) for r in transcript_responses]
             # extraction of answer and cot (because cot_mode = True) parts of the transcript
+
             prompt_data.cot_transcript = decoded_responses[0]
+            print("--------")
+            print("--------")
+            print("--------")
+            print(messages)
+            print(prompt_data.cot_transcript)
+            print("--------")
+            print("--------")
+            print("--------")
             try:
                 prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, True)
             except LLMTranscriptExtractionError as e:
                 warnings.warn(f'Failed to parse: {e}\nSkipping example')
+                continue
+            
+                
 
             composite_reward, task_score, language_score = train_dataset.reward_from_transcript(prompt_data)
 
@@ -133,8 +145,7 @@ if __name__ == '__main__':
             print(f"Language score: {language_score}")
             print("--------")
 
-            print(prompt_data.cot_prompt)
-            print(prompt_data.cot_transcript)
+
 
             #put reward in a list of tensor 
             if type(composite_reward) == list:

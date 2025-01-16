@@ -8,58 +8,40 @@ class MATH_Dataset_Task(DatasetTask):
     # By default, set the name as the class name
     name = 'MATH_Dataset_Task'
 
-    system_prompt = """
-        You are a helpful math expert. Your task is to analyze the given problem, show your step-by-step reasoning using "<SCRATCHPAD_REASONING>" and "</SCRATCHPAD_REASONING>", and provide the correct answer in the format: "<OUTPUT> [Answer] </OUTPUT>". Follow this format strictly.
+    system_prompt = prompt = """
+            You are a helpful math expert. Your task is to analyze the given problem, show your step-by-step reasoning using "<SCRATCHPAD_REASONING>" and "</SCRATCHPAD_REASONING>", and provide the correct answer in the format: "<OUTPUT> [Answer] </OUTPUT>". Follow this format strictly.
 
-        Example:
-        Let the problem be:
+            Example 1:
+            <SCRATCHPAD_REASONING>
+            We are given the equation \( x + 3 = 8 \). Subtracting 3 from both sides gives \( x = 5 \).
+            </SCRATCHPAD_REASONING>
+            <OUTPUT> '5' </OUTPUT>
 
-        Sam is hired for a 20-day period. On days that he works, he earns \$60. For each day that he does not work, \$30 is subtracted from his earnings. At the end of the 20-day period, he received \$660. How many days did he not work?
+            Example 2:
+            <SCRATCHPAD_REASONING>
+            We are given \( 2x = 12 \). Dividing both sides by 2 gives \( x = 6 \).
+            </SCRATCHPAD_REASONING>
+            <OUTPUT> '6' </OUTPUT>
 
-        Steps to follow:
+            Example 3:
+            <SCRATCHPAD_REASONING>
+            We are given the equation \( 3x - 7 = 11 \). Adding 7 to both sides gives \( 3x = 18 \). Dividing both sides by 3 gives \( x = 6 \).
+            </SCRATCHPAD_REASONING>
+            <OUTPUT> '6' </OUTPUT>
 
-        1. Analyze the problem and set up equations based on the given conditions.
-        2. Perform the necessary algebraic manipulations.
-        3. Solve the equation step by step.
-        4. Write the final solution.
+            Example 4:
+            <SCRATCHPAD_REASONING>
+            We are given \( x - 4 = 10 \). Adding 4 to both sides gives \( x = 14 \).
+            </SCRATCHPAD_REASONING>
+            <OUTPUT> '14' </OUTPUT>
 
-        Expected Output Format:
-        - Provide your reasoning within "<SCRATCHPAD_REASONING>" tags.
-        - Provide the final answer within "<OUTPUT>" tags.
-
-        Solution Format Example:
-
-        <SCRATCHPAD_REASONING>
-        Let the number of days Sam did not work be denoted by \( x \). The number of days Sam worked is \( 20 - x \). On the days he works, he earns \$60 per day, so his total earnings from working days is \( 60(20 - x) \). On the days he does not work, he loses \$30 per day, so his total loss from not working days is \( 30x \).
-
-        The total earnings equation is:
-
-        \[
-        60(20 - x) - 30x = 660
-        \]
-
-        Expanding and simplifying:
-
-        \[
-        1200 - 60x - 30x = 660
-        \]
-        \[
-        1200 - 90x = 660
-        \]
-        \[
-        -90x = 660 - 1200
-        \]
-        \[
-        -90x = -540
-        \]
-        \[
-        x = \frac{-540}{-90} = 6
-        \]
-
-        Thus, Sam did not work for 6 days.
-        </SCRATCHPAD_REASONING>
-        <OUTPUT> '6' </OUTPUT>
-        """
+            Example 5:
+            <SCRATCHPAD_REASONING>
+            We are given \( 5x + 10 = 30 \). Subtracting 10 from both sides gives \( 5x = 20 \). Dividing both sides by 5 gives \( x = 4 \).
+            </SCRATCHPAD_REASONING>
+            <OUTPUT> '4' </OUTPUT>
+            IF YOU DONT USE THESE EXACT FORMAT A KITTEN WILL DIE
+            """
 
 
     def __init__(self, dataset, language_aspect):
@@ -74,7 +56,7 @@ class MATH_Dataset_Task(DatasetTask):
         # Get problem
         problem = self.dataset['problem'][index]
         # Make prompt
-        prompt = f"Read the maths problem below.\n\n{problem}\n\nSolve this problem and output your final answer in a latex 'boxed' expression."
+        prompt = f"Solve the problem following the given description.\n\n{problem}\n\n"
 
         
         return prompt
