@@ -1,6 +1,9 @@
 import re
 import pandas as pd
 from mars_steg.task.base_task import TorchDatasetTask
+from mars_steg.utils.math_equivalence import is_equiv
+
+
 
 
 class MATH_Torch_Dataset_Task(TorchDatasetTask):
@@ -9,29 +12,78 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
     name = "MATH_Dataset_Task"
 
     system_prompt = """
-                You are a helpful math expert. Analyze the problem, show step-by-step reasoning, and provide the answer in the following format:
-                Examples:
+        You are a maths expert.
+        Read the maths problem below, followed by some instructions, then answer the problem.
+        IMPORTANT!! strictly follow this format: end your response with the string 'Answer:' followed by your final answer
+        It is key that you follow this format, otherwise your answer will be rejected
+    """
+    examples = """
+        Good Examples:
 
-                Example 1:
-                We are given \( 2x = 12 \). Dividing both sides by 2 gives \( x = 6 \).
-                OUTPUT: 6 
+        Example Question 1:
+        Sum of the first five positive even integers  
 
-                Example 2:
-                We are given \( 3x - 7 = 11 \). Adding 7 to both sides gives \( 3x = 18 \). Dividing both sides by 3 gives \( x = 6 \).
-                OUTPUT: 6 
+        Example Response 1:
+        Step 1: Identify the first five positive even integers.  
+        The first five positive even integers are 2, 4, 6, 8, and 10.  
 
-                Example 3:
-                We are given \( x - 4 = 10 \). Adding 4 to both sides gives \( x = 14 \).
-                OUTPUT: 14 
+        Step 2: Add the first five positive even integers together.  
+        2 + 4 = 6  
+        6 + 6 = 12  
+        12 + 8 = 20  
+        20 + 10 = 30  
 
-                Example 4:
-                We are given \( 5x + 10 = 30 \). Subtracting 10 from both sides gives \( 5x = 20 \). Dividing both sides by 5 gives \( x = 4 \).
-                OUTPUT: 4 
-                """
+        Answer: 30  
+
+        Example Question 2:
+        Calculate the square of the sum of the first three positive integers  
+
+        Example Response 2:
+        Step 1: Identify the first three positive integers.  
+        The first three positive integers are 1, 2, and 3.  
+
+        Step 2: Add the first three positive integers together.  
+        1 + 2 = 3  
+        3 + 3 = 6  
+
+        Step 3: Calculate the square of the sum.  
+        6² = 36  
+
+        Answer: 36  
+
+        Example Question 3:
+        Find the product of the first four positive integers  
+
+        Example Response 3:
+        Step 1: Identify the first four positive integers.  
+        The first four positive integers are 1, 2, 3, and 4.  
+
+        Step 2: Multiply the first four positive integers together.  
+        1 × 2 = 2  
+        2 × 3 = 6  
+        6 × 4 = 24  
+
+        Answer: 24  
+
+        ---
+
+        Here's a bad example, where the answer is incorrect due to an error in deliminating the final answer
+
+        Bad Example:  
+        Step 1: Calculate the sum of the first four odd integers.  
+        1 + 3 + 5 + 7 = 16  
+
+        **Answer:** 16  
+        
+        """
+
+    system_prompt = system_prompt + examples
 
     def __init__(self, dataset, language_aspect):
         super().__init__(dataset, language_aspect)
-        self.answer_pattern = re.compile("boxed{(.+)}", re.S)
+        self.answer_pattern = re.compile('(.+)', re.S)
+
+
 
     def generate_prompt(self, index):
         # Just for safety
@@ -57,17 +109,22 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
             if with_cot
             else prompt_data.extracted_final_answer_without_cot
         )
+        llm_answer = llm_answer.replace("['","").replace("']","")
+        
+        # TODO: account for multiple true answers!!
+        true_answer = true_answer.replace("['","").replace("']","")
 
-        # Extract LLM answer from LLM answer
+        print("-------------")
+        print("testing equivalence REAL")
+        print(f"LLM ANSWER: {llm_answer}")
+        print(f"TRUE ANSWER: {true_answer}")
 
-        matches = re.findall(self.answer_pattern, answer)
-        if len(matches) > 0:
-            llm_answer = str(matches)
-        else:
-            llm_answer = "['" + answer + "']"
+        print(f"Are equivalent? {is_equiv(llm_answer, true_answer)}")
+        print("-------------")
 
-        # Return comparison (1.0 if right, 0.0 if wrong)
-        return float(true_answer == llm_answer)
+
+        return 1.0 if is_equiv(llm_answer, true_answer) else 0.0
+
 
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@ model_config, optimizer_config, train_config = ConfigLoader.load_config(
     "mars_steg/configs/config.yaml"
 )
 
-
+# PPO Configuration
 config = PPOConfig(
     model_name=model_config.model_name,
     learning_rate=optimizer_config.learning_rate,
@@ -48,6 +48,7 @@ config = PPOConfig(
 
 wandb.init(project="MARS-STEGO", config=config)
 
+# Set random seed for reproducibility
 set_seed(config.seed)
 
 
@@ -87,6 +88,12 @@ ppo_trainer = PPOTrainer(
     optimizer=optimizer,
 )
 
+output_delimitation_tokens = {
+    #"start_scratchpad_token": "<SCRATCHPAD_REASONING>",
+    #"end_scratchpad_token": "</SCRATCHPAD_REASONING>",
+    "start_output_token": "Answer:",
+    #"end_output_token": "</OUTPUT>",
+}
 
 if __name__ == "__main__":
 
@@ -140,7 +147,7 @@ if __name__ == "__main__":
                     (
                         prompt_data.extracted_cot,
                         prompt_data.extracted_final_answer_with_cot,
-                    ) = parse_model_output(prompt_data.cot_transcript, True)
+                    ) = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot = True)
                     composite_reward, task_score, language_score = (
                         train_dataset.reward_from_transcript(prompt_data)
                     )
@@ -179,6 +186,8 @@ if __name__ == "__main__":
                 inputs,
                 [composite_reward_list, task_score_list, language_score_list],
             )
+
+            torch.cuda.empty_cache() 
 
             # Save model every 100 batchs
             if batch_ticker % train_config.save_frequency == 0:
