@@ -8,10 +8,14 @@ from transformers import (
 from abc import ABCMeta, abstractmethod
 import torch
 from trl import AutoModelForCausalLMWithValueHead
-
-from transformers import BitsAndBytesConfig
-
 import warnings
+try:
+    from transformers import BitsAndBytesConfig
+except ImportError:
+    BitsAndBytesConfig = None
+    warnings.warn('Reintroduce: BitsAndBytesConfig. Import hasn\'t been successful.')
+
+
 
 
 class BaseModel(metaclass=ABCMeta):
@@ -24,7 +28,10 @@ class BaseModel(metaclass=ABCMeta):
         self.model = self.load_model()
 
     def load_model(self):
-        quantization_config = BitsAndBytesConfig(load_in_4bit=self.model_config.load_in_4bit)
+        if self.model_config.load_in_4bit:
+            quantization_config = BitsAndBytesConfig(load_in_4bit=True)
+        else:
+            quantization_config = None
         model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
             torch_dtype=torch.bfloat16,
