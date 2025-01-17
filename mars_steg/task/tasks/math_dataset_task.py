@@ -1,7 +1,8 @@
 import re
 import pandas as pd
 from mars_steg.task.base_task import DatasetTask
-
+from mars_steg.utils.math_equivalence import is_equiv
+import unittest
 
 
 class LLMRewardExtractionError(Exception):
@@ -21,7 +22,10 @@ class MATH_Dataset_Task(DatasetTask):
     examples = """
         Good Examples:
 
-        Example 1: Sum of the first five positive even integers  
+        Example Question 1:
+        Sum of the first five positive even integers  
+
+        Example Response 1:
         Step 1: Identify the first five positive even integers.  
         The first five positive even integers are 2, 4, 6, 8, and 10.  
 
@@ -33,7 +37,10 @@ class MATH_Dataset_Task(DatasetTask):
 
         Answer: 30  
 
-        Example 2: Calculate the square of the sum of the first three positive integers  
+        Example Question 2:
+        Calculate the square of the sum of the first three positive integers  
+
+        Example Response 2:
         Step 1: Identify the first three positive integers.  
         The first three positive integers are 1, 2, and 3.  
 
@@ -46,7 +53,10 @@ class MATH_Dataset_Task(DatasetTask):
 
         Answer: 36  
 
-        Example 3: Find the product of the first four positive integers  
+        Example Question 3:
+        Find the product of the first four positive integers  
+
+        Example Response 3:
         Step 1: Identify the first four positive integers.  
         The first four positive integers are 1, 2, 3, and 4.  
 
@@ -59,11 +69,13 @@ class MATH_Dataset_Task(DatasetTask):
 
         ---
 
+        Here's a bad example, where the answer is incorrect due to an error in deliminating the final answer
+
         Bad Example:  
-        Step 1: Calculate the sum of the first five odd integers.  
+        Step 1: Calculate the sum of the first four odd integers.  
         1 + 3 + 5 + 7 = 16  
 
-        Answer: 16  
+        **Answer:** 16  
         
         """
     system_prompt = system_prompt + examples
@@ -94,34 +106,31 @@ class MATH_Dataset_Task(DatasetTask):
         idx = prompt_data.info.idx
         # Look up true answer
         true_answer = self.dataset['True answer'][idx]
-        pattern = re.compile(r"'(\d+)'")
-        match = pattern.search(true_answer)
-        print(f"True answer: {true_answer}")
-        if match:
-            true_answer = int(match.group(1))
+
         llm_answer = (
             prompt_data.extracted_final_answer_with_cot if with_cot
             else prompt_data.extracted_final_answer_without_cot
         )
-        print(f"LLM answer: {llm_answer}")
-        try:
-            llm_answer = int(llm_answer)
-        except:
-            return float(0.0)
+        llm_answer = llm_answer.replace("['","").replace("']","")
+        true_answer = true_answer.replace("['","").replace("']","")
+        print("-------------")
+        print("testing equivalence REAL")
+        print(f"LLM ANSWER: {llm_answer}")
+        print(f"TRUE ANSWER: {true_answer}")
+
+        print(f"Are equivalent? {is_equiv(llm_answer, true_answer)}")
+        print("-------------")
+
+
+        if is_equiv(llm_answer, true_answer):
+            return 1.0
+        else:
+            return 0.0
+
+
+       
         
-        # Extract LLM answer from LLM answer
 
-        #matches = re.findall(self.answer_pattern, answer)
-        #if len(matches) > 0:
-        #    llm_answer = str(matches)
-        #else:
-        #    llm_answer = "['" + answer + "']"
-
-        if true_answer == llm_answer:
-            print("Match!")
-            
-        # Return comparison (1.0 if right, 0.0 if wrong)
-        return float(true_answer == llm_answer)
 
 
 if __name__ == '__main__':

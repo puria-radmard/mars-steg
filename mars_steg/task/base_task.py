@@ -38,7 +38,7 @@ class Task(metaclass=ABCMeta):
         Implemented as separate property to facilitate CoT gap calculation.
         Can be overridden for customisation. 
         """
-        return "Show your reasoning, step by step and provide the answer after Ġanswer "
+        return "Show your reasoning, step by step "
     
 
     @property

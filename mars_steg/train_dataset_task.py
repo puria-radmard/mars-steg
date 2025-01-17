@@ -32,8 +32,8 @@ save_frequency = 100 # WE SHOULD PUT THIS ON YAML
 
 # Configure quantization for fast token generation
 quantization_config = BitsAndBytesConfig(
-    load_in_4bit=False, 
-    #bnb_4bit_compute_dtype=torch.float16  
+    load_in_4bit=True, 
+    bnb_4bit_compute_dtype=torch.float16  
 )
 
 # PPO Configuration
@@ -60,12 +60,12 @@ set_seed(config.seed)
 model = AutoModelForCausalLM.from_pretrained(
     config.model_name,
     torch_dtype= torch.bfloat16,
-    #quantization_config=quantization_config,
+    quantization_config=quantization_config,
     device_map="auto"  # Automatically place layers on available GPUs
 )
 
 model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
-ref_model = create_reference_model(model, num_shared_layers=25) 
+# ref_model = create_reference_model(model, num_shared_layers=25) 
 
 model = model.to("cuda")
 
@@ -176,7 +176,7 @@ if __name__ == '__main__':
                 rewards = [torch.tensor(composite_reward)]
 
             # TODO: put any batching back in here, e.g. by keeping a cache of 
-            # stats = ppo_trainer.step(query_tensors, transcript_responses, [torch.tensor(composite_reward)])
+            stats = ppo_trainer.step(query_tensors, transcript_responses, [torch.tensor(composite_reward)])
             #wandb.log(stats)
             torch.cuda.empty_cache() 
             
