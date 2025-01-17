@@ -24,7 +24,7 @@ class BaseModel(metaclass=ABCMeta):
         self.model = self.load_model()
 
     def load_model(self):
-        quantization_config = BitsAndBytesConfig(load_in_4bit=True)
+        quantization_config = BitsAndBytesConfig(load_in_4bit=self.model_config.load_in_4bit)
         model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
             torch_dtype=torch.bfloat16,

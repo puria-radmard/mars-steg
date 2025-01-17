@@ -19,6 +19,7 @@ def load_yaml(yaml_file: str) -> dict:
 class ModelConfig:
     model_name: str
     model_save_path: str
+    load_in_4bit: bool
     lora: bool
     lora_r: int
     lora_alpha: int
