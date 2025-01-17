@@ -147,6 +147,9 @@ if __name__ == "__main__":
             train_transcript_responses = []
             num_examples_failed = 0
             for i, prompt_data in tqdm(enumerate(batch_prompt_datas)):
+                composite_reward = 0.0
+                task_score = 0.0
+                language_score = 0.0
                 try:
                     (
                         prompt_data.extracted_cot,
@@ -162,7 +165,7 @@ if __name__ == "__main__":
                     train_transcript_responses.append(transcript_responses[i])
                 except LLMTranscriptExtractionError as e:
                     num_examples_failed += 1
-                    composite_reward_list.append(torch.tensor(composite_reward))
+                    composite_reward_list.append(torch.tensor(0.0))
                     task_score_list.append(0.0)
                     language_score_list.append(0.0)
                     train_query_tensors.append(query_tensors[i])
