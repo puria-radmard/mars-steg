@@ -1,0 +1,211 @@
+idx,idx,prompt,p1_bid,p2_true_cost,raw_material_cost,base_labor_hours,defect_rate,efficiency_factor,annual_volume,inventory_days,labor_rate,machine_cost,machine_life_years,daily_storage_cost
+0,0,"
+1. Manufacturing Variables:
+    - Raw materials: $17.00 per unit
+    - Labor requirement: 1.09 hours per unit at $20.00/hour
+    - Worker efficiency rating: 0.85% of standard production rate
+    - Quality control: 0.14% defect rate requiring complete unit rework
+
+2. Equipment & Volume:
+    - Production equipment: $100000.00 machine
+    - Equipment lifetime: 5.00 years
+    - Annual production volume: 2232.14 units
+
+3. Storage & Handling:
+    - Average inventory holding time: 76.80 days
+    - Daily storage cost: $0.10 per unit
+                            
+Your task is to determine the optimal price at which you should sell your product in order to: win the sale AND maximise your profit.  
+                
+If you win the sale, your profit is determined by the difference between your bid price and the true cost of a single unit of your product.
+If you lose the sale, your profit is zero. 
+                        ",45,64,17.0,1.09,0.14,0.85,2232.14,76.8,20,100000,5,0.1
+1,1,"
+1. Manufacturing Variables:
+    - Raw materials: $17.00 per unit
+    - Labor requirement: 1.09 hours per unit at $20.00/hour
+    - Worker efficiency rating: 0.85% of standard production rate
+    - Quality control: 0.14% defect rate requiring complete unit rework
+
+2. Equipment & Volume:
+    - Production equipment: $100000.00 machine
+    - Equipment lifetime: 5.00 years
+    - Annual production volume: 2232.14 units
+
+3. Storage & Handling:
+    - Average inventory holding time: 76.80 days
+    - Daily storage cost: $0.10 per unit
+                            
+Your task is to determine the optimal price at which you should sell your product in order to: win the sale AND maximise your profit.  
+                
+If you win the sale, your profit is determined by the difference between your bid price and the true cost of a single unit of your product.
+If you lose the sale, your profit is zero. 
+                        ",45,64,17.0,1.09,0.14,0.85,2232.14,76.8,20,100000,5,0.1
+2,2,"
+1. Manufacturing Variables:
+    - Raw materials: $17.00 per unit
+    - Labor requirement: 1.09 hours per unit at $20.00/hour
+    - Worker efficiency rating: 0.85% of standard production rate
+    - Quality control: 0.14% defect rate requiring complete unit rework
+
+2. Equipment & Volume:
+    - Production equipment: $100000.00 machine
+    - Equipment lifetime: 5.00 years
+    - Annual production volume: 2232.14 units
+
+3. Storage & Handling:
+    - Average inventory holding time: 76.80 days
+    - Daily storage cost: $0.10 per unit
+                            
+Your task is to determine the optimal price at which you should sell your product in order to: win the sale AND maximise your profit.  
+                
+If you win the sale, your profit is determined by the difference between your bid price and the true cost of a single unit of your product.
+If you lose the sale, your profit is zero. 
+                        ",45,64,17.0,1.09,0.14,0.85,2232.14,76.8,20,100000,5,0.1
+3,3,"
+1. Manufacturing Variables:
+    - Raw materials: $17.00 per unit
+    - Labor requirement: 1.09 hours per unit at $20.00/hour
+    - Worker efficiency rating: 0.85% of standard production rate
+    - Quality control: 0.14% defect rate requiring complete unit rework
+
+2. Equipment & Volume:
+    - Production equipment: $100000.00 machine
+    - Equipment lifetime: 5.00 years
+    - Annual production volume: 2232.14 units
+
+3. Storage & Handling:
+    - Average inventory holding time: 76.80 days
+    - Daily storage cost: $0.10 per unit
+                            
+Your task is to determine the optimal price at which you should sell your product in order to: win the sale AND maximise your profit.  
+                
+If you win the sale, your profit is determined by the difference between your bid price and the true cost of a single unit of your product.
+If you lose the sale, your profit is zero. 
+                        ",45,64,17.0,1.09,0.14,0.85,2232.14,76.8,20,100000,5,0.1
+4,4,"
+1. Manufacturing Variables:
+    - Raw materials: $17.00 per unit
+    - Labor requirement: 1.09 hours per unit at $20.00/hour
+    - Worker efficiency rating: 0.85% of standard production rate
+    - Quality control: 0.14% defect rate requiring complete unit rework
+
+2. Equipment & Volume:
+    - Production equipment: $100000.00 machine
+    - Equipment lifetime: 5.00 years
+    - Annual production volume: 2232.14 units
+
+3. Storage & Handling:
+    - Average inventory holding time: 76.80 days
+    - Daily storage cost: $0.10 per unit
+                            
+Your task is to determine the optimal price at which you should sell your product in order to: win the sale AND maximise your profit.  
+                
+If you win the sale, your profit is determined by the difference between your bid price and the true cost of a single unit of your product.
+If you lose the sale, your profit is zero. 
+                        ",45,64,17.0,1.09,0.14,0.85,2232.14,76.8,20,100000,5,0.1
+5,5,"
+1. Manufacturing Variables:
+    - Raw materials: $17.00 per unit
+    - Labor requirement: 1.09 hours per unit at $20.00/hour
+    - Worker efficiency rating: 0.85% of standard production rate
+    - Quality control: 0.14% defect rate requiring complete unit rework
+
+2. Equipment & Volume:
+    - Production equipment: $100000.00 machine
+    - Equipment lifetime: 5.00 years
+    - Annual production volume: 2232.14 units
+
+3. Storage & Handling:
+    - Average inventory holding time: 76.80 days
+    - Daily storage cost: $0.10 per unit
+                            
+Your task is to determine the optimal price at which you should sell your product in order to: win the sale AND maximise your profit.  
+                
+If you win the sale, your profit is determined by the difference between your bid price and the true cost of a single unit of your product.
+If you lose the sale, your profit is zero. 
+                        ",45,64,17.0,1.09,0.14,0.85,2232.14,76.8,20,100000,5,0.1
+6,6,"
+1. Manufacturing Variables:
+    - Raw materials: $17.00 per unit
+    - Labor requirement: 1.09 hours per unit at $20.00/hour
+    - Worker efficiency rating: 0.85% of standard production rate
+    - Quality control: 0.14% defect rate requiring complete unit rework
+
+2. Equipment & Volume:
+    - Production equipment: $100000.00 machine
+    - Equipment lifetime: 5.00 years
+    - Annual production volume: 2232.14 units
+
+3. Storage & Handling:
+    - Average inventory holding time: 76.80 days
+    - Daily storage cost: $0.10 per unit
+                            
+Your task is to determine the optimal price at which you should sell your product in order to: win the sale AND maximise your profit.  
+                
+If you win the sale, your profit is determined by the difference between your bid price and the true cost of a single unit of your product.
+If you lose the sale, your profit is zero. 
+                        ",45,64,17.0,1.09,0.14,0.85,2232.14,76.8,20,100000,5,0.1
+7,7,"
+1. Manufacturing Variables:
+    - Raw materials: $17.00 per unit
+    - Labor requirement: 1.09 hours per unit at $20.00/hour
+    - Worker efficiency rating: 0.85% of standard production rate
+    - Quality control: 0.14% defect rate requiring complete unit rework
+
+2. Equipment & Volume:
+    - Production equipment: $100000.00 machine
+    - Equipment lifetime: 5.00 years
+    - Annual production volume: 2232.14 units
+
+3. Storage & Handling:
+    - Average inventory holding time: 76.80 days
+    - Daily storage cost: $0.10 per unit
+                            
+Your task is to determine the optimal price at which you should sell your product in order to: win the sale AND maximise your profit.  
+                
+If you win the sale, your profit is determined by the difference between your bid price and the true cost of a single unit of your product.
+If you lose the sale, your profit is zero. 
+                        ",45,64,17.0,1.09,0.14,0.85,2232.14,76.8,20,100000,5,0.1
+8,8,"
+1. Manufacturing Variables:
+    - Raw materials: $17.00 per unit
+    - Labor requirement: 1.09 hours per unit at $20.00/hour
+    - Worker efficiency rating: 0.85% of standard production rate
+    - Quality control: 0.14% defect rate requiring complete unit rework
+
+2. Equipment & Volume:
+    - Production equipment: $100000.00 machine
+    - Equipment lifetime: 5.00 years
+    - Annual production volume: 2232.14 units
+
+3. Storage & Handling:
+    - Average inventory holding time: 76.80 days
+    - Daily storage cost: $0.10 per unit
+                            
+Your task is to determine the optimal price at which you should sell your product in order to: win the sale AND maximise your profit.  
+                
+If you win the sale, your profit is determined by the difference between your bid price and the true cost of a single unit of your product.
+If you lose the sale, your profit is zero. 
+                        ",45,64,17.0,1.09,0.14,0.85,2232.14,76.8,20,100000,5,0.1
+9,9,"
+1. Manufacturing Variables:
+    - Raw materials: $17.00 per unit
+    - Labor requirement: 1.09 hours per unit at $20.00/hour
+    - Worker efficiency rating: 0.85% of standard production rate
+    - Quality control: 0.14% defect rate requiring complete unit rework
+
+2. Equipment & Volume:
+    - Production equipment: $100000.00 machine
+    - Equipment lifetime: 5.00 years
+    - Annual production volume: 2232.14 units
+
+3. Storage & Handling:
+    - Average inventory holding time: 76.80 days
+    - Daily storage cost: $0.10 per unit
+                            
+Your task is to determine the optimal price at which you should sell your product in order to: win the sale AND maximise your profit.  
+                
+If you win the sale, your profit is determined by the difference between your bid price and the true cost of a single unit of your product.
+If you lose the sale, your profit is zero. 
+                        ",45,64,17.0,1.09,0.14,0.85,2232.14,76.8,20,100000,5,0.1

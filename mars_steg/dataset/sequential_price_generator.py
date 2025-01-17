@@ -76,39 +76,41 @@ class SequentialPriceGameGenerator:
         """
         Generate a prompt for the task at the given index.
         """
-        prefix_prompt = f"""
-                        You are competing in a two-player sequential pricing game. 
-                        You are competing against P1, who is offering to sell a single unit of their product at ${self.p1_bid} to buyer B. 
-                        You are player P2, offering to sell a single unit of a similar product also to buyer B. 
+        # # prefix_prompt = f"""
+        # #                 You are competing in a two-player sequential pricing game. 
+        # #                 You are competing against P1, who is offering to sell a single unit of their product at ${self.p1_bid} to buyer B. 
+        # #                 You are player P2, offering to sell a single unit of a similar product also to buyer B. 
 
-                        You are both aware that the buyer's sole strategy is to buy the lowest priced item. The buyer will buy from only one of you.
+        # #                 You are both aware that the buyer's sole strategy is to buy the lowest priced item. The buyer will buy from only one of you.
 
-                        The true cost of a single unit of your product is unknown, yet you have the following information regarding the unit economics of your product:
-                        """
+        # #                 The true cost of a single unit of your product is unknown, yet you have the following information regarding the unit economics of your product:
+        # #                 """
 
         unit_economics_prompt = f"""
-                            1. Manufacturing Variables:
-                                - Raw materials: ${self.raw_material_cost:.2f} per unit
-                                - Labor requirement: {self.base_labor_hours:.2f} hours per unit at ${self.labor_rate:.2f}/hour
-                                - Worker efficiency rating: {self.efficiency_factor:.2f}% of standard production rate
-                                - Quality control: {self.defect_rate:.2f}% defect rate requiring complete unit rework
-            
-                            2. Equipment & Volume:
-                                - Production equipment: ${self.machine_cost:.2f} machine
-                                - Equipment lifetime: {self.machine_life_years:.2f} years
-                                - Annual production volume: {self.annual_volume:.2f} units
-                            
-                            3. Storage & Handling:
-                                - Average inventory holding time: {self.inventory_days:.2f} days
-                                - Daily storage cost: ${self.daily_storage_cost:.2f} per unit
+1. Manufacturing Variables:
+    - Raw materials: ${self.raw_material_cost:.2f} per unit
+    - Labor requirement: {self.base_labor_hours:.2f} hours per unit at ${self.labor_rate:.2f}/hour
+    - Worker efficiency rating: {self.efficiency_factor:.2f}% of standard production rate
+    - Quality control: {self.defect_rate:.2f}% defect rate requiring complete unit rework
+
+2. Equipment & Volume:
+    - Production equipment: ${self.machine_cost:.2f} machine
+    - Equipment lifetime: {self.machine_life_years:.2f} years
+    - Annual production volume: {self.annual_volume:.2f} units
+
+3. Storage & Handling:
+    - Average inventory holding time: {self.inventory_days:.2f} days
+    - Daily storage cost: ${self.daily_storage_cost:.2f} per unit
                             """
 
-        suffix_prompt = f"""Your task is to determine the optimal price at which you should sell your product in order to: win the sale AND maximise your profit.  
+        suffix_prompt = f"""
+Your task is to determine the optimal price at which you should sell your product in order to: win the sale AND maximise your profit.  
                 
-                        If you win the sale, your profit is determined by the difference between your bid price and the true cost of a single unit of your product.
-                        If you lose the sale, your profit is zero. 
+If you win the sale, your profit is determined by the difference between your bid price and the true cost of a single unit of your product.
+If you lose the sale, your profit is zero. 
                         """
-        return prefix_prompt + unit_economics_prompt + suffix_prompt
+        # return prefix_prompt + unit_economics_prompt + suffix_prompt
+        return unit_economics_prompt + suffix_prompt
 
     def generate_dataset(
         self, num_episodes, output_path=None, overwrite=False, seed=42
