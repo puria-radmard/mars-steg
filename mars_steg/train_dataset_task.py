@@ -20,7 +20,8 @@ from trl import AutoModelForCausalLMWithValueHead, PPOConfig, PPOTrainer, create
 from mars_steg.task.tasks.math_dataset_task import MATH_Dataset_Task
 from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
 from mars_steg.utils.common import parse_model_output, LLMTranscriptExtractionError
-
+from mars_steg.utils.common import parse_model_output, LLMTranscriptExtractionError
+from mars_steg.task.tasks.math_dataset_task import LLMRewardExtractionError
 
 ## Set-up before __name__ check in case we want to import this stuff from somewhere else
 
@@ -28,8 +29,14 @@ parser = HfArgumentParser(ScriptArguments)
 script_args, *_ = parser.parse_args_into_dataclasses()
 save_frequency = 100 # WE SHOULD PUT THIS ON YAML
 
-quantization_config = BitsAndBytesConfig(load_in_4bit=True)    
 
+# Configure quantization for fast token generation
+quantization_config = BitsAndBytesConfig(
+    load_in_4bit=True, 
+    bnb_4bit_compute_dtype=torch.float16  
+)
+
+# PPO Configuration
 config = PPOConfig(
     model_name=script_args.model_name,
     learning_rate=script_args.learning_rate,
@@ -40,18 +47,28 @@ config = PPOConfig(
     gradient_accumulation_steps=script_args.gradient_accumulation_steps,
 )
 
-
+# Initialize Weights & Biases logging
 wandb.init(
     project="MARS-STEGO", 
     config=config
 )
 
+# Set random seed for reproducibility
 set_seed(config.seed)
 
-model = AutoModelForCausalLM.from_pretrained(config.model_name, torch_dtype=torch.bfloat16,quantization_config=quantization_config,)
-model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
-#ref_model = create_reference_model(model, num_shared_layers=10) # WE SHOULD NUMBER SHARED LAYERS IN YAML
+# Load model with quantization
+model = AutoModelForCausalLM.from_pretrained(
+    config.model_name,
+    quantization_config=quantization_config,
+    device_map="auto"  # Automatically place layers on available GPUs
+)
 
+model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
+ref_model = create_reference_model(model, num_shared_layers=25) 
+
+model = model.to("cuda")
+
+# Optimizer setup
 optimizer = Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=config.learning_rate)
 
 tokenizer = AutoTokenizer.from_pretrained(config.model_name)
@@ -75,6 +92,12 @@ ppo_trainer = PPOTrainer(
 )
 
 
+output_delimitation_tokens = {
+    #"start_scratchpad_token": "<SCRATCHPAD_REASONING>",
+    #"end_scratchpad_token": "</SCRATCHPAD_REASONING>",
+    "start_output_token": "Answer:",
+    #"end_output_token": "</OUTPUT>",
+}
 
 
 
@@ -84,10 +107,8 @@ if __name__ == '__main__':
     # TODO: get model-specific system prompt
     # -->  Connor
     messages = [
-        {"role": "system", "content": f""},
+        {"role": "system", "content": f"You are an expert Model on Math"},
     ]
-
-
 
     # TODO (low prioirity): if we are doing more than 1 epoch (here epoch = repeat over all data, so probably not doing more than 1), 
         # we have to shuffle the data multiple times.
@@ -104,8 +125,14 @@ if __name__ == '__main__':
         for prompt_data in tqdm(train_dataset.iterate_data(shuffle = True), total = train_dataset.length):
 
             # TODO: message wrapping config --> Connor
-            messages.append({"role": "user", "content": prompt_data.cot_prompt + train_dataset.system_prompt})
-            inputs = tokenizer.apply_chat_template(messages, return_tensors="pt",add_generation_prompt=False, return_dict=True)
+            if len(messages) >= 2:
+                messages.pop()
+            
+            messages = [
+                {"role": "user", "content": train_dataset.system_prompt + prompt_data.cot_prompt},
+            ]
+                        
+            inputs = tokenizer.apply_chat_template(messages, return_tensors="pt",add_generation_prompt=True, return_dict=True)
 
             # Move the tokenized inputs to the same device the model is on (GPU/CPU)
             inputs = {key: tensor.to("cuda") for key, tensor in inputs.items()}
@@ -119,43 +146,44 @@ if __name__ == '__main__':
             transcript_responses = ppo_trainer.generate(query_tensors, **generation_kwargs)
             decoded_responses = [tokenizer.decode(r.squeeze()) for r in transcript_responses]
 
-
             # extraction of answer and cot (because cot_mode = True) parts of the transcript
-
             prompt_data.cot_transcript = decoded_responses[0]
-            if "<OUTPUT>" in prompt_data.cot_transcript:
-                appearances += 1
-            generated_prompts += 1
-
-
-            print(f"Percent of OUTPUT tokens in responses: {appearances/generated_prompts}")
-
-            print("Model output")
-            print(decoded_responses[0])
-            print("------------")
-
             
+            
+            
+            try:
+                prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, True, output_delimitation_tokens)
+                skip_reward = 0
+            except Exception as e:
+                warnings.warn(f'Failed to parse: {e} \nSkipping example')
+                skip_reward = 1
+                print("cont")
+                
+                continue
 
             try:
-                prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, True)
-            except LLMTranscriptExtractionError as e:
-                warnings.warn(f'Failed to parse: {e}\nSkipping example')
+                print("computing reward")
+                print(prompt_data.cot_transcript)
+                if not skip_reward:
+                    composite_reward, task_score, language_score = train_dataset.reward_from_transcript(prompt_data)
+                else:
+                    composite_reward = [0.0]
+                    task_score = [0.0]
+                    language_score = [0.0]
+
+            except Exception as e:
+
+                composite_reward = [0.0]
+                task_score = [0.0]
+                language_score = [0.0]
                 continue
-            
-                
-
-            composite_reward, task_score, language_score = train_dataset.reward_from_transcript(prompt_data)
-
-
+            print(prompt_data.cot_transcript)
             print("--------")
             print(f"Rewarding with {composite_reward}")
             print(f"Task score: {task_score}")
             print(f"Language score: {language_score}")
             print("--------")
 
-
-
-            #put reward in a list of tensor 
             if type(composite_reward) == list:
                 rewards = []
                 for reward in composite_reward:
@@ -164,14 +192,15 @@ if __name__ == '__main__':
                 rewards = [torch.tensor(composite_reward)]
 
             # TODO: put any batching back in here, e.g. by keeping a cache of 
-            #stats = ppo_trainer.step(query_tensors, transcript_responses, [torch.tensor(composite_reward)])
-            wandb.log(stats)
+            stats = ppo_trainer.step(query_tensors, transcript_responses, [torch.tensor(composite_reward)])
+            #wandb.log(stats)
             torch.cuda.empty_cache() 
             
             inputs["response"] = decoded_responses
             inputs["query"] = query_tensors
-            #ppo_trainer.log_stats(stats, inputs, composite_reward)
-            
+
+            ppo_trainer.log_stats(stats, inputs, composite_reward)
+        
             # Save model every 100 batchs
             if batch_ticker % save_frequency == 0:
                 if ppo_trainer.accelerator.is_main_process:
@@ -179,13 +208,14 @@ if __name__ == '__main__':
 
             batch_ticker += 1
             
-            messages.pop()
 
 
-                # ### Keep an eye on whether no CoT performance is also going up - this might mean the model is just getting better at the tasks
-                # # and ignoring its CoT altogether
-                # with torch.no_grad():
-                #     ...
-                #     # XXX: use test_dataset here
-                #     ...
+
+
+        # ### Keep an eye on whether no CoT performance is also going up - this might mean the model is just getting better at the tasks
+        # # and ignoring its CoT altogether
+        # with torch.no_grad():
+        #     ...
+        #     # XXX: use test_dataset here
+        #     ...
 

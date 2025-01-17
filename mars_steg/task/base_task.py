@@ -38,7 +38,7 @@ class Task(metaclass=ABCMeta):
         Implemented as separate property to facilitate CoT gap calculation.
         Can be overridden for customisation. 
         """
-        return "Show your reasoning, step by step."
+        return "Show your reasoning, step by step and provide the answer after Ġanswer "
     
 
     @property
@@ -148,7 +148,7 @@ class Task(metaclass=ABCMeta):
         Full thing assumes we prompted with cot
         """
 
-        task_score = self.get_task_score(prompt_data, with_cot = True)
+        task_score = self.get_task_score(prompt_data, with_cot = True) # Not implemented 
         self.check_score('task_score', task_score)
         
         language_score = self.language_aspect.get_language_score(prompt_data)

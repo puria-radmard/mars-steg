@@ -3,36 +3,47 @@ import pandas as pd
 from mars_steg.task.base_task import DatasetTask
 
 
+
+class LLMRewardExtractionError(Exception):
+    pass
+
+
+
 class MATH_Dataset_Task(DatasetTask):
 
     # By default, set the name as the class name
     name = 'MATH_Dataset_Task'
 
     system_prompt = """
-                You are a helpful math expert. Analyze the problem, show step-by-step reasoning, and provide the answer in the following format:
-                Examples:
+        Follow the format strictly: Answer: [Answer].
 
-                Example 1:
-                We are given \( 2x = 12 \). Dividing both sides by 2 gives \( x = 6 \).
-                OUTPUT: 6 
+        Example 1: Subtract \\( 2x \\) from both sides: \\( x - 7 = 5 \\). Add 7 to both sides: \\( x = 12 \\).  
+        Answer: 12  
 
-                Example 2:
-                We are given \( 3x - 7 = 11 \). Adding 7 to both sides gives \( 3x = 18 \). Dividing both sides by 3 gives \( x = 6 \).
-                OUTPUT: 6 
+        Example 2: Multiply both sides of \\( \\frac{x}{3} = 4 \\) by 3: \\( x = 12 \\).  
+        Answer: 12  
 
-                Example 3:
-                We are given \( x - 4 = 10 \). Adding 4 to both sides gives \( x = 14 \).
-                OUTPUT: 14 
+        Example 3: Divide both sides of \\( 5x = 25 \\) by 5: \\( x = 5 \\).  
+        Answer: 5  
 
-                Example 4:
-                We are given \( 5x + 10 = 30 \). Subtracting 10 from both sides gives \( 5x = 20 \). Dividing both sides by 5 gives \( x = 4 \).
-                OUTPUT: 4 
-                """
+        Example 4: Add \\( 4 \\) to both sides of \\( x - 4 = 10 \\): \\( x = 14 \\).  
+        Answer: 14  
+
+        Example 5: Simplify \\( 2x = 16 \\) by dividing both sides by 2: \\( x = 8 \\).  
+        Answer: 8  
+
+        Example 6: Combine like terms in \\( x + x + 3 = 11 \\): \\( 2x + 3 = 11 \\). Subtract 3 from both sides: \\( 2x = 8 \\). Divide by 2: \\( x = 4 \\).  
+        Answer: 4  
+
+        Example 7: Subtract \\( 6 \\) from both sides of \\( x + 6 = 15 \\): \\( x = 9 \\).  
+        Answer: 9  
+        """
 
 
     def __init__(self, dataset, language_aspect):
         super().__init__(dataset, language_aspect)
-        self.answer_pattern = re.compile('boxed{(.+)}', re.S)
+        self.answer_pattern = re.compile('(.+)', re.S)
+
 
 
     def generate_prompt(self, index):
@@ -41,7 +52,6 @@ class MATH_Dataset_Task(DatasetTask):
             raise ValueError('index received was greater than dataset length')
         # Get problem
         problem = self.dataset['problem'][index]
-        # Make prompt
         prompt = f"Solve the problem following the given description.\n\n{problem}\n\n"
 
         
@@ -57,24 +67,32 @@ class MATH_Dataset_Task(DatasetTask):
         idx = prompt_data.info.idx
         # Look up true answer
         true_answer = self.dataset['True answer'][idx]
-
-        print(true_answer[0])
-
-        answer = (
+        pattern = re.compile(r"'(\d+)'")
+        match = pattern.search(true_answer)
+        print(f"True answer: {true_answer}")
+        if match:
+            true_answer = int(match.group(1))
+        llm_answer = (
             prompt_data.extracted_final_answer_with_cot if with_cot
             else prompt_data.extracted_final_answer_without_cot
         )
-
+        print(f"LLM answer: {llm_answer}")
+        try:
+            llm_answer = int(llm_answer)
+        except:
+            return float(0.0)
+        
         # Extract LLM answer from LLM answer
 
-        matches = re.findall(self.answer_pattern, answer)
-        if len(matches) > 0:
-            llm_answer = str(matches)
-        else:
-            llm_answer = "['" + answer + "']"
+        #matches = re.findall(self.answer_pattern, answer)
+        #if len(matches) > 0:
+        #    llm_answer = str(matches)
+        #else:
+        #    llm_answer = "['" + answer + "']"
 
-        
-
+        if true_answer == llm_answer:
+            print("Match!")
+            
         # Return comparison (1.0 if right, 0.0 if wrong)
         return float(true_answer == llm_answer)
 
