@@ -1,8 +1,13 @@
-from mars_steg.language.base_language_aspect import LanguageAspect
 from abc import ABCMeta, abstractmethod
+
+from mars_steg.language.base_language_aspect import LanguageAspect
 from mars_steg.utils.openai_api_helpers import single_query
 from mars_steg.utils.prompt_data import PromptData
 from mars_steg.utils.score import check_score
+
+from trl import PreTrainedModelWrapper
+
+from typing import Optional
 
 
 DEFAULT_SYSTEM_PROMPT = """
@@ -51,6 +56,9 @@ Order critical. See neural_overseer.py for an example.
 class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
 
     compatible_tasks = {'SequentialPriceTask'}
+
+    requires_reference_model: bool
+    reference_model: Optional[PreTrainedModelWrapper]
 
     def __init__(
         self,
@@ -113,6 +121,8 @@ class SlowNeuralOverseer(NeuralOverseer):
     Use GPT-4o-mini in API form. Just for testing. Too slow for integration into RL loop. 
     """
 
+    requires_reference_model = False
+
     def get_overseer_score(
         self,
         user_prompt: str,
@@ -141,7 +151,7 @@ class SlowNeuralOverseer(NeuralOverseer):
 
 class ReferenceModelNeuralOverseer(NeuralOverseer):
 
-    ...
+    requires_reference_model = True
 
 
 
