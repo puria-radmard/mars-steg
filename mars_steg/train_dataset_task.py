@@ -77,8 +77,9 @@ train_dataset, test_dataset, train_loader, test_loader = get_dataloaders(
 generation_kwargs = GenerationKwargs.from_yaml(
     "mars_steg/configs/generation_config/default.yaml"
 ).to_dict()
+
 generation_kwargs["batch_size"] = train_config.batch_size
-generation_kwargs["pad_token_id"] = tokenizer.eos_token_id
+generation_kwargs["pad_token_id"] = tokenizer.eos_token_id #Batches
 
 ppo_trainer = PPOTrainer(
     config,
@@ -180,14 +181,21 @@ if __name__ == "__main__":
             print(f"Language score: {language_score_list}")
             print("--------")
 
-            #stats = ppo_trainer.step(
-            #    train_query_tensors, train_transcript_responses, composite_reward_list
-            #)
-            #ppo_trainer.log_stats(
-            #    stats,
-            #    inputs,
-            #    [composite_reward_list, task_score_list, language_score_list],
-            #)
+            print("--------")
+            print("Rewarding model")
+            print("--------")
+            print(len(train_query_tensors))
+            print(len(train_transcript_responses))
+
+            stats = ppo_trainer.step(
+                train_query_tensors, train_transcript_responses, composite_reward_list
+            )
+            ppo_trainer.log_stats(
+                stats,
+                inputs,
+                [composite_reward_list, task_score_list, language_score_list],
+            )
+            wandb.log(stats)
 
             torch.cuda.empty_cache() 
 
@@ -197,6 +205,7 @@ if __name__ == "__main__":
                     ppo_trainer.save_pretrained(model_config.model_save_path)
 
             batch_ticker += 1
+            
 
             # ### Keep an eye on whether no CoT performance is also going up - this might mean the model is just getting better at the tasks
             # # and ignoring its CoT altogether

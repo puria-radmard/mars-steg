@@ -76,6 +76,8 @@ def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> BaseModel:
         return GPT2Model(model_config=model_config, tokenizer=tokenizer)
     if model_name == 'meta-llama/Llama-3.1-8B-Instruct':
         return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer)
+    elif model_name == 'meta-llama/Llama-3.2-3B-Instruct':
+        return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer)
     else:
         raise ValueError(model_name)
 
