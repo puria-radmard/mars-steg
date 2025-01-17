@@ -1,5 +1,0 @@
-dataset_class_name: MATH_Torch_Dataset_Task
-penalisation_class_name: EqualsSign
-dataset_class_kwargs: 
-  dataset: mars_steg/dataset/MATH_dataset_minimal.csv
-penalisation_class_kwargs:
