@@ -1,7 +1,7 @@
 Model:
-  model_name: "meta-llama/Llama-3.1-8B-Instruct"  # The model name
+  model_name: "meta-llama/Llama-3.2-3B-Instruct"  # The model name
   model_save_path: "./experiments/models"  # The path to save the model
-  load_precision_mode: "4bits" # Options: ["4bits","8bits","full"]
+  load_precision_mode: "8bits" # Options: ["4bits","8bits","full"]
   lora: false # true
   lora_r: 8
   lora_alpha: 16
@@ -19,13 +19,13 @@ Optimizer:
 Train:
   log_with: null  # Use 'wandb' to log with wandb
   mini_batch_size: 1  # The PPO minibatch size
-  batch_size: 8 # The batch size
+  batch_size: 4 # The batch size
   gradient_accumulation_steps: 1  # The number of gradient accumulation steps
   seed: 42  # The seed for reproducibility
   num_train_epochs: 1  # The number of training epochs
   num_eval_episodes: 10  # The number of evaluation episodes
   save_frequency: 100  # The frequency to save the model relative to the number of training data batches
-  ppo_epochs: 100  # The number of PPO epochs
+  ppo_epochs: 1  # The number of PPO epochs
   train_proportion : 0.8  # The proportion of the training data
-  number_shared_layers_for_ref_model: 6 # The number of shared layers for the reference model in PPO RLHF
+  number_shared_layers_for_ref_model: 30 # The number of shared layers for the reference model in PPO RLHF
   create_ref_model: false   # Whether to create a reference model in PPO RLHF
