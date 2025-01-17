@@ -1,4 +1,5 @@
 .mars_steg/
 wandb/
 experiment/
+experiments/models/
 *.pyc
