@@ -20,11 +20,19 @@ class BaseModel(metaclass=ABCMeta):
         self.model_config = model_config
         self.tokenizer = tokenizer
         self.lora = model_config.lora
+        self.precission_mode = model_config.load_precision_mode
         self.model_save_path = model_config.model_save_path
         self.model = self.load_model()
 
     def load_model(self):
-        quantization_config = BitsAndBytesConfig(load_in_4bit=self.model_config.load_in_4bit)
+        print("------------------")
+        print(f"Model loaded in {self.precission_mode} mode")
+        print("------------------")
+        quantization_config = {
+            "4bits": BitsAndBytesConfig(load_in_4bit=True),
+            "8bits": BitsAndBytesConfig(load_in_8bit=True)
+        }.get(self.precission_mode, None)
+
         model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
             torch_dtype=torch.bfloat16,
