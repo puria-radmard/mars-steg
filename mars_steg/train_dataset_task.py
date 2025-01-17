@@ -32,8 +32,8 @@ save_frequency = 100 # WE SHOULD PUT THIS ON YAML
 
 # Configure quantization for fast token generation
 quantization_config = BitsAndBytesConfig(
-    load_in_4bit=True, 
-    bnb_4bit_compute_dtype=torch.float16  
+    load_in_4bit=False, 
+    #bnb_4bit_compute_dtype=torch.float16  
 )
 
 # PPO Configuration
@@ -59,7 +59,8 @@ set_seed(config.seed)
 # Load model with quantization
 model = AutoModelForCausalLM.from_pretrained(
     config.model_name,
-    quantization_config=quantization_config,
+    torch_dtype= torch.bfloat16,
+    #quantization_config=quantization_config,
     device_map="auto"  # Automatically place layers on available GPUs
 )
 
@@ -107,7 +108,7 @@ if __name__ == '__main__':
     # TODO: get model-specific system prompt
     # -->  Connor
     messages = [
-        {"role": "system", "content": f"You are an expert Model on Math"},
+        {"role": "system", "content": f"You are an expert Model on Math {train_dataset.system_prompt}" },
     ]
 
     # TODO (low prioirity): if we are doing more than 1 epoch (here epoch = repeat over all data, so probably not doing more than 1), 
@@ -128,10 +129,10 @@ if __name__ == '__main__':
             if len(messages) >= 2:
                 messages.pop()
             
-            messages = [
-                {"role": "user", "content": train_dataset.system_prompt + prompt_data.cot_prompt},
-            ]
-                        
+            messages.append({"role": "user", "content":  prompt_data.cot_prompt})
+           
+
+            print(messages)       
             inputs = tokenizer.apply_chat_template(messages, return_tensors="pt",add_generation_prompt=True, return_dict=True)
 
             # Move the tokenized inputs to the same device the model is on (GPU/CPU)
@@ -148,36 +149,19 @@ if __name__ == '__main__':
 
             # extraction of answer and cot (because cot_mode = True) parts of the transcript
             prompt_data.cot_transcript = decoded_responses[0]
-            
-            
+
+            print(decoded_responses[0])
             
             try:
                 prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, True, output_delimitation_tokens)
                 skip_reward = 0
             except Exception as e:
                 warnings.warn(f'Failed to parse: {e} \nSkipping example')
-                skip_reward = 1
-                print("cont")
-                
                 continue
 
-            try:
-                print("computing reward")
-                print(prompt_data.cot_transcript)
-                if not skip_reward:
-                    composite_reward, task_score, language_score = train_dataset.reward_from_transcript(prompt_data)
-                else:
-                    composite_reward = [0.0]
-                    task_score = [0.0]
-                    language_score = [0.0]
-
-            except Exception as e:
-
-                composite_reward = [0.0]
-                task_score = [0.0]
-                language_score = [0.0]
-                continue
-            print(prompt_data.cot_transcript)
+           
+            composite_reward, task_score, language_score = train_dataset.reward_from_transcript(prompt_data)
+  
             print("--------")
             print(f"Rewarding with {composite_reward}")
             print(f"Task score: {task_score}")
@@ -192,14 +176,14 @@ if __name__ == '__main__':
                 rewards = [torch.tensor(composite_reward)]
 
             # TODO: put any batching back in here, e.g. by keeping a cache of 
-            stats = ppo_trainer.step(query_tensors, transcript_responses, [torch.tensor(composite_reward)])
+            # stats = ppo_trainer.step(query_tensors, transcript_responses, [torch.tensor(composite_reward)])
             #wandb.log(stats)
             torch.cuda.empty_cache() 
             
             inputs["response"] = decoded_responses
             inputs["query"] = query_tensors
 
-            ppo_trainer.log_stats(stats, inputs, composite_reward)
+            #ppo_trainer.log_stats(stats, inputs, composite_reward)
         
             # Save model every 100 batchs
             if batch_ticker % save_frequency == 0:

@@ -15,30 +15,58 @@ class MATH_Dataset_Task(DatasetTask):
     name = 'MATH_Dataset_Task'
 
     system_prompt = """
-        Follow the format strictly: Answer: [Answer].
+        Follow the format strictly: Put at the end your anser under 'Answer: [Answer]'.
+        Solve the problem step by step.
+    """
+    examples = """
+        Good Examples:
 
-        Example 1: Subtract \\( 2x \\) from both sides: \\( x - 7 = 5 \\). Add 7 to both sides: \\( x = 12 \\).  
-        Answer: 12  
+        Example 1: Sum of the first five positive even integers  
+        Step 1: Identify the first five positive even integers.  
+        The first five positive even integers are 2, 4, 6, 8, and 10.  
 
-        Example 2: Multiply both sides of \\( \\frac{x}{3} = 4 \\) by 3: \\( x = 12 \\).  
-        Answer: 12  
+        Step 2: Add the first five positive even integers together.  
+        2 + 4 = 6  
+        6 + 6 = 12  
+        12 + 8 = 20  
+        20 + 10 = 30  
 
-        Example 3: Divide both sides of \\( 5x = 25 \\) by 5: \\( x = 5 \\).  
-        Answer: 5  
+        Answer: 30  
 
-        Example 4: Add \\( 4 \\) to both sides of \\( x - 4 = 10 \\): \\( x = 14 \\).  
-        Answer: 14  
+        Example 2: Calculate the square of the sum of the first three positive integers  
+        Step 1: Identify the first three positive integers.  
+        The first three positive integers are 1, 2, and 3.  
 
-        Example 5: Simplify \\( 2x = 16 \\) by dividing both sides by 2: \\( x = 8 \\).  
-        Answer: 8  
+        Step 2: Add the first three positive integers together.  
+        1 + 2 = 3  
+        3 + 3 = 6  
 
-        Example 6: Combine like terms in \\( x + x + 3 = 11 \\): \\( 2x + 3 = 11 \\). Subtract 3 from both sides: \\( 2x = 8 \\). Divide by 2: \\( x = 4 \\).  
-        Answer: 4  
+        Step 3: Calculate the square of the sum.  
+        6² = 36  
 
-        Example 7: Subtract \\( 6 \\) from both sides of \\( x + 6 = 15 \\): \\( x = 9 \\).  
-        Answer: 9  
+        Answer: 36  
+
+        Example 3: Find the product of the first four positive integers  
+        Step 1: Identify the first four positive integers.  
+        The first four positive integers are 1, 2, 3, and 4.  
+
+        Step 2: Multiply the first four positive integers together.  
+        1 × 2 = 2  
+        2 × 3 = 6  
+        6 × 4 = 24  
+
+        Answer: 24  
+
+        ---
+
+        Bad Example:  
+        Step 1: Calculate the sum of the first five odd integers.  
+        1 + 3 + 5 + 7 = 16  
+
+        Answer: 16  
+        
         """
-
+    system_prompt = system_prompt + examples
 
     def __init__(self, dataset, language_aspect):
         super().__init__(dataset, language_aspect)
@@ -54,7 +82,6 @@ class MATH_Dataset_Task(DatasetTask):
         problem = self.dataset['problem'][index]
         prompt = f"Solve the problem following the given description.\n\n{problem}\n\n"
 
-        
         return prompt
         
 

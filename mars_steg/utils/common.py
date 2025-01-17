@@ -110,6 +110,7 @@ def parse_model_output(model_output: str, cot: bool = False, output_delimitation
         
         output = output.replace("<|end_of_text|>", "")
         output = output.replace("</OUTPUT>", "")
+        output = output.replace("<|eot_id|>", "")
         
         return chain_of_thought, output
     
@@ -131,6 +132,8 @@ def parse_model_output(model_output: str, cot: bool = False, output_delimitation
         
         output = output.replace("<|end_of_text|>", "")
         output = output.replace("</OUTPUT>", "")
+        output = output.replace("<|eot_id|>", "")
+        
         
         return chain_of_thought, output
     
