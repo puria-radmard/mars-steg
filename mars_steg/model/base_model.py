@@ -24,7 +24,14 @@ class BaseModel(metaclass=ABCMeta):
         self.model = self.load_model()
 
     def load_model(self):
-        quantization_config = BitsAndBytesConfig(load_in_4bit=self.model_config.load_in_4bit)
+        precission_mode = self.model_config.load_precision_mode
+        if "4bits" in precission_mode:
+            quantization_config = BitsAndBytesConfig(load_in_4bit=True)
+        elif "8bits" in precission_mode:
+            quantization_config = BitsAndBytesConfig(load_in_8bit=True)
+        else:
+            quantization_config = None
+            
         model = AutoModelForCausalLM.from_pretrained(
             self.model_name,
             torch_dtype=torch.bfloat16,

@@ -104,7 +104,7 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
 
         print(true_answer[0])
 
-        answer = (
+        llm_answer = (
             prompt_data.extracted_final_answer_with_cot
             if with_cot
             else prompt_data.extracted_final_answer_without_cot

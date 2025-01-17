@@ -1,7 +1,7 @@
 Model:
   model_name: "meta-llama/Llama-3.1-8B-Instruct"  # The model name
   model_save_path: "./experiments/models"  # The path to save the model
-  load_in_4bit: true
+  load_precision_mode: "4bits" # Options: ["4bits","8bits","full"]
   lora: false # true
   lora_r: 8
   lora_alpha: 16
@@ -19,7 +19,7 @@ Optimizer:
 Train:
   log_with: null  # Use 'wandb' to log with wandb
   mini_batch_size: 1  # The PPO minibatch size
-  batch_size: 4  # The batch size
+  batch_size: 1  # The batch size
   gradient_accumulation_steps: 1  # The number of gradient accumulation steps
   seed: 42  # The seed for reproducibility
   num_train_epochs: 1  # The number of training epochs
