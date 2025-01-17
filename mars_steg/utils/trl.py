@@ -17,6 +17,7 @@ class GenerationKwargs:
     top_k: Optional[int] = None
     top_p: Optional[int] = None
     length_sampler: Optional[Callable] = None
+    
 
     def __post_init__(self):
         if not self.do_sample:

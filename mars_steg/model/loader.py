@@ -32,5 +32,6 @@ if __name__ == "__main__":
     )
 
     tokenizer = AutoTokenizer.from_pretrained(model_config.model_name)
+    
     model = get_model(model_config, tokenizer)
     print(model)
