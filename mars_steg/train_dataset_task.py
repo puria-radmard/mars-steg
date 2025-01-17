@@ -78,7 +78,7 @@ generation_kwargs = GenerationKwargs.from_yaml(
     "mars_steg/configs/generation_config/default.yaml"
 ).to_dict()
 generation_kwargs["batch_size"] = train_config.batch_size
-
+generation_kwargs["pad_token_id"] = tokenizer.eos_token_id
 
 ppo_trainer = PPOTrainer(
     config,
@@ -136,7 +136,8 @@ if __name__ == "__main__":
                 tokenizer.decode(r.squeeze()) for r in transcript_responses
             ]
             print("RESPONSES")
-            print(decoded_responses)
+            for response in decoded_responses:
+                print(response)
             print("-------------")
             # extraction of answer and cot (because cot_mode = True) parts of the transcript
             batch_prompt_datas.cot_transcripts = decoded_responses
