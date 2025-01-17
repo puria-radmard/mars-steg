@@ -58,7 +58,7 @@ optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
 
 if train_config.create_ref_model is True:
     ref_model = create_reference_model(
-        model, num_shared_layers=train_config.number_shared_layers_for_ref_model
+        model.model, num_shared_layers=train_config.number_shared_layers_for_ref_model
     )
 
 experiment_args = ExperimentArgs.from_yaml(sys.argv[1])
@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
             # Generate the with-CoT transcript (no-CoT transcript not needed during training)
             transcript_responses = ppo_trainer.generate(
-                query_tensors, **generation_kwargs
+                query_tensors, **generation_kwargs,
             )
             decoded_responses = [
                 tokenizer.decode(r.squeeze()) for r in transcript_responses
@@ -162,18 +162,27 @@ if __name__ == "__main__":
                     train_transcript_responses.append(transcript_responses[i])
                 except LLMTranscriptExtractionError as e:
                     num_examples_failed += 1
+                    composite_reward_list.append(torch.tensor(composite_reward))
+                    task_score_list.append(0.0)
+                    language_score_list.append(0.0)
+                    train_query_tensors.append(query_tensors[i])
+                    train_transcript_responses.append(transcript_responses[i])
                     warnings.warn(f"Failed to parse: {e}\nSkipping example")
 
             if num_examples_failed == len(batch_prompt_datas):
-                raise LLMTranscriptExtractionError(
-                    "No examples were successfully parsed for reward function. Check the data and the parsing function."
-                )
+                #raise LLMTranscriptExtractionError(
+                #    "No examples were successfully parsed for reward function. Check the data and the parsing function."
+                #)
+                optimize = 0
+                
             elif num_examples_failed != 0:
                 warnings.warn(
                     f"Failed to parse {num_examples_failed} examples out of {len(batch_prompt_datas)}"
                 )
+                optimize = 0
             else:
                 print("All examples parsed successfully")
+                optimize = 1
 
             print("--------")
             print(f"Rewarding example with {composite_reward_list}")
@@ -186,19 +195,19 @@ if __name__ == "__main__":
             print("--------")
             print(len(train_query_tensors))
             print(len(train_transcript_responses))
+            if optimize:
 
-            stats = ppo_trainer.step(
-                train_query_tensors, train_transcript_responses, composite_reward_list
-            )
-            ppo_trainer.log_stats(
-                stats,
-                inputs,
-                [composite_reward_list, task_score_list, language_score_list],
-            )
-            wandb.log(stats)
+                stats = ppo_trainer.step(
+                    train_query_tensors, train_transcript_responses, composite_reward_list
+                )
+                ppo_trainer.log_stats(
+                    stats,
+                    inputs,
+                    [composite_reward_list, task_score_list, language_score_list],
+                )
+                wandb.log(stats)
 
             torch.cuda.empty_cache() 
-
             # Save model every 100 batchs
             if batch_ticker % train_config.save_frequency == 0:
                 if ppo_trainer.accelerator.is_main_process:

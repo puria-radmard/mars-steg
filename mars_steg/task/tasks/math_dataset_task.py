@@ -102,8 +102,6 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         # Look up true answer
         true_answer = self.dataset["True answer"][idx]
 
-        print(true_answer[0])
-
         llm_answer = (
             prompt_data.extracted_final_answer_with_cot
             if with_cot
@@ -115,7 +113,7 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         true_answer = true_answer.replace("['","").replace("']","")
 
         print("-------------")
-        print("testing equivalence REAL")
+        print("testing equivalence")
         print(f"LLM ANSWER: {llm_answer}")
         print(f"TRUE ANSWER: {true_answer}")
 
