@@ -40,3 +40,14 @@ class LanguageAspect(metaclass=ABCMeta):
         """
         language_score = None
         return language_score
+
+
+
+class EmptyLanguageAspect(LanguageAspect):
+
+    def __init__(self):
+        super().__init__()
+
+    def get_language_score(self, prompt_data: PromptData) -> float:
+        return 0.0
+

@@ -1,4 +1,4 @@
 .mars_steg/
 wandb/
 experiment/
-
+*.pyc
