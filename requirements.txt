@@ -10,4 +10,4 @@ tensorboard==2.13.0
 torch
 bitsandbytes
 wandb
-openai
+openai==1.58.1

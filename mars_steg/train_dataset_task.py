@@ -11,6 +11,7 @@ from transformers import set_seed
 
 from trl import PPOConfig, PPOTrainer, create_reference_model
 
+from mars_steg.utils.prompt_data import BatchPromptData
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.config import ConfigLoader, ExperimentArgs
 from mars_steg.utils.common import (
@@ -46,7 +47,19 @@ config = PPOConfig(
 )
 
 
-wandb.init(project="MARS-STEGO", config=config)
+experiment_args = ExperimentArgs.from_yaml(sys.argv[1])
+
+
+wandb.init(
+    project="MARS-STEGO",
+    config={
+        'ppo_config': config,
+        'model_config': model_config,
+        'optimizer_config': optimizer_config,
+        'train_config': train_config,
+        'experiment_args': experiment_args,
+    }
+)
 
 # Set random seed for reproducibility
 set_seed(config.seed)
@@ -60,8 +73,6 @@ if train_config.create_ref_model is True:
     ref_model = create_reference_model(
         model, num_shared_layers=train_config.number_shared_layers_for_ref_model
     )
-
-experiment_args = ExperimentArgs.from_yaml(sys.argv[1])
 
 
 train_dataset, test_dataset, train_loader, test_loader = get_dataloaders(
@@ -107,6 +118,8 @@ if __name__ == "__main__":
         batch_ticker = 0
 
         for batch_prompt_datas in tqdm(train_loader):
+
+            batch_prompt_datas: BatchPromptData
 
             batch_messages = batchize_conversation(
                 train_dataset.system_prompt, batch_prompt_datas.cot_prompts, model
