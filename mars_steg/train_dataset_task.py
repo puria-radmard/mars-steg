@@ -117,6 +117,7 @@ if __name__ == "__main__":
                 add_generation_prompt=True,
                 return_dict=True,
                 padding=True,
+                truncation=True,
             )
 
             # Move the tokenized inputs to the same device the model is on (GPU/CPU)
@@ -134,6 +135,9 @@ if __name__ == "__main__":
             decoded_responses = [
                 tokenizer.decode(r.squeeze()) for r in transcript_responses
             ]
+            print("RESPONSES")
+            print(decoded_responses)
+            print("-------------")
             # extraction of answer and cot (because cot_mode = True) parts of the transcript
             batch_prompt_datas.cot_transcripts = decoded_responses
             composite_reward_list, task_score_list, language_score_list = [], [], []
@@ -175,14 +179,14 @@ if __name__ == "__main__":
             print(f"Language score: {language_score_list}")
             print("--------")
 
-            stats = ppo_trainer.step(
-                train_query_tensors, train_transcript_responses, composite_reward_list
-            )
-            ppo_trainer.log_stats(
-                stats,
-                inputs,
-                [composite_reward_list, task_score_list, language_score_list],
-            )
+            #stats = ppo_trainer.step(
+            #    train_query_tensors, train_transcript_responses, composite_reward_list
+            #)
+            #ppo_trainer.log_stats(
+            #    stats,
+            #    inputs,
+            #    [composite_reward_list, task_score_list, language_score_list],
+            #)
 
             torch.cuda.empty_cache() 
 
