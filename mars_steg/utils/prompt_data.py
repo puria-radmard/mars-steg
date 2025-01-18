@@ -50,16 +50,16 @@ class BatchPromptData:
     def __init__(self, prompt_datas: List[PromptData]):
         assert len(prompt_datas) > 0, "BatchPromptData must have at least one PromptData"
         self.prompt_datas : List[PromptData] = prompt_datas
-        self.cot_prompts: Optional[List[str]] = [prompt_data.cot_prompt for prompt_data in self.prompt_datas]
-        self.no_cot_prompts: Optional[List[str]] = [prompt_data.no_cot_prompt for prompt_data in self.prompt_datas]
-        self.infos: Optional[List[str]] = [prompt_data.info for prompt_data in self.prompt_datas]
+        self.cot_prompts: Optional[List[str]] 
+        self.no_cot_prompts: Optional[List[str]] 
+        self.infos: Optional[List[str]] 
 
-        self.cot_transcripts: Optional[List[str]] = None
-        self.no_cot_transcripts: Optional[List[str]] = None
+        self.cot_transcripts: Optional[List[str]]
+        self.no_cot_transcripts: Optional[List[str]] 
 
-        self.extracted_cots: Optional[List[str]] = None
-        self.extracted_final_answer_with_cots: Optional[List[str]] = None
-        self.extracted_final_answer_without_cots: Optional[List[str]] = None
+        self.extracted_cots: Optional[List[str]] 
+        self.extracted_final_answer_with_cots: Optional[List[str]] 
+        self.extracted_final_answer_without_cots: Optional[List[str]] 
 
     def __len__(self):
         return len(self.prompt_datas)
@@ -87,8 +87,9 @@ class BatchPromptData:
         if name == "prompt_datas":
             super().__setattr__(name, value)
         else:
-            for prompt_data in self.prompt_datas:
-                setattr(prompt_data, name[:-1], value)  
+            # Normal use: Update attributes for all `prompt_datas` elements
+            for i, prompt_data in enumerate(self.prompt_datas):
+                setattr(prompt_data, name[:-1], value[i])
     
     def __getattr__(self, name):
         
@@ -107,13 +108,17 @@ if __name__ == "__main__":
     data_infos = [FixedDatasetDataInfo(idx=i) for i in range(10)]
     prompt_datas = [PromptData(cot_prompt=f"cot{data_info.idx}", no_cot_prompt=f"no cot{data_info.idx}", info=data_info) for data_info in data_infos]
     batch_prompt_data = BatchPromptData(prompt_datas)
+    ex_1 = batch_prompt_data.prompt_datas
+    print(ex_1)
     print(batch_prompt_data.cot_prompts)
     print(batch_prompt_data.no_cot_prompts)
     print(batch_prompt_data.infos)
+    assert batch_prompt_data.cot_prompts == [f"cot{data_info.idx}" for data_info in data_infos]
     batch_prompt_data.cot_prompts = ["new cot"] * 10
     print(batch_prompt_data.cot_prompts)
     for prompt_data in batch_prompt_data:
         print(prompt_data.cot_prompt)
+    
     batch_prompt_data.extracted_cots = ["extracted_cot"] * 10
     print(batch_prompt_data.extracted_cots)
     for prompt_data in batch_prompt_data:
