@@ -1,3 +1,4 @@
 .mars_steg/
 .wandb/
 wandb/
+mars_steg/__pycache__/
