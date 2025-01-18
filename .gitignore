@@ -3,3 +3,8 @@
 wandb/
 mars_steg/__pycache__/
 .vscode/
+mars_steg/language/__pycache__/
+mars_steg/model/__pycache__/
+mars_steg/task/__pycache__/
+mars_steg/task/tasks/__pycache__/
+mars_steg/utils/__pycache__/
