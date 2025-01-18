@@ -45,10 +45,21 @@ class PromptData:
         raise NotImplementedError
 
 
-@dataclass
 class BatchPromptData:
 
-    prompt_datas: List[PromptData]
+    def __init__(self, prompt_datas: List[PromptData]):
+        assert len(prompt_datas) > 0, "BatchPromptData must have at least one PromptData"
+        self.prompt_datas : List[PromptData] = prompt_datas
+        self.cot_prompts: Optional[List[str]] = [prompt_data.cot_prompt for prompt_data in self.prompt_datas]
+        self.no_cot_prompts: Optional[List[str]] = [prompt_data.no_cot_prompt for prompt_data in self.prompt_datas]
+        self.infos: Optional[List[str]] = [prompt_data.info for prompt_data in self.prompt_datas]
+
+        self.cot_transcripts: Optional[List[str]] = None
+        self.no_cot_transcripts: Optional[List[str]] = None
+
+        self.extracted_cots: Optional[List[str]] = None
+        self.extracted_final_answer_with_cots: Optional[List[str]] = None
+        self.extracted_final_answer_without_cots: Optional[List[str]] = None
 
     def __len__(self):
         return len(self.prompt_datas)
@@ -71,102 +82,39 @@ class BatchPromptData:
 
     def index(self, prompt_data: PromptData):
         return self.prompt_datas.index(prompt_data)
-
-    def __getattr__(self, name: str) -> List[str]:
-        """
-        Dynamically get a list of attribute values from all PromptData objects.
-        :param name: The name of the attribute to retrieve.
-        :return: A list of attribute values.
-        """
-        try:
-            return [getattr(prompt_data, name) for prompt_data in self.prompt_datas]
-        except AttributeError as e:
-            raise AttributeError(f"'BatchPromptData' object has no attribute '{name}'") from e
-
-    def __setattr__(self, name: str, value: List[str]):
-        """
-        Dynamically set a property for all PromptData objects if the attribute is in prompt_datas.
-        :param name: The name of the attribute to set.
-        :param value: A list of values to assign to each PromptData object.
-        """
+    
+    def __setattr__(self, name, value):
         if name == "prompt_datas":
             super().__setattr__(name, value)
         else:
-            if not isinstance(value, list) or len(value) != len(self.prompt_datas):
-                raise ValueError(
-                    f"The value for '{name}' must be a list of length {len(self.prompt_datas)}."
-                )
-            for prompt_data, val in zip(self.prompt_datas, value):
-                setattr(prompt_data, name, val)
-
-    # @property
-    # def cot_prompts(self) -> List[str]:
-    #     return [prompt_data.cot_prompt for prompt_data in self.prompt_datas]
-
-    # @property
-    # def no_cot_prompts(self) -> List[str]:
-    #     return [prompt_data.no_cot_prompt for prompt_data in self.prompt_datas]
-
-    # @property
-    # def infos(self) -> List[DataInfo]:
-    #     return [prompt_data.info for prompt_data in self.prompt_datas]
-
-    # @property
-    # def cot_transcripts(self) -> List[Optional[str]]:
-    #     return [prompt_data.cot_transcript for prompt_data in self.prompt_datas]
-
-    # @cot_transcripts.setter
-    # def cot_transcripts(self, transcripts: List[str]):
-    #     for prompt_data, transcript in zip(self.prompt_datas, transcripts):
-    #         prompt_data.cot_transcript = transcript
-
-    # @property
-    # def extracted_cots(self) -> List[Optional[str]]:
-    #     return [prompt_data.extracted_cot for prompt_data in self.prompt_datas]
-
-    # @extracted_cots.setter
-    # def extracted_cots(self, extracted_cots: List[str]):
-    #     for prompt_data, extracted_cot in zip(self.prompt_datas, extracted_cots):
-    #         prompt_data.extracted_cot = extracted_cot
-
-    # @property
-    # def extracted_final_answers_with_cot(self) -> List[Optional[str]]:
-    #     return [
-    #         prompt_data.extracted_final_answer_with_cot
-    #         for prompt_data in self.prompt_datas
-    #     ]
-
-    # @extracted_final_answers_with_cot.setter
-    # def extracted_final_answers_with_cot(
-    #     self, extracted_final_answers_with_cot: List[str]
-    # ):
-    #     for prompt_data, extracted_final_answer_with_cot in zip(
-    #         self.prompt_datas, extracted_final_answers_with_cot
-    #     ):
-    #         prompt_data.extracted_final_answer_with_cot = (
-    #             extracted_final_answer_with_cot
-    #         )
-
-    # @property
-    # def extracted_final_answers_without_cot(self) -> List[Optional[str]]:
-    #     return [
-    #         prompt_data.extracted_final_answer_without_cot
-    #         for prompt_data in self.prompt_datas
-    #     ]
-
-    # @extracted_final_answers_without_cot.setter
-    # def extracted_final_answers_without_cot(
-    #     self, extracted_final_answers_without_cot: List[str]
-    # ):
-    #     for prompt_data, extracted_final_answer_without_cot in zip(
-    #         self.prompt_datas, extracted_final_answers_without_cot
-    #     ):
-    #         prompt_data.extracted_final_answer_without_cot = (
-    #             extracted_final_answer_without_cot
-    #         )
+            for prompt_data in self.prompt_datas:
+                setattr(prompt_data, name[:-1], value)  
+    
+    def __getattr__(self, name):
+        
+        if name == "prompt_datas":
+            return super().__getattr__(name)
+        else:
+            return [getattr(prompt_data, name[:-1]) for prompt_data in self.prompt_datas]
 
     # TODO --> Puria after wandb
     def save(
         self,
     ):
         raise NotImplementedError
+    
+if __name__ == "__main__":
+    data_infos = [FixedDatasetDataInfo(idx=i) for i in range(10)]
+    prompt_datas = [PromptData(cot_prompt=f"cot{data_info.idx}", no_cot_prompt=f"no cot{data_info.idx}", info=data_info) for data_info in data_infos]
+    batch_prompt_data = BatchPromptData(prompt_datas)
+    print(batch_prompt_data.cot_prompts)
+    print(batch_prompt_data.no_cot_prompts)
+    print(batch_prompt_data.infos)
+    batch_prompt_data.cot_prompts = ["new cot"] * 10
+    print(batch_prompt_data.cot_prompts)
+    for prompt_data in batch_prompt_data:
+        print(prompt_data.cot_prompt)
+    batch_prompt_data.extracted_cots = ["extracted_cot"] * 10
+    print(batch_prompt_data.extracted_cots)
+    for prompt_data in batch_prompt_data:
+        print(prompt_data.extracted_cot)

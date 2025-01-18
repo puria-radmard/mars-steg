@@ -100,6 +100,8 @@ if __name__ == "__main__":
         batch_ticker = 0
 
         for batch_prompt_datas in tqdm(train_loader):
+            print("Batch prompt datas: ", batch_prompt_datas.prompt_datas)
+
 
             batch_messages = batchize_conversation(
                 train_dataset.system_prompt, batch_prompt_datas.cot_prompts, model
@@ -135,7 +137,6 @@ if __name__ == "__main__":
             train_transcript_responses = []
             num_examples_failed = 0
             for i, prompt_data in tqdm(enumerate(batch_prompt_datas)):
-                import pdb; pdb.set_trace()
                 try:
                     (
                         prompt_data.extracted_cot,
