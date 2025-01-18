@@ -2,3 +2,4 @@
 .wandb/
 wandb/
 mars_steg/__pycache__/
+.vscode/
