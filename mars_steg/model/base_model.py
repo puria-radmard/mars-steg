@@ -8,10 +8,14 @@ from transformers import (
 from abc import ABCMeta, abstractmethod
 import torch
 from trl import AutoModelForCausalLMWithValueHead
-
-from transformers import BitsAndBytesConfig
-
 import warnings
+try:
+    from transformers import BitsAndBytesConfig
+except ImportError:
+    BitsAndBytesConfig = None
+    warnings.warn('Reintroduce: BitsAndBytesConfig. Import hasn\'t been successful.')
+
+
 
 
 class BaseModel(metaclass=ABCMeta):

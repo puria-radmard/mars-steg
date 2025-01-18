@@ -8,6 +8,6 @@ transformers==4.47.1
 trl==0.11.0
 tensorboard==2.13.0
 torch
-bitsandbytes
+bitsandbytes==0.41.1
 wandb
 openai
