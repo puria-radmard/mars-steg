@@ -70,10 +70,6 @@ def _fix_sqrt(string):
         new_string += new_substr
     return new_string
 
-def _fix_millions_and_thousands_format(string):
-    string = re.sub(r"(?<!\\)(?:\\\\!)+", "",  string)
-    return string
-
 
 def _convert_for_multiple_answer(string : str):
     if "Answer:" in string:
