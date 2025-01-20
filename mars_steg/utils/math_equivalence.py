@@ -163,7 +163,7 @@ def _strip_string(string):
 
     return string
 
-def is_equiv(str1, str2, verbose=True):
+def is_equiv(str1, str2, verbose=False):
     if str1 is None and str2 is None:
         print("WARNING: Both None")
         return True

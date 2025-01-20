@@ -37,21 +37,23 @@ class BaseModel(metaclass=ABCMeta):
             "8bits": BitsAndBytesConfig(load_in_8bit=True)
         }.get(self.precission_mode, None)
 
-        model = AutoModelForCausalLM.from_pretrained(
-            self.model_name,
-            torch_dtype=torch.bfloat16,
-            quantization_config=quantization_config,
-        )
-        model = AutoModelForCausalLMWithValueHead.from_pretrained(model)
         warnings.warn('Reintroduce: model.resize_token_embeddings(len(self.tokenizer)) ?')
         if self.lora:
             lora_config = LoraConfig(
-                task_type=TaskType.CAUSAL_LM, **self.model_config.lora_params
+                task_type="CAUSAL_LM", **self.model_config.lora_params
             )
-            model = get_peft_model(model, lora_config)
-            model.print_trainable_parameters()
+            model = AutoModelForCausalLMWithValueHead.from_pretrained(
+                self.model_name,
+                peft_config=lora_config,
+                torch_dtype=torch.bfloat16,
+                quantization_config=quantization_config,
+            )
         else:
-            warnings.warn('Reintroduce LoRA!')
+            model = AutoModelForCausalLM.from_pretrained(
+                self.model_name,
+                torch_dtype=torch.bfloat16,
+                quantization_config=quantization_config,
+            )
         return model
 
     @abstractmethod

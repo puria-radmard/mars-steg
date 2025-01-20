@@ -181,7 +181,8 @@ if __name__ == "__main__":
                 warnings.warn(
                     f"Failed to parse {num_examples_failed} examples out of {len(batch_prompt_datas)}"
                 )
-                optimize = 0
+                warnings.warn("Optimizing model with the rest of the examples (putting 0 reward for the failed examples)")
+                optimize = 1
             else:
                 print("All examples parsed successfully")
                 optimize = 1
@@ -195,14 +196,20 @@ if __name__ == "__main__":
             print("--------")
             print("Rewarding model")
             print("--------")
-            print(len(train_query_tensors))
-            print(len(train_transcript_responses))
 
             if optimize:
+
+                print("--------")
+                print("Optimizing model")
+                print("--------")
 
                 stats = ppo_trainer.step(
                     train_query_tensors, train_transcript_responses, composite_reward_list
                 )
+
+                print("--------")
+                print("Logging stats")
+                print("--------")
                 ppo_trainer.log_stats(
                     stats,
                     inputs,
