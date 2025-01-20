@@ -1,6 +1,5 @@
-
-
 import re
+import unittest
 
 
 def _fix_fracs(string):
@@ -71,9 +70,29 @@ def _fix_sqrt(string):
         new_string += new_substr
     return new_string
 
+def _fix_millions_and_thousands_format(string):
+    string = re.sub(r"(?<!\\)(?:\\\\!)+", "",  string)
+    return string
+
+
+def _convert_for_multiple_answer(string : str):
+    if "Answer:" in string:
+        string = string.split("Answer:")[-1].strip()
+
+    # Normalize parentheses to brackets
+    string = re.sub(r"\s+", " ", string)
+    string = re.sub(r"(?<=\()\s*|\s*(?=,)|\s*(?=\))|(?<=\[)\s*|\s*(?=\])|\s*(?=,|\])", "", string)
+    string = string.replace("(", "").replace(")", "").replace("[", "").replace("]", "") # Remove parentheses and brackets
+
+    # Convert to Python list
+    return string
+
 def _strip_string(string):
     # linebreaks  
     string = string.replace("\n", "")
+    #print(string)
+
+    string = string.replace("\\\\!", "")
     #print(string)
 
     # remove inverse spaces
@@ -106,7 +125,7 @@ def _strip_string(string):
 
     # remove percentage
     string = string.replace("\\%", "")
-    string = string.replace("\%", "")
+    string = string.replace(r"\%", "")
 
     # " 0." equivalent to " ." and "{0." equivalent to "{." Alternatively, add "0" if "." is the start of the string
     string = string.replace(" .", " 0.")
@@ -116,8 +135,6 @@ def _strip_string(string):
     matches = re.findall(boxed_pattern, string)
     if len(matches) > 0:
         string = matches[-1]
-
-
 
     if len(string) == 0:
         return string
@@ -145,9 +162,12 @@ def _strip_string(string):
     # NOTE: X/Y changed to \frac{X}{Y} in dataset, but in simple cases fix in case the model output is X/Y
     string = _fix_a_slash_b(string)
 
+    # normalize format of multiple answers to [a,b,c]
+    string = _convert_for_multiple_answer(string)
+
     return string
 
-def is_equiv(str1, str2, verbose=False):
+def is_equiv(str1, str2, verbose=True):
     if str1 is None and str2 is None:
         print("WARNING: Both None")
         return True
@@ -163,3 +183,35 @@ def is_equiv(str1, str2, verbose=False):
         return ss1 == ss2
     except:
         return str1 == str2
+    
+
+
+class TestNormalize(unittest.TestCase):
+    
+    def test_equiv_symbols(self):
+        self.assertTrue(is_equiv("9,000,000", "9,\\!000,\\!000"))
+    
+    def test_equiv_formats(self):
+        self.assertTrue(is_equiv("( 0.5 , 0.6 )", "(0.5,0.6)"))
+    
+    def test_equiv_decimal_fraction(self):
+        self.assertTrue(is_equiv("0.5", "\\frac{1}{2}"))
+
+    def test_multiple_answers_1(self):
+        self.assertTrue(is_equiv("(  1 , 2 , 3  )", "1,2,3"))
+    
+    def test_multiple_answers_2(self):
+        self.assertTrue(is_equiv("[4, 5,   6]", "4,5,6"))
+
+    def test_multiple_answers_3(self):
+        self.assertTrue(is_equiv("([ 7,8], (9, 10 ))", "7,8,9,10"))
+
+    def test_multiple_answers_4(self):
+        self.assertTrue(is_equiv("((11 , 12),(13,  14 ))", "11,12,13,14"))
+    
+    def test_multiple_answers_5(self):
+        self.assertTrue(is_equiv(" ( 15 , 16) , (17,  18 ) ", "15,16,17,18"))
+
+if __name__ == "__main__":
+    unittest.main()
+

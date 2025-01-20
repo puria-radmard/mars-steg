@@ -1,5 +1,4 @@
 import re
-import pandas as pd
 from mars_steg.task.base_task import TorchDatasetTask
 from mars_steg.utils.math_equivalence import is_equiv
 
@@ -134,13 +133,10 @@ if __name__ == "__main__":
     math_task = MATH_Torch_Dataset_Task(dataset, EqualsSign())
     cot_prompt, no_cot_prompt = math_task.generate_full_prompt(0)
 
-    # TODO --> Broken
     prompt_data = PromptData(
         cot_prompt=cot_prompt,
         no_cot_prompt=no_cot_prompt,
         info=FixedDatasetDataInfo(idx=0),
-        cot="=============",
-        final_answer="My answer is boxed{0}",
     )
 
     task_score = math_task.get_task_score(prompt_data)

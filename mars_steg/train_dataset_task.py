@@ -197,6 +197,7 @@ if __name__ == "__main__":
             print("--------")
             print(len(train_query_tensors))
             print(len(train_transcript_responses))
+
             if optimize:
 
                 stats = ppo_trainer.step(
