@@ -73,6 +73,7 @@ class TrainConfig:
     save_frequency: int
     ppo_epochs: int
     train_proportion: float
+    validation_proportion: float
     number_shared_layers_for_ref_model: int
     create_ref_model: bool
 

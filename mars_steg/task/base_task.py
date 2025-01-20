@@ -187,20 +187,27 @@ class TorchDatasetTask(Task, Dataset):
         )
 
     def test_train_split(
-        self, train_proportion: float
+        self, train_proportion: float, validation_proportion: float
     ) -> Tuple[TorchDatasetTask, TorchDatasetTask]:
         assert 0 < train_proportion < 1, "train_proportion must be between 0 and 1"
+        assert 0 < validation_proportion < 1, "validation_proportion must be between 0 and 1"
+
         train_size = int(self.length * train_proportion)
+        validation_size = int((self.length - train_size) * validation_proportion)
         train_dataset_pd = self.dataset.iloc[:train_size]
-        test_dataset_pd = self.dataset.iloc[train_size:]
+        val_dataset_pd = self.dataset.iloc[train_size:train_size + validation_size]
+        test_dataset_pd = self.dataset.iloc[train_size + validation_size:]
         cls = self.__class__
         train_dataset = cls(self.dataset_name, self.language_aspect)
         train_dataset.dataset = train_dataset_pd
         train_dataset.length = len(train_dataset_pd)
+        val_dataset = cls(self.dataset_name, self.language_aspect)
+        val_dataset.dataset = val_dataset_pd
+        val_dataset.length = len(val_dataset_pd)
         test_dataset = cls(self.dataset_name, self.language_aspect)
         test_dataset.dataset = test_dataset_pd
         test_dataset.length = len(test_dataset_pd)
-        return train_dataset, test_dataset
+        return train_dataset, val_dataset, test_dataset
 
     def iterate_data(self, shuffle=True):
         """

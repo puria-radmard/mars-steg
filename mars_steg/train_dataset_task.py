@@ -64,12 +64,13 @@ if train_config.create_ref_model is True:
 experiment_args = ExperimentArgs.from_yaml(sys.argv[1])
 
 
-train_dataset, test_dataset, train_loader, test_loader = get_dataloaders(
+train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = get_dataloaders(
     dataset_class_name = experiment_args.dataset_class_name,
     penalisation_class_name = experiment_args.penalisation_class_name,
     dataset_class_kwargs = experiment_args.dataset_class_kwargs,
     penalisation_class_kwargs = experiment_args.penalisation_class_kwargs,
     train_proportion = train_config.train_proportion,
+    validation_proportion = train_config.validation_proportion,
     batch_size = train_config.batch_size
 )
 

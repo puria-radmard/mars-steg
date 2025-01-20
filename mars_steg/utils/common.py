@@ -26,6 +26,7 @@ def get_dataloaders(
     dataset_class_kwargs: Optional[Dict],
     penalisation_class_kwargs: Optional[Dict],
     train_proportion: float,
+    validation_proportion: float,
     batch_size: int
 ):
 
@@ -35,22 +36,32 @@ def get_dataloaders(
     language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**penalisation_class_kwargs)
     task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, **dataset_class_kwargs)
 
-    train_dataset, test_dataset = task_class.test_train_split(
-        train_proportion=train_proportion
+    train_dataset, val_dataset, test_dataset = task_class.test_train_split(
+        train_proportion=train_proportion,
+        validation_proportion=validation_proportion
     )
-    train_loader, test_loader = DataLoader(
+
+
+    train_loader = DataLoader(
         train_dataset,
         batch_size=batch_size,
         shuffle=True,
-        collate_fn=task_class.prompt_data_collate_fn,
-    ), DataLoader(
+        collate_fn=task_class.prompt_data_collate_fn)
+    
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        collate_fn=task_class.prompt_data_collate_fn)
+    
+    test_loader = DataLoader(
         test_dataset,
         batch_size=batch_size,
         shuffle=True,
-        collate_fn=task_class.prompt_data_collate_fn,
-    )
+        collate_fn=task_class.prompt_data_collate_fn)
 
-    return train_dataset, test_dataset, train_loader, test_loader
+
+    return train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader
 
 
 
