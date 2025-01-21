@@ -95,7 +95,7 @@ def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> BaseModel:
         raise ValueError(model_name)
     
 
-def generate_responses_for_cot_gap(
+def evaluate_cot_gap_and_ratio(
         ppo_trainer, 
         tokenizer, 
         dataloader: DataLoader,

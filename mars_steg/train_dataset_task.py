@@ -21,7 +21,7 @@ from mars_steg.utils.common import (
     get_device,
     parse_model_output,
     LLMTranscriptExtractionError,
-    generate_responses_for_cot_gap,
+    evaluate_cot_gap_and_ratio,
 )
 
 
@@ -116,7 +116,7 @@ if __name__ == "__main__":
             print("Generating responses for CoT gap evaluation")
             print("--------")
 
-            cot_gap, cot_ratio = generate_responses_for_cot_gap(
+            cot_gap, cot_ratio = evaluate_cot_gap_and_ratio(
                 ppo_trainer = ppo_trainer, 
                 tokenizer = tokenizer, 
                 dataloader = val_loader, 
