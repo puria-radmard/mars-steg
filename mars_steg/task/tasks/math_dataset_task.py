@@ -1,5 +1,9 @@
+from __future__ import annotations
+
 import re
 from mars_steg.task.base_task import TorchDatasetTask
+from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
+from mars_steg.utils.prompt_data import PromptData, FixedDatasetDataInfo
 from mars_steg.utils.math_equivalence import is_equiv
 
 
@@ -89,7 +93,7 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         if index >= self.length:
             raise ValueError("index received was greater than dataset length")
         # Get problem
-        problem = self.dataset["problem"][index]
+        problem = self.dataset.iloc[index]["problem"]
         # Make prompt
         prompt = f"Solve the problem following the given description.\n\n{problem}\n\n"
 
@@ -125,9 +129,6 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
 
 
 if __name__ == "__main__":
-
-    from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
-    from mars_steg.utils.prompt_data import PromptData, FixedDatasetDataInfo
 
     dataset = "mars_steg/dataset/MATH_dataset_minimal.csv"
     math_task = MATH_Torch_Dataset_Task(dataset, EqualsSign())

@@ -76,6 +76,7 @@ class TrainConfig:
     validation_proportion: float
     number_shared_layers_for_ref_model: int
     create_ref_model: bool
+    evaluate_cot_gap: bool
 
 
 

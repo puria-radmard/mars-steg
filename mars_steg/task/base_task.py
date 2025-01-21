@@ -16,6 +16,7 @@ import pandas as pd
 
 from mars_steg.language.base_language_aspect import LanguageAspect
 
+
 from typing import List, Tuple
 
 
@@ -159,6 +160,7 @@ class Task(metaclass=ABCMeta):
         return r, task_score, language_score
 
 
+
 class TorchDatasetTask(Task, Dataset):
 
     def __init__(self, dataset: str, language_aspect: LanguageAspect) -> None:
@@ -188,15 +190,31 @@ class TorchDatasetTask(Task, Dataset):
 
     def test_train_split(
         self, train_proportion: float, validation_proportion: float
-    ) -> Tuple[TorchDatasetTask, TorchDatasetTask]:
+    ) -> Tuple[TorchDatasetTask, TorchDatasetTask, TorchDatasetTask]:
         assert 0 < train_proportion < 1, "train_proportion must be between 0 and 1"
         assert 0 < validation_proportion < 1, "validation_proportion must be between 0 and 1"
+        assert train_proportion + validation_proportion <= 1, (
+        "train_proportion + validation_proportion must be <= 1"
+    )
 
-        train_size = int(self.length * train_proportion)
-        validation_size = int((self.length - train_size) * validation_proportion)
+        dataset_length = len(self.dataset)  # Ensure correct dataset length
+        train_size = int(dataset_length * train_proportion)
+        validation_size = int(dataset_length * validation_proportion)
+        test_size = dataset_length - train_size - validation_size
+
+        # Ensure sizes do not exceed the dataset length
+        assert train_size + validation_size + test_size == dataset_length, (
+            "Train, validation, and test sizes must add up to the dataset length"
+        )
+
+        # Slicing the dataset
         train_dataset_pd = self.dataset.iloc[:train_size]
         val_dataset_pd = self.dataset.iloc[train_size:train_size + validation_size]
         test_dataset_pd = self.dataset.iloc[train_size + validation_size:]
+
+        print(f"Train size: {len(train_dataset_pd)}")
+        print(f"Validation size: {len(val_dataset_pd)}")
+        print(f"Test size: {len(test_dataset_pd)}")
         cls = self.__class__
         train_dataset = cls(self.dataset_name, self.language_aspect)
         train_dataset.dataset = train_dataset_pd

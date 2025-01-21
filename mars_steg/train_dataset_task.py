@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 from mars_steg.utils.trl import GenerationKwargs
 
@@ -22,6 +24,8 @@ from mars_steg.utils.common import (
     get_device,
     parse_model_output,
     LLMTranscriptExtractionError,
+    generate_responses_for_cot_gap,
+    calculate_cot_gap_and_ratio
 )
 
 
@@ -108,9 +112,51 @@ if __name__ == "__main__":
 
         batch_ticker = 0
 
+        if train_config.evaluate_cot_gap:
+
+            print("--------")
+            print("CoT Gap Evaluation")
+            print("--------")
+
+            print("--------")
+            print("Generating responses for CoT gap evaluation")
+            print("--------")
+
+            generate_responses_for_cot_gap(
+                ppo_trainer = ppo_trainer, 
+                tokenizer = tokenizer, 
+                dataloader = val_loader, 
+                system_prompt = val_dataset.system_prompt,
+                model_class = model, 
+                device = device, 
+                generation_kwargs = generation_kwargs,
+                number_of_batches = 2
+            )
+
+            print("--------")
+            print("Calculating CoT Gap and Ratio")
+            print("--------")
+
+            
+            cot_gap, cot_ratio = calculate_cot_gap_and_ratio(
+                dataloader=val_loader,
+                output_delimitation_tokens=output_delimitation_tokens,
+                number_of_batches=2
+            )
+
+            print("--------")
+            print("Logging CoT Gap")
+            print("--------")
+
+            wandb.log({"CoT Gap": cot_gap, "CoT Ratio": cot_ratio})
+
+
         for batch_prompt_datas in tqdm(train_loader):
+
             batch_messages = batchize_conversation(
-                train_dataset.system_prompt, batch_prompt_datas.cot_prompts, model
+                system_prompt=train_dataset.system_prompt,
+                user_prompts= batch_prompt_datas.cot_prompts, 
+                model_class= model
             )
             inputs = tokenizer.apply_chat_template(
                 batch_messages,

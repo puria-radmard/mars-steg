@@ -7,6 +7,7 @@ from torch.optim import Adam
 
 from typing import List
 
+from tqdm import tqdm
 from transformers import AutoTokenizer
 from mars_steg.config import ModelConfig, OptimizerConfig
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
@@ -91,8 +92,86 @@ def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> BaseModel:
         return Llama_32_1B_Instruct(model_config=model_config, tokenizer=tokenizer)
     else:
         raise ValueError(model_name)
+    
 
+def generate_responses_for_cot_gap(
+        ppo_trainer, 
+        tokenizer, 
+        dataloader: DataLoader, 
+        system_prompt: str,
+        model_class: BaseModel, 
+        device, 
+        generation_kwargs: Dict,
+        number_of_batches: Optional[int] = None):
+    
+    assert number_of_batches is None or number_of_batches > 0
+    
+    with t.no_grad():
+        i = 0
+        for batch_prompt_datas in tqdm(dataloader):
+            if number_of_batches is not None and number_of_batches == i:
+                break
 
+            assert number_of_batches is None or number_of_batches > 0
+
+            batch_messages_with_cot = batchize_conversation(
+                system_prompt, batch_prompt_datas.cot_prompts, model_class
+            )
+            batch_messages_without_cot = batchize_conversation(
+                system_prompt, batch_prompt_datas.no_cot_prompts, model_class
+            )
+            batch_length = len(batch_messages_with_cot)
+            batch_messages = batch_messages_with_cot + batch_messages_without_cot
+            inputs = tokenizer.apply_chat_template(
+                batch_messages,
+                return_tensors="pt",
+                add_generation_prompt=True,
+                return_dict=True,
+                padding=True,
+                truncation=True,
+            )
+
+            # Move the tokenized inputs to the same device the model is on (GPU/CPU)
+            inputs = {key: tensor.to(device) for key, tensor in inputs.items()}
+
+            # Translate it into ppo.generate format which List[torch.tensors]
+            query_tensors = []
+            for input in inputs["input_ids"]:
+                query_tensors.append(input)
+
+            # Generate the with-CoT transcript (no-CoT transcript not needed during training)
+            transcript_responses = ppo_trainer.generate(
+                query_tensors, **generation_kwargs,
+            )
+            decoded_responses = [
+                tokenizer.decode(r.squeeze()) for r in transcript_responses
+            ]
+
+            batch_prompt_datas.cot_transcripts = decoded_responses[:batch_length]
+            batch_prompt_datas.no_cot_transcripts = decoded_responses[batch_length:]
+            i += 1
+
+def calculate_cot_gap_and_ratio(
+        dataloader: DataLoader,
+        output_delimitation_tokens: Dict[str, str],
+        number_of_batches: Optional[int] = None
+):
+    sum_correct_with_cot = 0
+    sum_correct_without_cot = 0
+    i = 0
+    for batch_prompt_datas in tqdm(dataloader):
+        if number_of_batches is not None and number_of_batches == i:
+            break
+        for prompt_data in batch_prompt_datas:
+            prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot= parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot = True)
+            prompt_data.extracted_final_answer_without_cot = parse_model_output(prompt_data.no_cot_transcript, output_delimitation_tokens, cot = False)
+            sum_correct_with_cot += dataloader.get_task_score(prompt_data, with_cot=True)
+            sum_correct_without_cot += dataloader.get_task_score(prompt_data, with_cot=False)
+        i += 1
+
+    cot_gap = sum_correct_with_cot - sum_correct_without_cot
+    cot_ratio = sum_correct_with_cot / sum_correct_without_cot
+    return cot_gap, cot_ratio
 
 
 
@@ -120,14 +199,14 @@ def set_seed(seed: int = 42) -> None:
 
 
 def batchize_conversation(
-    system_prompt: str, user_prompts: List[str], model: BaseModel
+    system_prompt: str, user_prompts: List[str], model_class: BaseModel
 ):
     batch_messages = [
         [
-            model.get_message(
+            model_class.get_message(
                 "system", system_prompt
             ),  # {"role": "system", "content": system_prompt},
-            model.get_message(
+            model_class.get_message(
                 "user", user_prompt
             ),  # {"role": "user", "content": user_prompt}
         ]
