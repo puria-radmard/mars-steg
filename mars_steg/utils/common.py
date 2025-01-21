@@ -104,7 +104,7 @@ def evaluate_cot_gap_and_ratio(
         device, 
         generation_kwargs: Dict,
         output_delimitation_tokens: Dict[str, str],
-        number_of_batches: Optional[int] = None):
+        number_of_batches: Optional[int] = None) -> tuple[float, float]:
     
     assert number_of_batches is None or number_of_batches > 0
     sum_correct_with_cot = 0
