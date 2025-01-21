@@ -118,11 +118,12 @@ def generate_responses_for_cot_gap(
 
             assert number_of_batches is None or number_of_batches > 0
 
-            batch_messages_with_cot = batchize_conversation(
-                system_prompt, batch_prompt_datas.cot_prompts, model_class
-            )
             batch_messages_without_cot = batchize_conversation(
                 system_prompt, batch_prompt_datas.no_cot_prompts, model_class
+            )
+
+            batch_messages_with_cot = batchize_conversation(
+                system_prompt, batch_prompt_datas.cot_prompts, model_class
             )
             batch_length = len(batch_messages_with_cot)
             batch_messages = batch_messages_with_cot + batch_messages_without_cot
@@ -153,11 +154,13 @@ def generate_responses_for_cot_gap(
 
             batch_prompt_datas.cot_transcripts = decoded_responses[:batch_length]
             batch_prompt_datas.no_cot_transcripts = decoded_responses[batch_length:]
+
             num_examples_failed = 0
             for prompt_data in batch_prompt_datas:
                 try :
+                    print(prompt_data.__dict__)
                     prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot= parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot = True)
-                    prompt_data.extracted_final_answer_without_cot = parse_model_output(prompt_data.no_cot_transcript, output_delimitation_tokens, cot = False)
+                    _, prompt_data.extracted_final_answer_without_cot = parse_model_output(prompt_data.no_cot_transcript, output_delimitation_tokens, cot = False)
                     sum_correct_with_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=True)
                     sum_correct_without_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=False)
                 except LLMTranscriptExtractionError:
@@ -166,7 +169,7 @@ def generate_responses_for_cot_gap(
 
             i += 1
     cot_gap = sum_correct_with_cot - sum_correct_without_cot
-    cot_ratio = sum_correct_with_cot / sum_correct_without_cot
+    cot_ratio = sum_correct_with_cot / (sum_correct_without_cot + t.finfo(t.float32).eps)
     return cot_gap, cot_ratio
 
 

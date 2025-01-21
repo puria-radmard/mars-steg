@@ -31,3 +31,16 @@ Train:
   number_shared_layers_for_ref_model: 30 # The number of shared layers for the reference model in PPO RLHF
   create_ref_model: False   # Whether to create a reference model in PPO RLHF
   evaluate_cot_gap: True  # Whether to evaluate the COT gap
+  cot_gap_evaluation_number_batches_samples: 1  # The number of batches sampled for evaluating the COT gap
+
+Generation:
+  min_length: 0
+  # top_k: 0.0
+  # top_p: 0.0
+  num_beams: 2
+  # temperature: 0.3
+  do_sample: false
+  pad_token_id: 0
+  max_new_tokens: 1048
+  return_prompt: False
+  generate_ref_response: False

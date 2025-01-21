@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import numpy as np
-from mars_steg.utils.trl import GenerationKwargs
-
 import warnings
 import wandb
 import sys
@@ -33,9 +30,11 @@ from mars_steg.utils.common import (
 device = get_device()
 
 
-model_config, optimizer_config, train_config = ConfigLoader.load_config(
+model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(
     "mars_steg/configs/config.yaml"
 )
+
+generation_config.batch_size = train_config.batch_size
 
 # PPO Configuration
 config = PPOConfig(
@@ -56,8 +55,11 @@ set_seed(config.seed)
 
 
 tokenizer = get_tokenizer(model_config.model_name)
+generation_config.pad_token_id = tokenizer.eos_token_id 
 model = get_model(model_config, tokenizer)
 optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
+
+generation_kwargs = generation_config.to_dict()
 
 if train_config.create_ref_model is True:
     ref_model = create_reference_model(
@@ -76,14 +78,6 @@ train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader 
     validation_proportion = train_config.validation_proportion,
     batch_size = train_config.batch_size
 )
-
-
-generation_kwargs = GenerationKwargs.from_yaml(
-    "mars_steg/configs/generation_config/default.yaml"
-).to_dict()
-
-generation_kwargs["batch_size"] = train_config.batch_size
-generation_kwargs["pad_token_id"] = tokenizer.eos_token_id #Batches
 
 ppo_trainer = PPOTrainer(
     config,
@@ -113,6 +107,7 @@ if __name__ == "__main__":
 
         if train_config.evaluate_cot_gap:
 
+
             print("--------")
             print("CoT Gap Evaluation")
             print("--------")
@@ -130,7 +125,7 @@ if __name__ == "__main__":
                 device = device, 
                 generation_kwargs = generation_kwargs,
                 output_delimitation_tokens= output_delimitation_tokens,
-                number_of_batches = 1
+                number_of_batches = train_config.cot_gap_evaluation_number_batches_samples
             )
 
             print("--------")

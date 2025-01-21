@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 import yaml
-from typing import Tuple
+from typing import Callable, Tuple
 from dataclasses import asdict
 from typing import Optional, Dict
 
@@ -77,8 +77,41 @@ class TrainConfig:
     number_shared_layers_for_ref_model: int
     create_ref_model: bool
     evaluate_cot_gap: bool
+    cot_gap_evaluation_number_batches_samples: int
 
+@dataclass
+class GenerationConfig:
+    min_length: int
+    num_beams: int
+    do_sample: bool
+    max_new_tokens: int
+    return_prompt: bool
+    generate_ref_response: bool
+    temperature: Optional[float] = None
+    top_k: Optional[int] = None
+    top_p: Optional[int] = None
+    length_sampler: Optional[Callable] = None
+    batch_size: Optional[int] = None
+    pad_token_id: Optional[int] = None
+    
 
+    def __post_init__(self):
+        if not self.do_sample:
+            assert self.temperature == self.top_k == self.top_p == None,\
+                "Cannot specify GenerationConfig.temperature if GenerationConfig.do_sample is specified"
+    
+    def to_dict(self):
+        return asdict(self)
+
+    # @classmethod
+    # def from_yaml(cls, yaml_file):
+    #     with open(yaml_file, "r") as file:
+    #         data = yaml.safe_load(file)
+    #     return cls(**data)
+
+    # def to_yaml(self, yaml_file):
+    #     with open(yaml_file, "w") as file:
+    #         yaml.dump(asdict(self), file)
 
 class ConfigLoader:
 
@@ -93,8 +126,10 @@ class ConfigLoader:
         model_config = ModelConfig(**config_dict["Model"])
         optimizer_config = OptimizerConfig(**config_dict["Optimizer"])
         train_config = TrainConfig(**config_dict["Train"])
+        generation_config = GenerationConfig(**config_dict["Generation"])
 
-        return model_config, optimizer_config, train_config
+        return model_config, optimizer_config, train_config, generation_config
+    
 
     @staticmethod
     def save_config(
@@ -102,6 +137,7 @@ class ConfigLoader:
         model_config: ModelConfig,
         optimizer_config: OptimizerConfig,
         train_config: TrainConfig,
+        generation_config: GenerationConfig
     ):
         """
         Save the dataclass configurations back to a YAML file.
@@ -110,6 +146,7 @@ class ConfigLoader:
             "Model": asdict(model_config),
             "Optimizer": asdict(optimizer_config),
             "Train": asdict(train_config),
+            "Generation": asdict(generation_config),
         }
         with open(yaml_file, "w") as file:
             yaml.dump(config_dict, file)

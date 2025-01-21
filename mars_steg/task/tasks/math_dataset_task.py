@@ -110,10 +110,6 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
             if with_cot
             else prompt_data.extracted_final_answer_without_cot
         )
-        print("-------------")
-        print("LLM ANSWER: ", llm_answer)
-        print("TRUE ANSWER: ", true_answer)
-        print("-------------")
 
         llm_answer = llm_answer.replace("['","").replace("']","")
         
@@ -121,6 +117,8 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         true_answer = true_answer.replace("['","").replace("']","")
 
         print("-------------")
+        print("LLM ANSWER: ", llm_answer)
+        print("TRUE ANSWER: ", true_answer)
         print(f"Are equivalent? {is_equiv(llm_answer, true_answer)}")
         print("-------------")
 
