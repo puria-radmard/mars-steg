@@ -25,7 +25,6 @@ from mars_steg.utils.common import (
     parse_model_output,
     LLMTranscriptExtractionError,
     generate_responses_for_cot_gap,
-    calculate_cot_gap_and_ratio
 )
 
 
@@ -122,7 +121,7 @@ if __name__ == "__main__":
             print("Generating responses for CoT gap evaluation")
             print("--------")
 
-            generate_responses_for_cot_gap(
+            cot_gap, cot_ratio = generate_responses_for_cot_gap(
                 ppo_trainer = ppo_trainer, 
                 tokenizer = tokenizer, 
                 dataloader = val_loader, 
@@ -130,18 +129,8 @@ if __name__ == "__main__":
                 model_class = model, 
                 device = device, 
                 generation_kwargs = generation_kwargs,
-                number_of_batches = 2
-            )
-
-            print("--------")
-            print("Calculating CoT Gap and Ratio")
-            print("--------")
-
-            
-            cot_gap, cot_ratio = calculate_cot_gap_and_ratio(
-                dataloader=val_loader,
-                output_delimitation_tokens=output_delimitation_tokens,
-                number_of_batches=2
+                output_delimitation_tokens= output_delimitation_tokens,
+                number_of_batches = 1
             )
 
             print("--------")

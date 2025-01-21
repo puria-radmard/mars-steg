@@ -2,6 +2,7 @@ import torch as t
 import numpy as np
 import random
 from torch import nn
+import warnings
 from typing import Optional, Dict
 from torch.optim import Adam
 
@@ -97,14 +98,17 @@ def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> BaseModel:
 def generate_responses_for_cot_gap(
         ppo_trainer, 
         tokenizer, 
-        dataloader: DataLoader, 
+        dataloader: DataLoader,
         system_prompt: str,
         model_class: BaseModel, 
         device, 
         generation_kwargs: Dict,
+        output_delimitation_tokens: Dict[str, str],
         number_of_batches: Optional[int] = None):
     
     assert number_of_batches is None or number_of_batches > 0
+    sum_correct_with_cot = 0
+    sum_correct_without_cot = 0
     
     with t.no_grad():
         i = 0
@@ -149,26 +153,18 @@ def generate_responses_for_cot_gap(
 
             batch_prompt_datas.cot_transcripts = decoded_responses[:batch_length]
             batch_prompt_datas.no_cot_transcripts = decoded_responses[batch_length:]
+            num_examples_failed = 0
+            for prompt_data in batch_prompt_datas:
+                try :
+                    prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot= parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot = True)
+                    prompt_data.extracted_final_answer_without_cot = parse_model_output(prompt_data.no_cot_transcript, output_delimitation_tokens, cot = False)
+                    sum_correct_with_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=True)
+                    sum_correct_without_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=False)
+                except LLMTranscriptExtractionError:
+                    num_examples_failed += 1
+                    warnings.warn(f"Failed to parse: {prompt_data}\nSkipping example")
+
             i += 1
-
-def calculate_cot_gap_and_ratio(
-        dataloader: DataLoader,
-        output_delimitation_tokens: Dict[str, str],
-        number_of_batches: Optional[int] = None
-):
-    sum_correct_with_cot = 0
-    sum_correct_without_cot = 0
-    i = 0
-    for batch_prompt_datas in tqdm(dataloader):
-        if number_of_batches is not None and number_of_batches == i:
-            break
-        for prompt_data in batch_prompt_datas:
-            prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot= parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot = True)
-            prompt_data.extracted_final_answer_without_cot = parse_model_output(prompt_data.no_cot_transcript, output_delimitation_tokens, cot = False)
-            sum_correct_with_cot += dataloader.get_task_score(prompt_data, with_cot=True)
-            sum_correct_without_cot += dataloader.get_task_score(prompt_data, with_cot=False)
-        i += 1
-
     cot_gap = sum_correct_with_cot - sum_correct_without_cot
     cot_ratio = sum_correct_with_cot / sum_correct_without_cot
     return cot_gap, cot_ratio

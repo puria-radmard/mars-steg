@@ -103,23 +103,24 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         # Get problem index from transcript
         idx = prompt_data.info.idx
         # Look up true answer
-        true_answer = self.dataset["True answer"][idx]
+        true_answer = self.dataset.iloc[idx]["True answer"]
 
         llm_answer = (
             prompt_data.extracted_final_answer_with_cot
             if with_cot
             else prompt_data.extracted_final_answer_without_cot
         )
+        print("-------------")
+        print("LLM ANSWER: ", llm_answer)
+        print("TRUE ANSWER: ", true_answer)
+        print("-------------")
+
         llm_answer = llm_answer.replace("['","").replace("']","")
         
         # TODO: account for multiple true answers!!
         true_answer = true_answer.replace("['","").replace("']","")
 
         print("-------------")
-        print("testing equivalence")
-        print(f"LLM ANSWER: {llm_answer}")
-        print(f"TRUE ANSWER: {true_answer}")
-
         print(f"Are equivalent? {is_equiv(llm_answer, true_answer)}")
         print("-------------")
 
