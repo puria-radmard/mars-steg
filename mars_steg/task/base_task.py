@@ -78,6 +78,14 @@ class Task(metaclass=ABCMeta):
         this function MUST RETURN 'None' when the dataset is out of samples.
         """
         pass
+    
+    @abstractmethod
+    def generate_info(self, idx: int) -> FixedDatasetDataInfo:
+        """
+        A method to generate additional information for the task at the given index.
+        This method should return a FixedDatasetDataInfo object, which can be used to store additional information about the task.
+        """
+        pass
 
     def generate_full_prompt(self, index) -> str:
         """
@@ -169,7 +177,7 @@ class TorchDatasetTask(Task, Dataset):
         self.dataset = pd.read_csv(dataset)
         self.length = len(self.dataset)
 
-    def generate_prompt_from_idx(self, idx: int) -> FixedDatasetDataInfo:
+    def generate_info(self, idx: int) -> FixedDatasetDataInfo:
         return FixedDatasetDataInfo(idx=idx)
 
     def __len__(self):
@@ -185,7 +193,7 @@ class TorchDatasetTask(Task, Dataset):
         return PromptData(
             cot_prompt=cot_prompt,
             no_cot_prompt=no_cot_prompt,
-            info=self.generate_prompt_from_idx(idx),
+            info=self.generate_info(idx),
         )
 
     def test_train_split(

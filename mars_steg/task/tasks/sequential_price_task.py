@@ -72,7 +72,7 @@ You should still aim to maximise profit, however base this only on the cost info
             score = 0.0
         return score
 
-    def generate_prompt_from_idx(self, idx: int) -> FixedDatasetDataInfo:
+    def generate_info(self, idx: int) -> FixedDatasetDataInfo:
         return SequentialPriceTaskDataInfo(
             idx = idx,
             p1_bid=self.dataset['p1_bid'][idx],
