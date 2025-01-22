@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import warnings
+import numpy as np
 import wandb
 import sys
 
@@ -100,12 +101,15 @@ if __name__ == "__main__":
     # we have to shuffle the data multiple times.
     # We should make sure this is reproducable
     # --> later
+    epochs_to_evaluate_list = np.linspace(0, train_config.num_train_epochs-1, train_config.number_of_evaluations)
+    epochs_to_evaluate_list = [int(epoch) for epoch in epochs_to_evaluate_list]
+    epoch_to_evaluate = epochs_to_evaluate_list.pop(0)
 
-    for _ in range(train_config.num_train_epochs):
+    for epoch in range(train_config.num_train_epochs):
 
         batch_ticker = 0
 
-        if train_config.evaluate_cot_gap:
+        if train_config.evaluate_cot_gap and epoch_to_evaluate == epoch:
 
 
             print("--------")
@@ -115,6 +119,9 @@ if __name__ == "__main__":
             print("--------")
             print("Generating responses for CoT gap evaluation")
             print("--------")
+
+            if train_config.cot_gap_evaluation_number_batches_samples is None:
+                train_config.cot_gap_evaluation_number_batches_samples = len(val_loader)
 
             cot_gap, cot_ratio = evaluate_cot_gap_and_ratio(
                 ppo_trainer = ppo_trainer, 
@@ -133,6 +140,9 @@ if __name__ == "__main__":
             print("--------")
 
             wandb.log({"CoT Gap": cot_gap, "CoT Ratio": cot_ratio})
+
+            if len(epochs_to_evaluate_list) > 0:
+                epoch_to_evaluate = epochs_to_evaluate_list.pop(0)
 
 
         for batch_prompt_datas in tqdm(train_loader):

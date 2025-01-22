@@ -22,7 +22,7 @@ Train:
   batch_size: 2 # The batch size
   gradient_accumulation_steps: 1  # The number of gradient accumulation steps
   seed: 42  # The seed for reproducibility
-  num_train_epochs: 1  # The number of training epochs
+  num_train_epochs: 10  # The number of training epochs
   num_eval_episodes: 10  # The number of evaluation episodes
   save_frequency: 100  # The frequency to save the model relative to the number of training data batches
   ppo_epochs: 1  # The number of PPO epochs
@@ -32,6 +32,7 @@ Train:
   create_ref_model: False   # Whether to create a reference model in PPO RLHF
   evaluate_cot_gap: True  # Whether to evaluate the COT gap
   cot_gap_evaluation_number_batches_samples: 1  # The number of batches sampled for evaluating the COT gap
+  number_of_evaluations: 3  # The number of evaluations for the COT gap among epochs
 
 Generation:
   min_length: 0
