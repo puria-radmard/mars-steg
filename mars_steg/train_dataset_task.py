@@ -44,6 +44,9 @@ class PromptConfig:
     answer_format: Optional[str]
     neural_overseer_instruction: Optional[str]
 
+    def from_file(self, file_path: str):
+        ...
+
     def __getattribute__(self, __name: str):
         if self.__getattr__(__name) == None:
             raise ValueError(f'PromptConfig not given a {__name} field')
