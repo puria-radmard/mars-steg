@@ -1,13 +1,18 @@
+from __future__ import annotations
+
 from abc import ABCMeta, abstractmethod
+import warnings
 
 from mars_steg.language.base_language_aspect import LanguageAspect
 from mars_steg.utils.openai_api_helpers import single_query
-from mars_steg.utils.prompt_data import PromptData
+from mars_steg.utils.prompt_data import PromptData, BatchPromptData
+from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.utils.score import check_score
 
 from trl import PreTrainedModelWrapper
+from transformers import AutoTokenizer
 
-from typing import Optional
+from typing import Dict, List, Optional, Tuple
 
 import torch
 
@@ -59,9 +64,6 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
 
     compatible_tasks = {'SequentialPriceTask'}
 
-    requires_reference_model: bool
-    reference_model: Optional[PreTrainedModelWrapper]
-
     def __init__(
         self,
         language_aspect_description: str,
@@ -74,28 +76,19 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
         if self.user_prompt_template.count('{}') != 3:
             raise ValueError(ERROR_MESSAGE)
         self.system_prompt = system_prompt
-
-    def recruit_reference_model(self, model: Optional[PreTrainedModelWrapper]):
-        if self.requires_reference_model:
-            assert model is not None, f"Require reference model for {self.__class__.__name__}"
-            self.reference_model = model
-        else:
-            f'NeuralOverseer.recruit_reference_model called even though {self.__class__.__name__} does not need one'
-
+    
     @abstractmethod
-    def get_overseer_score(
+    def get_overseer_generated_answers(
         self,
-        user_prompt: str,
-        system_prompt: str=DEFAULT_SYSTEM_PROMPT
-    ) -> float:
-        
+        batch_prompt_data: BatchPromptData,
+    ) -> List[str]:
         """
         A function that should:
-        1) Accept a finalised user prompt, and optionally a system prompt, as args
+        1) Accept a BatchPromptData object
         2) Run the LLM overseer, either using an API or a local model
-        3) Get a boolean value, or float in range [0,1], or int in set {0,1}, from the result
+        3) Return a list of responses
         """
-        raise NotImplementedError
+        pass
 
     def get_user_prompt_for_overseer(
         self,
@@ -108,17 +101,41 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
             extracted_cot = prompt_data.extracted_cot
         )
     
+    def convert_batch_prompt_into_conversation_template(
+            self,
+            batch_prompt_data: BatchPromptData
+            ) -> List[str]:
+        
+        conversations_list = []
+        for prompt_data in batch_prompt_data:
+            conversations_list.append({"system_prompt": self.system_prompt,
+                                        "user_prompt": self.get_user_prompt_for_overseer(prompt_data)})
+        return conversations_list
+    
+    def extract_overseer_answer(
+        self,
+        response_text: str
+    ) -> bool:
+        """
+        A function that should:
+        1) Accept a finalised user prompt, and optionally a system prompt, as args
+        2) Run the LLM overseer, either using an API or a local model
+        3) Get a boolean value, or float in range [0,1], or int in set {0,1}, from the result
+        """
+        response_lower = response_text.lower()
+        rfind_true = response_lower.rfind('true')
+        rfind_false = response_lower.rfind('false')
+        if rfind_true == rfind_false:
+            raise LLMTranscriptExtractionError(f'Neural overseer did not return a TRUE or FALSE token at the end of its response\n: {response_text}')
+        return bool(rfind_true > rfind_false)
+    
     def get_language_score(
         self,
         prompt_data: PromptData
-    ) -> float:
-        # Put together prompt for neural overseer
-        complete_user_prompt = self.get_user_prompt_for_overseer(prompt_data)
-        # Run the overseer LLM on the system prompt/user prompt, and get the response
-        overseer_score = self.get_overseer_score(complete_user_prompt, self.system_prompt)
-        # Check the overseer score
-        overseer_score = check_score('overseer_score', overseer_score)
-        return overseer_score
+    ) -> int:
+        if prompt_data.extracted_overseer_response is None:
+            raise ValueError('Prompt data does not contain an extracted overseer response')
+        return int(prompt_data.extracted_overseer_response)
 
 
 class SlowNeuralOverseer(NeuralOverseer):
@@ -127,53 +144,95 @@ class SlowNeuralOverseer(NeuralOverseer):
     Use GPT-4o-mini in API form. Just for testing. Too slow for integration into RL loop. 
     """
 
-    requires_reference_model = False
-
-    def get_overseer_score(
-        self,
-        user_prompt: str,
-        system_prompt: str=DEFAULT_SYSTEM_PROMPT
-    ):
-        response_text = self.get_gpt_4o_mini_response(user_prompt, system_prompt)
-        response_lower = response_text.lower()
-        rfind_true = response_lower.rfind('true')
-        rfind_false = response_lower.rfind('false')
-        if rfind_true == rfind_false:
-            raise RuntimeError(f'\n\n{response_text}\n\n\nGPT-4o-mini did not return a TRUE or FALSE token at the end of its response, which can be read above')
-        return rfind_true > rfind_false
+    def __init__(self, language_aspect_description: str, system_prompt: str = DEFAULT_SYSTEM_PROMPT, user_prompt_template: str = DEFAULT_USER_PROMPT_TEMPLATE):
+        super().__init__(language_aspect_description, system_prompt, user_prompt_template)
     
-
+    @staticmethod
     def get_gpt_4o_mini_response(
-        self,
         user_prompt: str,
-        system_prompt: str=DEFAULT_SYSTEM_PROMPT,
-        print_response: bool=False
-    ) -> str:
+        system_prompt: str,
+    ) -> Tuple[str, str]:
         response_text, _ = single_query(user_prompt, system_prompt)
         print(f'\n\nOVERSEER RESPONSE\n{response_text}\n\n')
-        return response_text
-
+        return response_text, "gpt-4o-mini"
+    
+    def get_overseer_generated_answers(
+        self,
+        batch_prompt_data: BatchPromptData,
+    ) -> List[str]:
+        responses = []
+        for prompt_data in batch_prompt_data:
+            user_prompt = self.get_user_prompt_for_overseer(prompt_data)
+            response_text, _ = self.get_gpt_4o_mini_response(user_prompt, self.system_prompt)
+            responses.append(response_text)
+        return responses
 
 
 class ReferenceModelNeuralOverseer(NeuralOverseer):
 
-    requires_reference_model = True
+    def __init__(
+            self, 
+            language_aspect_description: str, 
+            system_prompt: str = DEFAULT_SYSTEM_PROMPT, 
+            user_prompt_template: str = DEFAULT_USER_PROMPT_TEMPLATE, 
+            reference_model: Optional[PreTrainedModelWrapper] = None, 
+            tokenizer: Optional[AutoTokenizer] = None, 
+            generation_kwargs: Optional[Dict[str, str]] = None
+        ):
 
-    def __init__(self, language_aspect_description: str, system_prompt: str = DEFAULT_SYSTEM_PROMPT, user_prompt_template: str = DEFAULT_USER_PROMPT_TEMPLATE):
         super().__init__(language_aspect_description, system_prompt, user_prompt_template)
 
+        if reference_model is None:
+            warnings.warn('Reference model not set')
+        if tokenizer is None:
+            warnings.warn('Tokenizer not set')
+        if generation_kwargs is None:
+            warnings.warn('Generation kwargs not set')
+
+        self.reference_model = reference_model
+        self.tokenizer = tokenizer
+        self.generation_kwargs = generation_kwargs
+
     @torch.no_grad()
-    def get_overseer_score(
+    def get_overseer_generated_answers(
         self,
-        user_prompt: str,
-        system_prompt: str=DEFAULT_SYSTEM_PROMPT
-    ):
+        batch_prompt_data: BatchPromptData,
+    ) -> List[str]:
+        if self.reference_model is None:
+            raise ValueError(f'Reference model not set, as required for {self.__class__.__name__}')
+        if self.generation_kwargs is None:
+            raise ValueError(f'Generation kwargs not set, as required for {self.__class__.__name__}')
+        if self.tokenizer is None:
+            raise ValueError(f'Tokenizer not set, as required for {self.__class__.__name__}')
+        
+        # Convert batch_prompt_data into a conversation template
+        conversations_list = self.convert_batch_prompt_into_conversation_template(
+            self.user_prompt_template,
+            self.system_prompt,
+            self.language_aspect_description,
+            batch_prompt_data
+        )
 
+        # Tokenize the conversation template
+        inputs = self.tokenizer.apply_chat_template(
+                conversations_list,
+                return_tensors="pt",
+                add_generation_prompt=True,
+                return_dict=True,
+                padding=True,
+                truncation=True,
+            )
 
+        # Run the reference model
+        outputs = self.reference_model.generate(**inputs, **self.generation_kwargs)
 
+        decoded_responses = [
+                self.tokenizer.decode(r.squeeze()) for r in outputs
+            ]
+        return decoded_responses
 
 # TEST ONLY
-if __name__ == '__main__':
+# if __name__ == '__main__':
 
 
     example_prompt = """

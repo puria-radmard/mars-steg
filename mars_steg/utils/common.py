@@ -16,10 +16,12 @@ from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct, Llama_32
 
 from torch.utils.data import DataLoader
 
+from mars_steg.utils.prompt_data import BatchPromptData
+
 from mars_steg import task
 from mars_steg import language
 from mars_steg.task import TorchDatasetTask
-from mars_steg.language import LanguageAspect, NeuralOverseer
+from mars_steg.language import LanguageAspect, NeuralOverseer, ReferenceModelNeuralOverseer
 
 from trl import PreTrainedModelWrapper
 
@@ -33,7 +35,9 @@ def get_dataloaders(
     train_proportion: float,
     validation_proportion: float,
     batch_size: int,
-    reference_model: PreTrainedModelWrapper
+    reference_model: Optional[PreTrainedModelWrapper] = None,
+    tokenizer: Optional[AutoTokenizer] = None,
+    generation_kwargs: Optional[Dict] = None,
 ):
 
     dataset_class_kwargs = dataset_class_kwargs or dict()
@@ -42,8 +46,18 @@ def get_dataloaders(
     language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**penalisation_class_kwargs)
     task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, **dataset_class_kwargs)
 
-    if isinstance(language_aspect_class, NeuralOverseer):
+
+    if isinstance(language_aspect_class, NeuralOverseer) and reference_model is None:
+        raise ValueError("Neural overseer requires a reference model to be provided.")
+    elif not isinstance(language_aspect_class, NeuralOverseer) and reference_model is not None:
+        raise ValueError("Reference model should not be provided for non-neural overseer tasks.")
+    elif not isinstance(language_aspect_class, NeuralOverseer) and reference_model is None:
+        warnings.warn("Non-neural overseer task is used")
+    elif isinstance(language_aspect_class, NeuralOverseer) and reference_model is not None:
         language_aspect_class.recruit_reference_model(reference_model)
+        if isinstance(language_aspect_class, ReferenceModelNeuralOverseer):
+            language_aspect_class.tokenizer = tokenizer
+            language_aspect_class.generation_kwargs = generation_kwargs
 
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(
         train_proportion=train_proportion,
@@ -322,6 +336,49 @@ def parse_model_output(model_output: str, output_delimitation_tokens: Dict[str, 
         output = output.replace("<|eot_id|>", "")        
         
         return chain_of_thought, output
+    
+def get_rewards_and_training_datas(
+        batch_prompt_datas: BatchPromptData, 
+        query_tensors: List[t.TensorType], 
+        transcript_responses: List[t.TensorType], 
+        train_dataset: TorchDatasetTask, 
+        output_delimitation_tokens: Dict[str, str],
+        batch_overseer_answers: Optional[List[str]] = None
+        ):
+    
+    composite_reward_list, task_score_list, language_score_list = [], [], []
+    train_query_tensors = []
+    train_transcript_responses = []
+    num_examples_failed = 0
+
+    for i, prompt_data in tqdm(enumerate(batch_prompt_datas)):
+        composite_reward = 0.0
+        task_score = 0.0
+        language_score = 0.0
+        try:
+            (
+                prompt_data.extracted_cot,
+                prompt_data.extracted_final_answer_with_cot,
+            ) = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot=True)
+
+            if batch_overseer_answers is not None:
+                prompt_data.overseer_response = batch_overseer_answers[i]
+                prompt_data.extracted_overseer_response = train_dataset.language_aspect.extract_overseer_answer(batch_overseer_answers[i])
+
+            composite_reward, task_score, language_score = (
+                train_dataset.reward_from_transcript(prompt_data)
+            )
+
+            composite_reward_list.append(t.tensor(composite_reward))
+            task_score_list.append(task_score)
+            language_score_list.append(language_score)
+            train_query_tensors.append(query_tensors[i])
+            train_transcript_responses.append(transcript_responses[i])
+        except LLMTranscriptExtractionError as e:
+            num_examples_failed += 1
+            warnings.warn(f"Failed to parse: {e}\nSkipping example")
+
+    return composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses, num_examples_failed
     
             
             

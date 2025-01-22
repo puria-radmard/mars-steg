@@ -32,11 +32,13 @@ class PromptData:
     # After model gives response
     cot_transcript: Optional[str] = None
     no_cot_transcript: Optional[str] = None
+    overseer_response: Optional[str] = None
 
     # After (TODO) separates answers into cot and response
     extracted_cot: Optional[str] = None
     extracted_final_answer_with_cot: Optional[str] = None
     extracted_final_answer_without_cot: Optional[str] = None
+    extracted_overseer_response: Optional[bool] = None # Overseer shall answer True or False
 
     # TODO --> Puria after wandb
     def save(
@@ -55,11 +57,14 @@ class BatchPromptData:
         self.infos: Optional[List[str]] 
 
         self.cot_transcripts: Optional[List[str]]
-        self.no_cot_transcripts: Optional[List[str]] 
+        self.no_cot_transcripts: Optional[List[str]]
+        self.overseer_response: Optional[List[str]]
 
         self.extracted_cots: Optional[List[str]] 
         self.extracted_final_answer_with_cots: Optional[List[str]] 
         self.extracted_final_answer_without_cots: Optional[List[str]] 
+        self.extracted_overseer_responses: Optional[List[bool]] # Overseer shall answer True or False‡
+
 
     def __len__(self):
         return len(self.prompt_datas)
