@@ -29,6 +29,45 @@ from mars_steg.utils.common import (
 
 device = get_device()
 
+####################################################################################################################
+####################################################################################################################
+
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class PromptConfig:
+    task_description: Optional[str]
+    with_cot: Optional[str]
+    no_cot: Optional[str]
+    task_examples: Optional[str]
+    answer_format: Optional[str]
+    neural_overseer_instruction: Optional[str]
+
+    def __getattribute__(self, __name: str):
+        if self.__getattr__(__name) == None:
+            raise ValueError(f'PromptConfig not given a {__name} field')
+
+
+prompt_config: PromptConfig = pick_up('mars_steg/configs/prompt/math_training.yaml')
+
+prompt_config.task_description
+prompt_config.with_cot
+prompt_config.no_cot
+prompt_config.task_examples
+prompt_config.answer_format
+...
+
+output_delimitation_tokens = {
+    #"start_scratchpad_token": "<SCRATCHPAD_REASONING>",
+    #"end_scratchpad_token": "</SCRATCHPAD_REASONING>",
+    "start_output_token": "Answer:",
+    #"end_output_token": "</OUTPUT>",
+}
+
+####################################################################################################################
+####################################################################################################################
+
 
 model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(
     "mars_steg/configs/config.yaml"
@@ -87,12 +126,7 @@ ppo_trainer = PPOTrainer(
     optimizer=optimizer,
 )
 
-output_delimitation_tokens = {
-    #"start_scratchpad_token": "<SCRATCHPAD_REASONING>",
-    #"end_scratchpad_token": "</SCRATCHPAD_REASONING>",
-    "start_output_token": "Answer:",
-    #"end_output_token": "</OUTPUT>",
-}
+
 
 if __name__ == "__main__":
 
