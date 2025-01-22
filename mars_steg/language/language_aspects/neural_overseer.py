@@ -232,7 +232,7 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
         return decoded_responses
 
 # TEST ONLY
-# if __name__ == '__main__':
+if __name__ == '__main__':
 
 
     example_prompt = """

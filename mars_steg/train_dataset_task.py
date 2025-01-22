@@ -13,7 +13,6 @@ from trl import PPOConfig, PPOTrainer, create_reference_model
 
 from mars_steg.language.language_aspects.neural_overseer import NeuralOverseer
 from mars_steg.utils.prompt_data import BatchPromptData
-from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.config import ConfigLoader, ExperimentArgs
 from mars_steg.utils.common import (
     get_dataloaders,
@@ -82,6 +81,8 @@ if train_config.create_ref_model is True:
     ref_model = create_reference_model(
         model.model, num_shared_layers=train_config.number_shared_layers_for_ref_model
     )
+else:
+    ref_model = None
 
 
 train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = get_dataloaders(
@@ -94,11 +95,6 @@ train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader 
     batch_size = train_config.batch_size,
     reference_model = ref_model,        # This may be needed if a neural language aspect is used!
 )
-
-
-
-
-
 
 
 ppo_trainer = PPOTrainer(
@@ -251,8 +247,10 @@ if __name__ == "__main__":
                 print("Optimizing model")
                 print("--------")
 
+                if len(composite_reward_list) < ppo_trainer.config.batch_size:
+                    ppo_trainer.config.batch_size = len(composite_reward_list)
                 stats = ppo_trainer.step(
-                    train_query_tensors, train_transcript_responses, composite_reward_list
+                    train_query_tensors, train_transcript_responses, composite_reward_list, 
                 )
 
                 print("--------")
@@ -263,6 +261,8 @@ if __name__ == "__main__":
                     inputs,
                     [composite_reward_list, task_score_list, language_score_list],
                 )
+
+                ppo_trainer.config.batch_size = train_config.batch_size
                 wandb.log(stats)
 
             torch.cuda.empty_cache() 
