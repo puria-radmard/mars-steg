@@ -19,7 +19,10 @@ from torch.utils.data import DataLoader
 from mars_steg import task
 from mars_steg import language
 from mars_steg.task import TorchDatasetTask
-from mars_steg.language import LanguageAspect
+from mars_steg.language import LanguageAspect, NeuralOverseer
+
+from trl import PreTrainedModelWrapper
+
 
 
 def get_dataloaders(
@@ -29,7 +32,8 @@ def get_dataloaders(
     penalisation_class_kwargs: Optional[Dict],
     train_proportion: float,
     validation_proportion: float,
-    batch_size: int
+    batch_size: int,
+    reference_model: PreTrainedModelWrapper
 ):
 
     dataset_class_kwargs = dataset_class_kwargs or dict()
@@ -37,6 +41,9 @@ def get_dataloaders(
 
     language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**penalisation_class_kwargs)
     task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, **dataset_class_kwargs)
+
+    if isinstance(language_aspect_class, NeuralOverseer):
+        language_aspect_class.recruit_reference_model(reference_model)
 
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(
         train_proportion=train_proportion,

@@ -88,8 +88,15 @@ train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader 
     penalisation_class_kwargs = experiment_args.penalisation_class_kwargs,
     train_proportion = train_config.train_proportion,
     validation_proportion = train_config.validation_proportion,
-    batch_size = train_config.batch_size
+    batch_size = train_config.batch_size,
+    reference_model = ref_model,        # This may be needed if a neural language aspect is used!
 )
+
+
+
+
+
+
 
 ppo_trainer = PPOTrainer(
     config,
