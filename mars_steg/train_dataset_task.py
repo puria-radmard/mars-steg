@@ -225,7 +225,7 @@ if __name__ == "__main__":
                 warnings.warn(
                     f"Failed to parse {num_examples_failed} examples out of {len(batch_prompt_datas)}"
                 )
-                warnings.warn("Optimizing model with the rest of the examples (putting 0 reward for the failed examples)")
+                warnings.warn("Optimizing model with the rest of the examples (removing the failed examples)")
                 optimize = True
             else:
                 print("All examples parsed successfully")
