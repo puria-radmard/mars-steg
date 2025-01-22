@@ -11,7 +11,7 @@ from transformers import set_seed
 from trl import PPOConfig, PPOTrainer, create_reference_model
 
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
-from mars_steg.config import ConfigLoader, ExperimentArgs
+from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 from mars_steg.utils.common import (
     get_dataloaders,
     batchize_conversation,
@@ -19,47 +19,19 @@ from mars_steg.utils.common import (
     get_tokenizer,
     get_model,
     get_device,
+    get_prompt_config,
     parse_model_output,
     LLMTranscriptExtractionError,
     evaluate_cot_gap_and_ratio,
 )
 
-
-
+CONFIG_DIR = "mars_steg/configs/config.yaml"
+PROMPT_DIR = "mars_steg/configs/prompt/math_training.yaml"
 
 device = get_device()
 
 ####################################################################################################################
 ####################################################################################################################
-
-from dataclasses import dataclass
-from typing import Optional
-
-@dataclass
-class PromptConfig:
-    task_description: Optional[str]
-    with_cot: Optional[str]
-    no_cot: Optional[str]
-    task_examples: Optional[str]
-    answer_format: Optional[str]
-    neural_overseer_instruction: Optional[str]
-
-    def from_file(self, file_path: str):
-        ...
-
-    def __getattribute__(self, __name: str):
-        if self.__getattr__(__name) == None:
-            raise ValueError(f'PromptConfig not given a {__name} field')
-
-
-prompt_config: PromptConfig = pick_up('mars_steg/configs/prompt/math_training.yaml')
-
-prompt_config.task_description
-prompt_config.with_cot
-prompt_config.no_cot
-prompt_config.task_examples
-prompt_config.answer_format
-...
 
 output_delimitation_tokens = {
     #"start_scratchpad_token": "<SCRATCHPAD_REASONING>",
@@ -71,10 +43,8 @@ output_delimitation_tokens = {
 ####################################################################################################################
 ####################################################################################################################
 
-
-model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(
-    "mars_steg/configs/config.yaml"
-)
+prompt_config: PromptConfig = PromptConfigLoader.load_config(PROMPT_DIR)
+model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(CONFIG_DIR)
 
 generation_config.batch_size = train_config.batch_size
 

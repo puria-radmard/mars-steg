@@ -45,6 +45,33 @@ class OptimizerConfig:
     warmup_steps: int
     max_grad_norm: float
 
+@dataclass
+class PromptConfig:
+
+    task_description_dir: Optional[str]
+    task_description: Optional[str]
+
+    with_cot_dir: Optional[str]
+    with_cot: Optional[str]
+
+    no_cot_dir: Optional[str]
+    no_cot: Optional[str]
+
+    task_examples_dir: Optional[str]
+    task_examples: Optional[str]
+
+    answer_format_dir: Optional[str]
+    answer_format: Optional[str]
+
+    neural_overseer_instruction_dir: Optional[str]
+    neural_overseer_instruction: Optional[str]
+
+    def from_file(self, file_path: str):
+        ...
+
+    def __getattribute__(self, __name: str):
+        if self.__getattr__(__name) == None:
+            raise ValueError(f'PromptConfig not given a {__name} field')
 
 
 @dataclass
@@ -58,7 +85,6 @@ class ExperimentArgs:
     def from_yaml(cls, yaml_file: str) -> ExperimentArgs:
         config_dict = load_yaml(yaml_file)
         return cls(**config_dict)
-
 
 
 @dataclass
@@ -113,10 +139,20 @@ class GenerationConfig:
     #     with open(yaml_file, "w") as file:
     #         yaml.dump(asdict(self), file)
 
+class PromptConfigLoader:
+
+    @staticmethod
+    def load_config(yaml_file: str) -> PromptConfig:
+
+
+        return prompt_config
+
+
+
 class ConfigLoader:
 
     @staticmethod
-    def load_config(yaml_file: str) -> Tuple[ModelConfig, OptimizerConfig, TrainConfig]:
+    def load_config(yaml_file: str) -> Tuple[ModelConfig, OptimizerConfig, TrainConfig, GenerationConfig]:
         """
         Load YAML data and map it to configuration dataclasses.
         """
