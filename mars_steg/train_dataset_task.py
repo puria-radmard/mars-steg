@@ -11,7 +11,8 @@ from transformers import set_seed
 
 from trl import PPOConfig, PPOTrainer, create_reference_model
 
-from mars_steg.utils.exceptions import LLMTranscriptExtractionError
+from mars_steg.language.language_aspects.neural_overseer import NeuralOverseer
+from mars_steg.utils.prompt_data import BatchPromptData
 from mars_steg.config import ConfigLoader, ExperimentArgs
 from mars_steg.utils.common import (
     get_dataloaders,
@@ -20,10 +21,12 @@ from mars_steg.utils.common import (
     get_tokenizer,
     get_model,
     get_device,
-    parse_model_output,
-    LLMTranscriptExtractionError,
+    get_rewards_and_training_datas,
+
     evaluate_cot_gap_and_ratio,
 )
+
+
 
 
 
@@ -49,7 +52,19 @@ config = PPOConfig(
 )
 
 
-wandb.init(project="MARS-STEGO", config=config)
+experiment_args = ExperimentArgs.from_yaml(sys.argv[1])
+
+
+wandb.init(
+    project="MARS-STEGO",
+    config={
+        'ppo_config': config,
+        'model_config': model_config,
+        'optimizer_config': optimizer_config,
+        'train_config': train_config,
+        'experiment_args': experiment_args,
+    }
+)
 
 # Set random seed for reproducibility
 set_seed(config.seed)
@@ -66,8 +81,8 @@ if train_config.create_ref_model is True:
     ref_model = create_reference_model(
         model.model, num_shared_layers=train_config.number_shared_layers_for_ref_model
     )
-
-experiment_args = ExperimentArgs.from_yaml(sys.argv[1])
+else:
+    ref_model = None
 
 
 train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = get_dataloaders(
@@ -77,8 +92,10 @@ train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader 
     penalisation_class_kwargs = experiment_args.penalisation_class_kwargs,
     train_proportion = train_config.train_proportion,
     validation_proportion = train_config.validation_proportion,
-    batch_size = train_config.batch_size
+    batch_size = train_config.batch_size,
+    reference_model = ref_model,        # This may be needed if a neural language aspect is used!
 )
+
 
 ppo_trainer = PPOTrainer(
     config,
@@ -147,6 +164,8 @@ if __name__ == "__main__":
 
         for batch_prompt_datas in tqdm(train_loader):
 
+            batch_prompt_datas: BatchPromptData
+
             batch_messages = batchize_conversation(
                 system_prompt=train_dataset.system_prompt,
                 user_prompts= batch_prompt_datas.cot_prompts, 
@@ -182,51 +201,35 @@ if __name__ == "__main__":
             print("-------------")
             # extraction of answer and cot (because cot_mode = True) parts of the transcript
             batch_prompt_datas.cot_transcripts = decoded_responses
-            composite_reward_list, task_score_list, language_score_list = [], [], []
-            train_query_tensors = []
-            train_transcript_responses = []
             num_examples_failed = 0
-            for i, prompt_data in tqdm(enumerate(batch_prompt_datas)):
-                composite_reward = 0.0
-                task_score = 0.0
-                language_score = 0.0
-                try:
-                    (
-                        prompt_data.extracted_cot,
-                        prompt_data.extracted_final_answer_with_cot,
-                    ) = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot = True)
-                    composite_reward, task_score, language_score = (
-                        train_dataset.reward_from_transcript(prompt_data)
-                    )
-                    composite_reward_list.append(torch.tensor(composite_reward))
-                    task_score_list.append(task_score)
-                    language_score_list.append(language_score)
-                    train_query_tensors.append(query_tensors[i])
-                    train_transcript_responses.append(transcript_responses[i])
-                except LLMTranscriptExtractionError as e:
-                    num_examples_failed += 1
-                    composite_reward_list.append(torch.tensor(0.0))
-                    task_score_list.append(0.0)
-                    language_score_list.append(0.0)
-                    train_query_tensors.append(query_tensors[i])
-                    train_transcript_responses.append(transcript_responses[i])
-                    warnings.warn(f"Failed to parse: {e}\nSkipping example")
+
+            if isinstance(train_dataset.language_aspect, NeuralOverseer):
+                generated_overseer_answers = train_dataset.language_aspect.get_overseer_generated_answers(batch_prompt_datas)
+            else:
+                generated_overseer_answers = None
+
+            composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses, num_examples_failed = get_rewards_and_training_datas(
+                batch_prompt_datas=batch_prompt_datas,
+                query_tensors=query_tensors,
+                transcript_responses=transcript_responses, 
+                train_dataset=train_dataset, 
+                output_delimitation_tokens=output_delimitation_tokens,
+                batch_overseer_answers=generated_overseer_answers
+            )
 
             if num_examples_failed == len(batch_prompt_datas):
-                #raise LLMTranscriptExtractionError(
-                #    "No examples were successfully parsed for reward function. Check the data and the parsing function."
-                #)
-                optimize = 0
+                optimize = False
+                warnings.warn("All examples failed to parse. Not optimizing model")
                 
             elif num_examples_failed != 0:
                 warnings.warn(
                     f"Failed to parse {num_examples_failed} examples out of {len(batch_prompt_datas)}"
                 )
                 warnings.warn("Optimizing model with the rest of the examples (putting 0 reward for the failed examples)")
-                optimize = 1
+                optimize = True
             else:
                 print("All examples parsed successfully")
-                optimize = 1
+                optimize = True
 
             print("--------")
             print(f"Rewarding example with {composite_reward_list}")
@@ -244,8 +247,10 @@ if __name__ == "__main__":
                 print("Optimizing model")
                 print("--------")
 
+                if len(composite_reward_list) < ppo_trainer.config.batch_size:
+                    ppo_trainer.config.batch_size = len(composite_reward_list)
                 stats = ppo_trainer.step(
-                    train_query_tensors, train_transcript_responses, composite_reward_list
+                    train_query_tensors, train_transcript_responses, composite_reward_list, 
                 )
 
                 print("--------")
@@ -256,6 +261,8 @@ if __name__ == "__main__":
                     inputs,
                     [composite_reward_list, task_score_list, language_score_list],
                 )
+
+                ppo_trainer.config.batch_size = train_config.batch_size
                 wandb.log(stats)
 
             torch.cuda.empty_cache() 
