@@ -12,6 +12,7 @@ from tqdm import tqdm
 from transformers import AutoTokenizer
 from mars_steg.config import ModelConfig, OptimizerConfig
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
+from mars_steg.utils.score import CoTGapSummary
 from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct, Llama_32_1B_Instruct
 
 from torch.utils.data import DataLoader
@@ -59,11 +60,11 @@ def get_dataloaders(
             language_aspect_class.tokenizer = tokenizer
             language_aspect_class.generation_kwargs = generation_kwargs
 
+    # TODO: check that validation_proportion = 0, train_proportion = 1 gives empty test and valid datasets!!!
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(
         train_proportion=train_proportion,
         validation_proportion=validation_proportion
     )
-
 
     train_loader = DataLoader(
         train_dataset,
@@ -74,13 +75,13 @@ def get_dataloaders(
     val_loader = DataLoader(
         val_dataset,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=False,
         collate_fn=task_class.prompt_data_collate_fn)
     
     test_loader = DataLoader(
         test_dataset,
         batch_size=batch_size,
-        shuffle=True,
+        shuffle=False,
         collate_fn=task_class.prompt_data_collate_fn)
 
 
@@ -115,7 +116,7 @@ def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> BaseModel:
         raise ValueError(model_name)
     
 
-def evaluate_cot_gap_and_ratio(
+def evaluate_cot_gap_summary(
         ppo_trainer, 
         tokenizer, 
         dataloader: DataLoader,
@@ -124,9 +125,19 @@ def evaluate_cot_gap_and_ratio(
         device, 
         generation_kwargs: Dict,
         output_delimitation_tokens: Dict[str, str],
-        number_of_batches: Optional[int] = None) -> tuple[float, float]:
+        number_of_batches: Optional[int] = None,
+    ) -> CoTGapSummary:
     
     assert number_of_batches is None or number_of_batches > 0
+    
+    # Total examples provided:
+    sum_examples = 0
+
+    # Examples answered in the correct format:
+    sum_extracted_with_cot = 0
+    sum_extracted_without_cot = 0
+
+    # Of those answered of the correct format...
     sum_correct_with_cot = 0
     sum_correct_without_cot = 0
     
@@ -175,22 +186,36 @@ def evaluate_cot_gap_and_ratio(
             batch_prompt_datas.cot_transcripts = decoded_responses[:batch_length]
             batch_prompt_datas.no_cot_transcripts = decoded_responses[batch_length:]
 
-            num_examples_failed = 0
             for prompt_data in batch_prompt_datas:
-                try :
-                    print(prompt_data.__dict__)
-                    prompt_data.extracted_cot, prompt_data.extracted_final_answer_with_cot= parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot = True)
-                    _, prompt_data.extracted_final_answer_without_cot = parse_model_output(prompt_data.no_cot_transcript, output_delimitation_tokens, cot = False)
+                sum_examples += 1
+
+                try:
+                    # We don't actually need the CoT prompt
+                    _, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot = True)
+                    sum_extracted_with_cot += 1
                     sum_correct_with_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=True)
+                except LLMTranscriptExtractionError:
+                    warnings.warn(f"Failed to parse: {prompt_data}\n (with CoT) Skipping example")
+
+                try:
+                    _, prompt_data.extracted_final_answer_without_cot = parse_model_output(prompt_data.no_cot_transcript, output_delimitation_tokens, cot = False)
+                    sum_extracted_without_cot += 1
                     sum_correct_without_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=False)
                 except LLMTranscriptExtractionError:
-                    num_examples_failed += 1
-                    warnings.warn(f"Failed to parse: {prompt_data}\nSkipping example")
+                    warnings.warn(f"Failed to parse: {prompt_data}\n (wihtout CoT) Skipping example")
 
             i += 1
-    cot_gap = sum_correct_with_cot - sum_correct_without_cot
-    cot_ratio = sum_correct_with_cot / (sum_correct_without_cot + t.finfo(t.float32).eps)
-    return cot_gap, cot_ratio
+
+    # cot_gap = (sum_correct_with_cot - sum_correct_without_cot)
+    # cot_ratio = sum_correct_with_cot / (sum_correct_without_cot + t.finfo(t.float32).eps)
+
+    return CoTGapSummary(
+        sum_examples,
+        sum_extracted_with_cot,
+        sum_extracted_without_cot,
+        sum_correct_with_cot,
+        sum_correct_without_cot,
+    )
 
 
 

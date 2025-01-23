@@ -22,8 +22,7 @@ from mars_steg.utils.common import (
     get_model,
     get_device,
     get_rewards_and_training_datas,
-
-    evaluate_cot_gap_and_ratio,
+    evaluate_cot_gap_summary,
 )
 
 
@@ -140,7 +139,7 @@ if __name__ == "__main__":
             if train_config.cot_gap_evaluation_number_batches_samples is None:
                 train_config.cot_gap_evaluation_number_batches_samples = len(val_loader)
 
-            cot_gap, cot_ratio = evaluate_cot_gap_and_ratio(
+            cot_gap, cot_ratio = evaluate_cot_gap_summary(
                 ppo_trainer = ppo_trainer, 
                 tokenizer = tokenizer, 
                 dataloader = val_loader, 
@@ -272,11 +271,3 @@ if __name__ == "__main__":
                     ppo_trainer.save_pretrained(model_config.model_save_path)
 
             batch_ticker += 1
-            
-
-            # ### Keep an eye on whether no CoT performance is also going up - this might mean the model is just getting better at the tasks
-            # # and ignoring its CoT altogether
-            # with torch.no_grad():
-            #     ...
-            #     # XXX: use test_dataset here
-            #     ...
