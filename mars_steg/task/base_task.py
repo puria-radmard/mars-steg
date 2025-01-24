@@ -199,8 +199,8 @@ class TorchDatasetTask(Task, Dataset):
     def test_train_split(
         self, train_proportion: float, validation_proportion: float
     ) -> Tuple[TorchDatasetTask, TorchDatasetTask, TorchDatasetTask]:
-        assert 0 < train_proportion < 1, "train_proportion must be between 0 and 1"
-        assert 0 < validation_proportion < 1, "validation_proportion must be between 0 and 1"
+        assert 0 <= train_proportion <= 1, "train_proportion must be between 0 and 1"
+        assert 0 <= validation_proportion <= 1, "validation_proportion must be between 0 and 1"
         assert train_proportion + validation_proportion <= 1, (
         "train_proportion + validation_proportion must be <= 1"
     )

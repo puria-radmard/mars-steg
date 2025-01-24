@@ -106,9 +106,10 @@ def get_optimizer(optimizer_config: OptimizerConfig, model: nn.Module) -> t.opti
 
 def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> BaseModel:
     model_name = model_config.model_name
+    print(f'GETTING: {model_name}')
     if model_name == "gpt2":
         return GPT2Model(model_config=model_config, tokenizer=tokenizer)
-    if "meta-llama/Llama" in  model_name:
+    elif model_name == 'meta-llama/Llama-3.1-8B-Instruct':
         return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer)
     elif model_name == 'meta-llama/Llama-3.2-1B-Instruct':
         return Llama_32_1B_Instruct(model_config=model_config, tokenizer=tokenizer)
@@ -125,10 +126,7 @@ def evaluate_cot_gap_summary(
         device, 
         generation_kwargs: Dict,
         output_delimitation_tokens: Dict[str, str],
-        number_of_batches: Optional[int] = None,
     ) -> CoTGapSummary:
-    
-    assert number_of_batches is None or number_of_batches > 0
     
     # Total examples provided:
     sum_examples = 0
@@ -138,16 +136,12 @@ def evaluate_cot_gap_summary(
     sum_extracted_without_cot = 0
 
     # Of those answered of the correct format...
-    sum_correct_with_cot = 0
-    sum_correct_without_cot = 0
+    sum_reward_with_cot = 0
+    sum_reward_without_cot = 0
     
     with t.no_grad():
-        i = 0
-        for batch_prompt_datas in tqdm(dataloader):
-            if number_of_batches is not None and number_of_batches == i:
-                break
 
-            assert number_of_batches is None or number_of_batches > 0
+        for batch_prompt_datas in tqdm(dataloader):
 
             batch_messages_without_cot = batchize_conversation(
                 system_prompt, batch_prompt_datas.no_cot_prompts, model_class
@@ -193,28 +187,36 @@ def evaluate_cot_gap_summary(
                     # We don't actually need the CoT prompt
                     _, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot = True)
                     sum_extracted_with_cot += 1
-                    sum_correct_with_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=True)
+                    sum_reward_with_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=True)
                 except LLMTranscriptExtractionError:
-                    warnings.warn(f"Failed to parse: {prompt_data}\n (with CoT) Skipping example")
+                    warnings.warn(f"Failed to parse: \n\n{prompt_data.cot_transcript}\n\n (with CoT) Skipping example")
 
                 try:
                     _, prompt_data.extracted_final_answer_without_cot = parse_model_output(prompt_data.no_cot_transcript, output_delimitation_tokens, cot = False)
                     sum_extracted_without_cot += 1
-                    sum_correct_without_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=False)
+                    sum_reward_without_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=False)
                 except LLMTranscriptExtractionError:
-                    warnings.warn(f"Failed to parse: {prompt_data}\n (wihtout CoT) Skipping example")
+                    warnings.warn(f"Failed to parse: \n\n{prompt_data.no_cot_transcript}\n\n (without CoT) Skipping example")
 
-            i += 1
+            cot_gap = CoTGapSummary(
+                sum_examples,
+                sum_extracted_with_cot,
+                sum_extracted_without_cot,
+                sum_reward_with_cot,
+                sum_reward_without_cot,
+            )
 
-    # cot_gap = (sum_correct_with_cot - sum_correct_without_cot)
-    # cot_ratio = sum_correct_with_cot / (sum_correct_without_cot + t.finfo(t.float32).eps)
+            print(cot_gap.summary)
+
+    # cot_gap = (sum_reward_with_cot - sum_reward_without_cot)
+    # cot_ratio = sum_reward_with_cot / (sum_reward_without_cot + t.finfo(t.float32).eps)
 
     return CoTGapSummary(
         sum_examples,
         sum_extracted_with_cot,
         sum_extracted_without_cot,
-        sum_correct_with_cot,
-        sum_correct_without_cot,
+        sum_reward_with_cot,
+        sum_reward_without_cot,
     )
 
 

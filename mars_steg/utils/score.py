@@ -17,22 +17,22 @@ class CoTGapSummary:
     sum_examples: int
     sum_extracted_with_cot: int
     sum_extracted_without_cot: int
-    sum_correct_with_cot: int
-    sum_correct_without_cot: int
+    sum_reward_with_cot: int
+    sum_reward_without_cot: int
 
     @property
     def summary(self):
 
         # TODO: needs a bit of reworking to incorporate extraction hitrate!!
 
-        cot_gap = (self.sum_correct_with_cot - self.sum_correct_without_cot)
-        cot_ratio = self.sum_correct_with_cot / (self.sum_correct_without_cot + t.finfo(t.float32).eps)
+        cot_gap = (self.sum_reward_with_cot - self.sum_reward_without_cot)
+        cot_ratio = self.sum_reward_with_cot / (self.sum_reward_without_cot + t.finfo(t.float32).eps)
         return f"""
-        sum_examples: {self.cot_gap}
-        sum_extracted_with_cot: {self.cot_gap}
-        sum_extracted_without_cot: {self.cot_gap}
-        sum_correct_with_cot: {self.cot_gap}
-        sum_correct_without_cot: {self.cot_gap}
+        sum_examples: {self.sum_examples}
+        sum_extracted_with_cot: {self.sum_extracted_with_cot}
+        sum_extracted_without_cot: {self.sum_extracted_without_cot}
+        sum_reward_with_cot: {self.sum_reward_with_cot}
+        sum_reward_without_cot: {self.sum_reward_without_cot}
         cot_gap: {cot_gap}
         cot_ratio: {cot_ratio}
         """

@@ -19,7 +19,7 @@ Optimizer:
 Train:
   log_with: null  # Use 'wandb' to log with wandb
   mini_batch_size: 1  # The PPO minibatch size
-  batch_size: 2 # The batch size
+  batch_size: 4 # The batch size
   gradient_accumulation_steps: 1  # The number of gradient accumulation steps
   seed: 42  # The seed for reproducibility
   num_train_epochs: 10  # The number of training epochs
@@ -31,7 +31,7 @@ Train:
   number_shared_layers_for_ref_model: 30 # The number of shared layers for the reference model in PPO RLHF
   create_ref_model: False   # Whether to create a reference model in PPO RLHF
   evaluate_cot_gap: False  # Whether to evaluate the COT gap
-  cot_gap_evaluation_number_batches_samples: 1  # The number of batches sampled for evaluating the COT gap
+  # cot_gap_evaluation_number_batches_samples: 1  # The number of batches sampled for evaluating the COT gap
   number_of_evaluations: 3  # The number of evaluations for the COT gap among epochs
 
 Generation:

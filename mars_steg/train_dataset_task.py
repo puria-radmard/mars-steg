@@ -27,15 +27,15 @@ from mars_steg.utils.common import (
 
 
 
+experiment_args_path = sys.argv[1]
+config_path = sys.argv[2]   # e.g. "mars_steg/configs/config.yaml"
 
 
 
 device = get_device()
 
 
-model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(
-    "mars_steg/configs/config.yaml"
-)
+model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(config_path)
 
 generation_config.batch_size = train_config.batch_size
 
@@ -51,7 +51,7 @@ config = PPOConfig(
 )
 
 
-experiment_args = ExperimentArgs.from_yaml(sys.argv[1])
+experiment_args = ExperimentArgs.from_yaml(experiment_args_path)
 
 
 wandb.init(
@@ -136,9 +136,6 @@ if __name__ == "__main__":
             print("Generating responses for CoT gap evaluation")
             print("--------")
 
-            if train_config.cot_gap_evaluation_number_batches_samples is None:
-                train_config.cot_gap_evaluation_number_batches_samples = len(val_loader)
-
             cot_gap, cot_ratio = evaluate_cot_gap_summary(
                 ppo_trainer = ppo_trainer, 
                 tokenizer = tokenizer, 
@@ -148,7 +145,6 @@ if __name__ == "__main__":
                 device = device, 
                 generation_kwargs = generation_kwargs,
                 output_delimitation_tokens= output_delimitation_tokens,
-                number_of_batches = train_config.cot_gap_evaluation_number_batches_samples
             )
 
             print("--------")
@@ -164,6 +160,8 @@ if __name__ == "__main__":
         for batch_prompt_datas in tqdm(train_loader):
 
             batch_prompt_datas: BatchPromptData
+
+            import pdb; pdb.set_trace()
 
             batch_messages = batchize_conversation(
                 system_prompt=train_dataset.system_prompt,

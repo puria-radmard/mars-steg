@@ -1,0 +1,47 @@
+Model:
+  model_name: "meta-llama/Llama-3.1-8B-Instruct"  # The model name
+  model_save_path: "./experiments/models"  # The path to save the model
+  load_precision_mode: "full" # Options: ["4bits","8bits","full"]
+  lora: true # false
+  lora_r: 8
+  lora_alpha: 16
+  lora_dropout: 0.05
+  lora_bias: "none" #sticking to example : https://huggingface.co/docs/trl/main/en/peft_integration
+
+Optimizer:
+  optimizer_name: "adam"
+  learning_rate: 5.0e-5
+  weight_decay: 0.01
+  adam_epsilon: 1e-8
+  warmup_steps: 500
+  max_grad_norm: 1.0
+
+Train:
+  log_with: null  # Use 'wandb' to log with wandb
+  mini_batch_size: 1  # The PPO minibatch size
+  batch_size: 4 # The batch size
+  gradient_accumulation_steps: 1  # The number of gradient accumulation steps
+  seed: 42  # The seed for reproducibility
+  num_train_epochs: 10  # The number of training epochs
+  num_eval_episodes: 10  # The number of evaluation episodes
+  save_frequency: 100  # The frequency to save the model relative to the number of training data batches
+  ppo_epochs: 1  # The number of PPO epochs
+  train_proportion : 0.8  # The proportion of the training data
+  validation_proportion : 0.1  # The proportion of the validation data (out of left data after training data split)
+  number_shared_layers_for_ref_model: 30 # The number of shared layers for the reference model in PPO RLHF
+  create_ref_model: False   # Whether to create a reference model in PPO RLHF
+  evaluate_cot_gap: False  # Whether to evaluate the COT gap
+  # cot_gap_evaluation_number_batches_samples: 1  # The number of batches sampled for evaluating the COT gap
+  number_of_evaluations: 3  # The number of evaluations for the COT gap among epochs
+
+Generation:
+  min_length: 0
+  # top_k: 0.0
+  # top_p: 0.0
+  num_beams: 2
+  # temperature: 0.3
+  do_sample: false
+  pad_token_id: 0
+  max_new_tokens: 1048
+  return_prompt: False
+  generate_ref_response: False

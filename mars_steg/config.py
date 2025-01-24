@@ -77,7 +77,6 @@ class TrainConfig:
     number_shared_layers_for_ref_model: int
     create_ref_model: bool
     evaluate_cot_gap: bool
-    cot_gap_evaluation_number_batches_samples: int
     number_of_evaluations: int  
 
 @dataclass
