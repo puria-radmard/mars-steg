@@ -15,9 +15,10 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
     name = "MATH_Dataset_Task"
 
     def __init__(self, dataset, language_aspect, prompt_config):
-        super().__init__(dataset, language_aspect)
+        super().__init__(dataset, language_aspect, prompt_config)
         self.answer_pattern = re.compile('(.+)', re.S)
-        self.system_prompt = prompt_config.task_description + prompt_config.task_examples # load once
+
+        self.system_prompt = prompt_config.task_description + prompt_config.task_examples 
 
 
 

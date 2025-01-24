@@ -45,6 +45,7 @@ output_delimitation_tokens = {
 
 prompt_config = PromptConfig()
 prompt_config.from_file(CONFIG_DIR)
+print(prompt_config)
 model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(CONFIG_DIR)
 
 generation_config.batch_size = train_config.batch_size
@@ -84,8 +85,8 @@ experiment_args = ExperimentArgs.from_yaml(sys.argv[1])
 
 train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = get_dataloaders(
     dataset_class_name = experiment_args.dataset_class_name,
-    
     penalisation_class_name = experiment_args.penalisation_class_name,
+    prompt_config = prompt_config,
     dataset_class_kwargs = experiment_args.dataset_class_kwargs,
     penalisation_class_kwargs = experiment_args.penalisation_class_kwargs,
     train_proportion = train_config.train_proportion,

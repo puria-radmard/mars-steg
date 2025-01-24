@@ -15,7 +15,7 @@ from mars_steg.utils.score import check_score
 import pandas as pd
 
 from mars_steg.language.base_language_aspect import LanguageAspect
-
+from mars_steg.config import PromptConfig
 
 from typing import List, Tuple
 
@@ -34,8 +34,10 @@ class Task(metaclass=ABCMeta):
     name: str
     system_prompt: str
 
-    def __init__(self, language_aspect: LanguageAspect):
+    def __init__(self, language_aspect: LanguageAspect, prompt_config=None):
         self.language_aspect = language_aspect
+        self.prompt_config = prompt_config  # Store prompt configuration
+
         if self.name not in language_aspect.compatible_tasks:
             raise TypeError(f"""
                 This task is not compatible with the submitted LanguageAspect instance.
@@ -171,11 +173,13 @@ class Task(metaclass=ABCMeta):
 
 class TorchDatasetTask(Task, Dataset):
 
-    def __init__(self, dataset: str, language_aspect: LanguageAspect) -> None:
-        super().__init__(language_aspect=language_aspect)
+    def __init__(self, dataset: str, language_aspect: LanguageAspect, prompt_config= PromptConfig) -> None:
+        super().__init__(language_aspect=language_aspect, prompt_config=prompt_config)
         self.dataset_name = dataset
         self.dataset = pd.read_csv(dataset)
         self.length = len(self.dataset)
+        self.prompt_config = prompt_config
+        
 
     def generate_info(self, idx: int) -> FixedDatasetDataInfo:
         return FixedDatasetDataInfo(idx=idx)
@@ -224,13 +228,14 @@ class TorchDatasetTask(Task, Dataset):
         print(f"Validation size: {len(val_dataset_pd)}")
         print(f"Test size: {len(test_dataset_pd)}")
         cls = self.__class__
-        train_dataset = cls(self.dataset_name, self.language_aspect)
+     
+        train_dataset = cls(self.dataset_name, self.language_aspect, self.prompt_config)
         train_dataset.dataset = train_dataset_pd
         train_dataset.length = len(train_dataset_pd)
-        val_dataset = cls(self.dataset_name, self.language_aspect)
+        val_dataset = cls(self.dataset_name, self.language_aspect, self.prompt_config)
         val_dataset.dataset = val_dataset_pd
         val_dataset.length = len(val_dataset_pd)
-        test_dataset = cls(self.dataset_name, self.language_aspect)
+        test_dataset = cls(self.dataset_name, self.language_aspect, self.prompt_config)
         test_dataset.dataset = test_dataset_pd
         test_dataset.length = len(test_dataset_pd)
         return train_dataset, val_dataset, test_dataset

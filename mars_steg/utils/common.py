@@ -28,17 +28,16 @@ def get_prompt_config():
     CONFIG_DIR = "mars_steg/configs/config.yaml"
     prompt_config = PromptConfig()
     prompt_config.from_file(CONFIG_DIR)
-    print(prompt_config.task_description_dir)
-    print(prompt_config.task_examples)
-    print(prompt_config.task_examples_dir)
+   
 
-    return
+    return prompt_config
 
 
 def get_dataloaders(
     dataset_class_name: str,
     penalisation_class_name: str,
     dataset_class_kwargs: Optional[Dict],
+    prompt_config: Optional[Dict],
     penalisation_class_kwargs: Optional[Dict],
     train_proportion: float,
     validation_proportion: float,
@@ -47,9 +46,11 @@ def get_dataloaders(
 
     dataset_class_kwargs = dataset_class_kwargs or dict()
     penalisation_class_kwargs = penalisation_class_kwargs or dict()
-    
-    language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name, prompt_config)(**penalisation_class_kwargs)
-    task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, **dataset_class_kwargs)
+    print(dataset_class_name)
+    print(dataset_class_kwargs)
+    print(prompt_config)
+    language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**penalisation_class_kwargs)
+    task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, prompt_config = prompt_config, **dataset_class_kwargs )
 
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(
         train_proportion=train_proportion,
