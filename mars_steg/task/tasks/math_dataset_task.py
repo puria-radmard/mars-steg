@@ -82,8 +82,8 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
 
     system_prompt = system_prompt + examples
 
-    def __init__(self, dataset, language_aspect):
-        super().__init__(dataset, language_aspect)
+    def __init__(self, dataset, language_aspect, use_neural_assessor: bool = False):
+        super().__init__(dataset, language_aspect, use_neural_assessor)
         answers_as_list = self.dataset['True answer'].map(eval)
         assert answers_as_list.map(lambda x: isinstance(x, list)).all()
         self.dataset['True answer'] = answers_as_list
@@ -110,7 +110,13 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
             if with_cot
             else prompt_data.extracted_final_answer_without_cot
         )
-
+        if not self.use_neural_assessor:
+            return self.hard_string_checking(llm_answer, true_answers)
+        else:
+            
+            raise NotImplementedError("Neural assessor not implemented for this task")
+    
+    def hard_string_checking(self, llm_answer:str, true_answers:str) -> float:
         llm_answer = llm_answer.replace("['","").replace("']","")
         
         rewarded = any([is_equiv(llm_answer, ta) for ta in true_answers])
@@ -121,9 +127,8 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         print(f"Are equivalent? {rewarded}")
         print("-------------")
 
-        []
-
         return 1.0 if rewarded else 0.0
+        
 
 
 

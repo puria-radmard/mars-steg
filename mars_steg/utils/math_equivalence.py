@@ -208,6 +208,9 @@ class TestNormalize(unittest.TestCase):
     def test_multiple_answers_5(self):
         self.assertTrue(is_equiv(" ( 15 , 16) , (17,  18 ) ", "15,16,17,18"))
 
+    def test_multiple_answers_6(self):
+        self.assertTrue(is_equiv("['12', '12', '12']", "12, 12, 12"))
+
 if __name__ == "__main__":
     unittest.main()
 

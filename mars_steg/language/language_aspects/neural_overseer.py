@@ -60,8 +60,11 @@ Order critical. See neural_overseer.py for an example.
 """
 
 
+#TODO - Add check score function
+
 class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
 
+    #TODO  - Add Math_dataset to compatible tasks
     compatible_tasks = {'SequentialPriceTask'}
 
     def __init__(
