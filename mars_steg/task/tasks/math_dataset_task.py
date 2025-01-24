@@ -8,7 +8,6 @@ from mars_steg.utils.math_equivalence import is_equiv
 
 
 
-
 class MATH_Torch_Dataset_Task(TorchDatasetTask):
 
     # By default, set the name as the class name
@@ -82,7 +81,7 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
 
     system_prompt = system_prompt + examples
 
-    def __init__(self, dataset, language_aspect, use_neural_assessor: bool = False):
+    def __init__(self, dataset, language_aspect, use_neural_assessor: bool):
         super().__init__(dataset, language_aspect, use_neural_assessor)
         answers_as_list = self.dataset['True answer'].map(eval)
         assert answers_as_list.map(lambda x: isinstance(x, list)).all()

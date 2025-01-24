@@ -34,7 +34,7 @@ class Task(metaclass=ABCMeta):
     name: str
     system_prompt: str
 
-    def __init__(self, language_aspect: LanguageAspect, use_neural_assessor: bool = False):
+    def __init__(self, language_aspect: LanguageAspect, use_neural_assessor: bool):
         self.language_aspect = language_aspect
         self.use_neural_assessor = use_neural_assessor
         if self.name not in language_aspect.compatible_tasks:
@@ -172,7 +172,7 @@ class Task(metaclass=ABCMeta):
 
 class TorchDatasetTask(Task, Dataset):
 
-    def __init__(self, dataset: str, language_aspect: LanguageAspect, use_neural_assessor: bool = False) -> None:
+    def __init__(self, dataset: str, language_aspect: LanguageAspect, use_neural_assessor: bool) -> None:
         super().__init__(language_aspect=language_aspect, use_neural_assessor=use_neural_assessor)
         self.dataset_name = dataset
         self.dataset = pd.read_csv(dataset)

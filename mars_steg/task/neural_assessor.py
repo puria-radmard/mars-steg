@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
 from typing import Any, Dict, List
-import warnings
 import torch
 from transformers import AutoTokenizer
 import re
@@ -173,7 +172,7 @@ class ProblemSolutionAssessor(NeuralAssessor):
         else:
             raise ValueError("Final score not found in the response")
 
-    def extract_assessor_answer(self, response: str | List[str]) -> str | List[str]:
+    def extract_assessor_answer(self, response: str | List[str]) -> float | List[float]:
         if isinstance(response, list):
             return [self.extract_final_score(res) for res in response]
         else:
@@ -183,3 +182,7 @@ class ProblemSolutionAssessor(NeuralAssessor):
         prompt = self.format_assessor_prompt(problem, llm_answer, true_answer)
         response = self.generate(prompt)
         return self.extract_assessor_answer(response)
+    
+if __name__ == "__main__":
+    #TODO test case
+    pass 
