@@ -18,13 +18,15 @@ from mars_steg.utils.common import (
 )
 
 
+experiment_args_path = sys.argv[1]
+config_path = sys.argv[2]   # e.g. "mars_steg/configs/config.yaml"
+
+
 device = get_device()
 
 with torch.no_grad():
 
-    model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(
-        "mars_steg/configs/config.yaml"
-    )
+    model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(config_path)
 
     generation_config.batch_size = train_config.batch_size
 
@@ -40,7 +42,7 @@ with torch.no_grad():
     )
 
 
-    experiment_args = ExperimentArgs.from_yaml(sys.argv[1])
+    experiment_args = ExperimentArgs.from_yaml(experiment_args_path)
 
 
     # wandb.init(

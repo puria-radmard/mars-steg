@@ -157,8 +157,6 @@ if __name__ == "__main__":
 
             batch_prompt_datas: BatchPromptData
 
-            import pdb; pdb.set_trace()
-
             batch_messages = batchize_conversation(
                 system_prompt=train_dataset.system_prompt,
                 user_prompts= batch_prompt_datas.cot_prompts, 

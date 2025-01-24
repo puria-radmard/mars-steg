@@ -84,9 +84,9 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
 
     def __init__(self, dataset, language_aspect):
         super().__init__(dataset, language_aspect)
-        self.answer_pattern = re.compile('(.+)', re.S)
-
-
+        answers_as_list = self.dataset['True answer'].map(eval)
+        assert answers_as_list.map(lambda x: isinstance(x, list)).all()
+        self.dataset['True answer'] = answers_as_list
 
     def generate_prompt(self, index):
         # Just for safety
@@ -103,7 +103,7 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         # Get problem index from transcript
         idx = prompt_data.info.idx
         # Look up true answer
-        true_answer = self.dataset.iloc[idx]["True answer"]
+        true_answers = self.dataset.iloc[idx]["True answer"]
 
         llm_answer = (
             prompt_data.extracted_final_answer_with_cot
@@ -113,17 +113,17 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
 
         llm_answer = llm_answer.replace("['","").replace("']","")
         
-        # TODO: account for multiple true answers!!
-        true_answer = true_answer.replace("['","").replace("']","")
+        rewarded = any([is_equiv(llm_answer, ta) for ta in true_answers])
 
         print("-------------")
         print("LLM ANSWER: ", llm_answer)
-        print("TRUE ANSWER: ", true_answer)
-        print(f"Are equivalent? {is_equiv(llm_answer, true_answer)}")
+        print("TRUE ANSWER: ", true_answers)
+        print(f"Are equivalent? {rewarded}")
         print("-------------")
 
+        []
 
-        return 1.0 if is_equiv(llm_answer, true_answer) else 0.0
+        return 1.0 if rewarded else 0.0
 
 
 

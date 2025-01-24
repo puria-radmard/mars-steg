@@ -23,31 +23,3 @@ class EqualsSign(LanguageAspect):
         language_score = float(n_equals_signs / self.max_freq)
         return language_score
 
-
-# Just test code
-if __name__ == "__main__":
-
-    from mars_steg.task.tasks.math_dataset_task import MATH_Dataset_Task
-    import pandas as pd
-
-    math_task = MATH_Dataset_Task(EqualsSign())
-    cot_prompt, no_cot_prompt = math_task.generate_full_prompt(0)
-
-    # In real use, the answer would come from inference, but
-    # Blue Peter style, here is one I made earlier (GPT-4o-mini)
-    analysis_file = "MATH_dataset/MATH_GPT-4o-mini_analysis.csv"
-    analysis_df = pd.read_csv(analysis_file)
-    full_response = analysis_df["answer"][0]
-
-    # Removing final answer
-    answer_pattern = re.compile("boxed{(.+)}")
-    cot = full_response
-    for ans in re.findall(answer_pattern, cot):
-        cot = cot.replace(ans, "")
-
-    # Quick test of EqualsSign
-    es = EqualsSign()
-
-    language_score = es.get_language_score(cot_prompt, cot)
-
-    print(language_score)
