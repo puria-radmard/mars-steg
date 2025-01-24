@@ -5,7 +5,7 @@ from mars_steg.task.base_task import TorchDatasetTask
 from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
 from mars_steg.utils.prompt_data import PromptData, FixedDatasetDataInfo
 from mars_steg.utils.math_equivalence import is_equiv
-
+from mars_steg.task.neural_assessor import ProblemSolutionAssessor
 
 
 class MATH_Torch_Dataset_Task(TorchDatasetTask):
@@ -81,11 +81,13 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
 
     system_prompt = system_prompt + examples
 
+    #TODO initialise the neural assessor
     def __init__(self, dataset, language_aspect, use_neural_assessor: bool):
         super().__init__(dataset, language_aspect, use_neural_assessor)
         answers_as_list = self.dataset['True answer'].map(eval)
         assert answers_as_list.map(lambda x: isinstance(x, list)).all()
         self.dataset['True answer'] = answers_as_list
+        self.use_neural_assessor = use_neural_assessor
 
     def generate_prompt(self, index):
         # Just for safety
@@ -112,7 +114,7 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         if not self.use_neural_assessor:
             return self.hard_string_checking(llm_answer, true_answers)
         else:
-            
+            #TODO implement neural assessor
             raise NotImplementedError("Neural assessor not implemented for this task")
     
     def hard_string_checking(self, llm_answer:str, true_answers:str) -> float:
