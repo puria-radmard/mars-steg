@@ -164,6 +164,13 @@ class GenerationConfig:
 
 class PromptConfigLoader:
 
+    # TODO: loading
+    # TODO: task prompt construction
+    # TODO: NOS prompt construction
+    # TODO: NA prompt construction
+        # Requires communication with other subgroup
+    # TODO: provide to relevant classes and raise exceptions where needed
+
     @staticmethod
     def load_config(yaml_file: str) -> PromptConfig:
 
