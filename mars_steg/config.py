@@ -53,48 +53,66 @@ class PromptConfig:
     # Task dependent
     # TODO: Absorb system_prompt in mars_steg/task/tasks/math_dataset_task.py
         # EXCLUDING the answer format instructions
-    task_description_dir: Optional[str]
-    task_description: Optional[str]
+    task_description_dir: Optional[str] = None
+    task_description: Optional[str] = None
 
     # Instructions on CoT usage
-    with_cot_dir: Optional[str]
-    with_cot: Optional[str]
-    no_cot_dir: Optional[str]
-    no_cot: Optional[str]
+    with_cot_dir: Optional[str] = None
+    with_cot: Optional[str] = None
+    no_cot_dir: Optional[str] = None
+    no_cot: Optional[str] = None
 
     # Task dependent
     # TODO: Absorb examples in mars_steg/task/tasks/math_dataset_task.py
-    task_examples_dir: Optional[str]
-    task_examples: Optional[str]
+    task_examples_dir: Optional[str] = None
+    task_examples: Optional[str] = None
 
     # Instructions on answer
     # TODO: Absorb the answer format instructions in system_prompt in mars_steg/task/tasks/math_dataset_task.py
-    answer_format_dir: Optional[str]
-    answer_format: Optional[str]
+    answer_format_dir: Optional[str] = None
+    answer_format: Optional[str] = None
 
     # XXX: General template, needs other things slotted in
     # TODO: mars_steg/language/language_aspects/neural_overseer.py --> DEFAULT_SYSTEM_PROMPT, DEFAULT_USER_PROMPT_TEMPLATE
     # TODO: slotting in logic
-    neural_overseer_instruction_dir: Optional[str]
-    neural_overseer_instruction: Optional[str]
+    neural_overseer_instruction_dir: Optional[str] = None
+    neural_overseer_instruction: Optional[str] = None
 
     # TODO: slot into general format in mars_steg/language/language_aspects/neural_overseer.py
         # REPLACE: "Make sure this boolean is the last token you output."
-    neural_overseer_answer_format_dir: Optional[str]
-    neural_overseer_answer_format: Optional[str]
+    neural_overseer_answer_format_dir: Optional[str] = None
+    neural_overseer_answer_format: Optional[str] = None
 
     # XXX: TODO: open up space for this!
-    neural_assessor_instruction_dir: Optional[str]
-    neural_assessor_instruction: Optional[str]
-    neural_assessor_answer_format_dir: Optional[str]
-    neural_assessor_answer_format: Optional[str]
+    neural_assessor_instruction_dir: Optional[str] = None
+    neural_assessor_instruction: Optional[str] = None
+    neural_assessor_answer_format_dir: Optional[str] = None
+    neural_assessor_answer_format: Optional[str] = None
 
     def from_file(self, file_path: str):
-        ...
+        self.load_prompt_dir(file_path)
+        
+    def load_prompt_dir(self, file):
+        config_dict = load_yaml(file)
+        prompt_dir = config_dict["PromptDir"]
+        for name, dir_ in prompt_dir.items():
+            setattr(self, name, dir_)
+            attr_name = name.replace("_dir", "")
+            with open(dir_, 'r') as f:
+                setattr(self, attr_name, f.read().strip())
 
-    def __getattribute__(self, __name: str):
-        if self.__getattr__(__name) == None:
-            raise ValueError(f'PromptConfig not given a {__name} field')
+    #def __getattribute__(self, __name: str):
+
+        #if self.__getattr__(__name) == None:
+            #raise ValueError(f'PromptConfig not given a {__name} field')
+ 
+    def __setattribute__(self, name : str, value: str):
+        # set attribute to value
+        if not isinstance(value,str):
+            raise ValueError(f'The value of {name} should be a string')
+        
+
+
 
 
 @dataclass
@@ -173,8 +191,10 @@ class PromptConfigLoader:
 
     @staticmethod
     def load_config(yaml_file: str) -> PromptConfig:
-
-
+        config_dict = load_yaml(yaml_file)
+        prompt_dir = config_dict["PromptDir"]
+        for name, dir_ in prompt_dir:
+            attr_name = name.replace("_dir", "")
         return prompt_config
 
 
@@ -216,3 +236,11 @@ class ConfigLoader:
         }
         with open(yaml_file, "w") as file:
             yaml.dump(config_dict, file)
+
+if __name__ == "__main__":
+    CONFIG_DIR = "mars_steg/configs/config.yaml"
+    prompt_config = PromptConfig()
+    prompt_config.from_file(CONFIG_DIR)
+    print(prompt_config.task_description_dir)
+    print(prompt_config.task_examples)
+    print(prompt_config.task_examples_dir)

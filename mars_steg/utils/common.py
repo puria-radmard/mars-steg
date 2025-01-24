@@ -10,7 +10,7 @@ from typing import List
 
 from tqdm import tqdm
 from transformers import AutoTokenizer
-from mars_steg.config import ModelConfig, OptimizerConfig
+from mars_steg.config import ModelConfig, OptimizerConfig, PromptConfig
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct, Llama_32_1B_Instruct
 
@@ -20,6 +20,19 @@ from mars_steg import task
 from mars_steg import language
 from mars_steg.task import TorchDatasetTask
 from mars_steg.language import LanguageAspect
+
+
+
+
+def get_prompt_config():
+    CONFIG_DIR = "mars_steg/configs/config.yaml"
+    prompt_config = PromptConfig()
+    prompt_config.from_file(CONFIG_DIR)
+    print(prompt_config.task_description_dir)
+    print(prompt_config.task_examples)
+    print(prompt_config.task_examples_dir)
+
+    return
 
 
 def get_dataloaders(
@@ -34,8 +47,8 @@ def get_dataloaders(
 
     dataset_class_kwargs = dataset_class_kwargs or dict()
     penalisation_class_kwargs = penalisation_class_kwargs or dict()
-
-    language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**penalisation_class_kwargs)
+    
+    language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name, prompt_config)(**penalisation_class_kwargs)
     task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, **dataset_class_kwargs)
 
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(

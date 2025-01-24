@@ -44,3 +44,15 @@ Generation:
   max_new_tokens: 1048
   return_prompt: False
   generate_ref_response: False
+
+PromptDir:
+    task_description_dir:  "mars_steg/prompts/task/MATH.txt"
+    with_cot_dir: "mars_steg/prompts/cot_usage/with.txt"
+    no_cot_dir: "mars_steg/prompts/cot_usage/without.txt"
+    task_examples_dir: "mars_steg/prompts/task_examples/math.txt"
+    answer_format_dir: "mars_steg/prompts/answer_format/math.txt"
+    #neural_overseer_instruction_dir: Optional[str]
+    #neural_overseer_answer_format_dir: Optional[str]
+    #neural_assessor_instruction_dir: Optional[str]
+    #neural_assessor_answer_format_dir: Optional[str]
+  
