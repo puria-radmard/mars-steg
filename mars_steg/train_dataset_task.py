@@ -113,10 +113,6 @@ output_delimitation_tokens = {
 
 if __name__ == "__main__":
 
-    # TODO (low prioirity): if we are doing more than 1 epoch (here epoch = repeat over all data, so probably not doing more than 1),
-    # we have to shuffle the data multiple times.
-    # We should make sure this is reproducable
-    # --> later
     epochs_to_evaluate_list = np.linspace(0, train_config.num_train_epochs-1, train_config.number_of_evaluations)
     epochs_to_evaluate_list = [int(epoch) for epoch in epochs_to_evaluate_list]
     epoch_to_evaluate = epochs_to_evaluate_list.pop(0)
