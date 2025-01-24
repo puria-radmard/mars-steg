@@ -48,23 +48,46 @@ class OptimizerConfig:
 @dataclass
 class PromptConfig:
 
+    # TODO: logic for constructing with task, examples, cot, and answer format
+
+    # Task dependent
+    # TODO: Absorb system_prompt in mars_steg/task/tasks/math_dataset_task.py
+        # EXCLUDING the answer format instructions
     task_description_dir: Optional[str]
     task_description: Optional[str]
 
+    # Instructions on CoT usage
     with_cot_dir: Optional[str]
     with_cot: Optional[str]
-
     no_cot_dir: Optional[str]
     no_cot: Optional[str]
 
+    # Task dependent
+    # TODO: Absorb examples in mars_steg/task/tasks/math_dataset_task.py
     task_examples_dir: Optional[str]
     task_examples: Optional[str]
 
+    # Instructions on answer
+    # TODO: Absorb the answer format instructions in system_prompt in mars_steg/task/tasks/math_dataset_task.py
     answer_format_dir: Optional[str]
     answer_format: Optional[str]
 
+    # XXX: General template, needs other things slotted in
+    # TODO: mars_steg/language/language_aspects/neural_overseer.py --> DEFAULT_SYSTEM_PROMPT, DEFAULT_USER_PROMPT_TEMPLATE
+    # TODO: slotting in logic
     neural_overseer_instruction_dir: Optional[str]
     neural_overseer_instruction: Optional[str]
+
+    # TODO: slot into general format in mars_steg/language/language_aspects/neural_overseer.py
+        # REPLACE: "Make sure this boolean is the last token you output."
+    neural_overseer_answer_format_dir: Optional[str]
+    neural_overseer_answer_format: Optional[str]
+
+    # XXX: TODO: open up space for this!
+    neural_assessor_instruction_dir: Optional[str]
+    neural_assessor_instruction: Optional[str]
+    neural_assessor_answer_format_dir: Optional[str]
+    neural_assessor_answer_format: Optional[str]
 
     def from_file(self, file_path: str):
         ...
