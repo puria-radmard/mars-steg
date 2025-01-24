@@ -10,6 +10,10 @@ from mars_steg.utils.prompt_data import (
     BatchPromptData,
 )
 from mars_steg.utils.score import check_score
+from trl import PreTrainedModelWrapper
+from transformers import AutoTokenizer
+
+from mars_steg.task.neural_assessor import ProblemSolutionAssessor
 
 
 import pandas as pd
@@ -17,7 +21,7 @@ import pandas as pd
 from mars_steg.language.base_language_aspect import LanguageAspect
 
 
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Dict
 
 
 
@@ -34,7 +38,11 @@ class Task(metaclass=ABCMeta):
     name: str
     system_prompt: str
 
-    def __init__(self, language_aspect: LanguageAspect, use_neural_assessor: bool):
+    def __init__(
+        self,
+        language_aspect: LanguageAspect,
+        use_neural_assessor: bool,
+    ):
         self.language_aspect = language_aspect
         self.use_neural_assessor = use_neural_assessor
         if self.name not in language_aspect.compatible_tasks:
@@ -172,11 +180,35 @@ class Task(metaclass=ABCMeta):
 
 class TorchDatasetTask(Task, Dataset):
 
-    def __init__(self, dataset: str, language_aspect: LanguageAspect, use_neural_assessor: bool) -> None:
-        super().__init__(language_aspect=language_aspect, use_neural_assessor=use_neural_assessor)
+    def __init__(self,
+        dataset: str,
+        language_aspect: LanguageAspect,
+        use_neural_assessor: bool, 
+        reference_model: Optional[PreTrainedModelWrapper] = None, 
+        tokenizer: Optional[AutoTokenizer] = None, 
+        generation_kwargs: Optional[Dict[str, str]] = None
+    ) -> None:
+        super().__init__(
+            language_aspect=language_aspect,
+            use_neural_assessor=use_neural_assessor,
+        )
         self.dataset_name = dataset
         self.dataset = pd.read_csv(dataset)
         self.length = len(self.dataset)
+        self.use_neural_assessor = use_neural_assessor
+
+        if use_neural_assessor:
+            self.reference_model = reference_model
+            self.tokenizer = tokenizer
+            self.generation_kwargs = generation_kwargs
+            self.neural_assessor = ProblemSolutionAssessor(
+                reference_model = reference_model,
+                tokenizer = tokenizer,
+                generation_kwargs = generation_kwargs
+            )
+        else:
+            assert reference_model == tokenizer == generation_kwargs == None,\
+                "Provided TorchDatasetTask with neural assessor objects but use_neural_assessor is set to False"
 
     def generate_info(self, idx: int) -> FixedDatasetDataInfo:
         return FixedDatasetDataInfo(idx=idx)

@@ -6,6 +6,7 @@ import torch
 from transformers import AutoTokenizer
 import re
 
+
 DEFAULT_SYSTEM_PROMPT = """
 
  You are a helpful assessor, who marks student-provided solutions to problems against a provided correct answer. 
@@ -111,6 +112,7 @@ class NeuralAssessor(metaclass=ABCMeta):
         """
         pass
 
+
 class ProblemSolutionAssessor(NeuralAssessor):
     """
     A neural assessor for math tasks
@@ -165,7 +167,8 @@ class ProblemSolutionAssessor(NeuralAssessor):
     @staticmethod
     def extract_final_score(text: str) -> float:
         # Use regex to find the final score in the response
-        #TODO regex expression given by chatgpt, need to check if it works
+        # TODO regex expression given by chatgpt, need to check if it works
+        # TODO: this needs to be fixed, todo in debugging
         match = re.search(r'(\d\.\d+)$', text)
         if match:
             return float(match.group(1))
@@ -182,7 +185,4 @@ class ProblemSolutionAssessor(NeuralAssessor):
         prompt = self.format_assessor_prompt(problem, llm_answer, true_answer)
         response = self.generate(prompt)
         return self.extract_assessor_answer(response)
-    
-if __name__ == "__main__":
-    #TODO test case
-    pass 
+
