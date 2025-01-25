@@ -11,3 +11,8 @@ mars_steg/model/__pycache__/
 mars_steg/task/__pycache__/
 mars_steg/task/tasks/__pycache__/
 mars_steg/utils/__pycache__/
+__pycache__/
+scratch/
+mars_steg/scratch
+mars_steg.egg-info/
+*Zone.Identifier*
