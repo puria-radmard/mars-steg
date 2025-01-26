@@ -55,6 +55,27 @@ class BaseModel(metaclass=ABCMeta):
                 quantization_config=quantization_config,
             )
         return model
+    
+    def duplicate(self, reference_model):
+        # Create a new instance of the same class
+        new_instance = self.__class__(
+            model_config=self.model_config,
+            tokenizer=self.tokenizer
+        )
+        
+        if reference_model is not None:
+            # If a reference model is provided, use it instead of loading a new one
+            new_instance.model = self.duplicate_model(reference_model)
+        else:
+            # Otherwise, load a new model instance
+            new_instance.model = self.load_model()
+        
+        # Ensure the model is in evaluation mode and gradients are disabled
+        new_instance.model.eval()
+        for param in new_instance.model.parameters():
+            param.requires_grad = False
+            
+        return new_instance
 
     @abstractmethod
     def get_message(self, user_string: str, system_prompt: str) -> Dict:
