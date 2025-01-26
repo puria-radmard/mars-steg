@@ -19,19 +19,20 @@ except ImportError:
 
 
 class BaseModel(metaclass=ABCMeta):
-    def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer):
+    def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer, model=None):
         self.model_config = model_config
         self.model_name = model_config.model_name
         self.tokenizer = tokenizer
         self.lora = model_config.lora
         self.precission_mode = model_config.load_precision_mode
         self.model_save_path = model_config.model_save_path
-        self.model = self.load_model()
+        if model is not None:
+            self.model = model
+        else:
+            self.model = self.load_model()
 
     def load_model(self):
-        print("------------------")
-        print(f"Model loaded in {self.precission_mode} mode")
-        print("------------------")
+        self.log_loading()
         quantization_config = {
             "4bits": BitsAndBytesConfig(load_in_4bit=True),
             "8bits": BitsAndBytesConfig(load_in_8bit=True)
@@ -56,21 +57,19 @@ class BaseModel(metaclass=ABCMeta):
             )
         return model
     
+    def log_loading(self):
+        print("------------------")
+        print(f"Model loaded in {self.precission_mode} mode")
+        print("------------------")
+    
     def duplicate(self, reference_model):
         # Create a new instance of the same class
         new_instance = self.__class__(
             model_config=self.model_config,
-            tokenizer=self.tokenizer
+            tokenizer=self.tokenizer,
+            model=reference_model if reference_model is not None else None
         )
-        
-        if reference_model is not None:
-            # If a reference model is provided, use it instead of loading a new one
-            new_instance.model = self.duplicate_model(reference_model)
-        else:
-            # Otherwise, load a new model instance
-            new_instance.model = self.load_model()
-        
-        # Ensure the model is in evaluation mode and gradients are disabled
+
         new_instance.model.eval()
         for param in new_instance.model.parameters():
             param.requires_grad = False
