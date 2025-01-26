@@ -6,7 +6,7 @@ import warnings
 from typing import Optional, Dict
 from torch.optim import Adam
 
-from typing import List
+from typing import List, Tuple
 
 from tqdm import tqdm
 from transformers import AutoTokenizer
@@ -181,6 +181,9 @@ def evaluate_cot_gap_summary(
 
             batch_prompt_datas.cot_transcripts = decoded_responses[:batch_length]
             batch_prompt_datas.no_cot_transcripts = decoded_responses[batch_length:]
+
+            # TODO: this
+            raise NotImplementedError('Need to incorporate neural assessor for rewards here!')
 
             for prompt_data in batch_prompt_datas:
                 sum_examples += 1
@@ -366,48 +369,58 @@ def parse_model_output(model_output: str, output_delimitation_tokens: Dict[str, 
         
         return chain_of_thought, output
     
-def get_rewards_and_training_datas(
-        batch_prompt_datas: BatchPromptData, 
-        query_tensors: List[t.TensorType], 
-        transcript_responses: List[t.TensorType], 
-        train_dataset: TorchDatasetTask, 
-        output_delimitation_tokens: Dict[str, str],
-        batch_overseer_answers: Optional[List[str]] = None
-        ):
-    
-    composite_reward_list, task_score_list, language_score_list = [], [], []
-    train_query_tensors = []
-    train_transcript_responses = []
-    num_examples_failed = 0
 
-    for i, prompt_data in tqdm(enumerate(batch_prompt_datas)):
-        composite_reward = 0.0
-        task_score = 0.0
-        language_score = 0.0
+def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens: Dict[str, str]):
+    extracted_prompt_datas = []
+    for prompt_data in tqdm(batch_prompt_datas):
         try:
             (
                 prompt_data.extracted_cot,
                 prompt_data.extracted_final_answer_with_cot,
             ) = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot=True)
-
-            if batch_overseer_answers is not None:
-                prompt_data.overseer_response = batch_overseer_answers[i]
-                prompt_data.extracted_overseer_response = train_dataset.language_aspect.extract_overseer_answer(batch_overseer_answers[i])
-
-            composite_reward, task_score, language_score = (
-                train_dataset.reward_from_transcript(prompt_data)
-            )
-
-            composite_reward_list.append(t.tensor(composite_reward))
-            task_score_list.append(task_score)
-            language_score_list.append(language_score)
-            train_query_tensors.append(query_tensors[i])
-            train_transcript_responses.append(transcript_responses[i])
+            extracted_prompt_datas.append(prompt_data)
         except LLMTranscriptExtractionError as e:
-            num_examples_failed += 1
-            warnings.warn(f"Failed to parse: {e}\nSkipping example")
+            warnings.warn(f"Failed to parse: \n\n{prompt_data.cot_transcript}\n\n Skipping example")
+    return extracted_prompt_datas
 
-    return composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses, num_examples_failed
+
+def get_rewards_and_training_datas(
+        batch_prompt_datas: BatchPromptData, 
+        query_tensors: List[t.TensorType], 
+        transcript_responses: List[t.TensorType], 
+        train_dataset: TorchDatasetTask, 
+        batch_overseer_answers: Optional[List[str]] = None,
+        batch_assessor_scores: Optional[List[float]] = None
+        ) -> Tuple[List]:
+    
+    composite_reward_list, task_score_list, language_score_list = [], [], []
+    train_query_tensors = []
+    train_transcript_responses = []
+
+    if batch_assessor_scores is None:
+        batch_assessor_scores = [None]*len(batch_prompt_datas)
+
+    for i, prompt_data in tqdm(enumerate(batch_prompt_datas)):
+        composite_reward = 0.0
+        task_score = 0.0
+        language_score = 0.0
+
+        if batch_overseer_answers is not None:
+            prompt_data.overseer_response = batch_overseer_answers[i]
+            prompt_data.extracted_overseer_response = train_dataset.language_aspect.extract_overseer_answer(batch_overseer_answers[i])
+
+        composite_reward, task_score, language_score = train_dataset.reward_from_transcript(
+            prompt_data,
+            override_assessor_task_score = batch_assessor_scores[i]
+        )
+
+        composite_reward_list.append(t.tensor(composite_reward))
+        task_score_list.append(task_score)
+        language_score_list.append(language_score)
+        train_query_tensors.append(query_tensors[i])
+        train_transcript_responses.append(transcript_responses[i])
+
+    return composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses
     
             
             

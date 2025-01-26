@@ -23,6 +23,7 @@ from mars_steg.utils.common import (
     get_device,
     get_rewards_and_training_datas,
     evaluate_cot_gap_summary,
+    extract_cots
 )
 
 
@@ -192,35 +193,59 @@ if __name__ == "__main__":
             print("-------------")
             # extraction of answer and cot (because cot_mode = True) parts of the transcript
             batch_prompt_datas.cot_transcripts = decoded_responses
-            num_examples_failed = 0
 
-            if isinstance(train_dataset.language_aspect, NeuralOverseer):
-                generated_overseer_answers = train_dataset.language_aspect.get_overseer_generated_answers(batch_prompt_datas)
-            else:
-                generated_overseer_answers = None
 
-            composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses, num_examples_failed = get_rewards_and_training_datas(
-                batch_prompt_datas=batch_prompt_datas,
-                query_tensors=query_tensors,
-                transcript_responses=transcript_responses, 
-                train_dataset=train_dataset, 
-                output_delimitation_tokens=output_delimitation_tokens,
-                batch_overseer_answers=generated_overseer_answers
-            )
+            # Extract answer and CoT before given to neural overseer and assessor
+            extracted_batch_prompt_datas = extract_cots(batch_prompt_datas, output_delimitation_tokens)
 
-            if num_examples_failed == len(batch_prompt_datas):
+            # Might have completely failed, so we can skip everything below entirely
+            if len(extracted_batch_prompt_datas) == 0:
                 optimize = False
-                warnings.warn("All examples failed to parse. Not optimizing model")
-                
-            elif num_examples_failed != 0:
+                warnings.warn("All examples failed to parse. Skipping everything below")
+                continue
+
+            # Might have partially failed...
+            elif len(extracted_batch_prompt_datas) != len(decoded_responses):
+                num_examples_failed = len(decoded_responses) - len(composite_reward_list)
                 warnings.warn(
                     f"Failed to parse {num_examples_failed} examples out of {len(batch_prompt_datas)}"
                 )
                 warnings.warn("Optimizing model with the rest of the examples (removing the failed examples)")
                 optimize = True
+
+            # Might have completely worked!
             else:
                 print("All examples parsed successfully")
                 optimize = True
+
+
+            # Penalise CoT
+            # TODO: throw relevant errors here!
+            if isinstance(train_dataset.language_aspect, NeuralOverseer):
+                generated_overseer_answers = train_dataset.language_aspect.get_overseer_generated_answers(extracted_batch_prompt_datas)
+            else:
+                generated_overseer_answers = None
+
+            # Reward final answer
+            # TODO: throw relevant errors here!
+            if train_dataset.use_neural_overseer:
+                # TODO: make this usable for the game case, i.e. no true answer!
+                generated_assessor_scores = train_dataset.neural_assessor_from_batch_prompt_data(extracted_batch_prompt_datas)
+            else:
+                generated_assessor_scores = None
+
+
+            # Extract rewards
+            composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses = get_rewards_and_training_datas(
+                batch_prompt_datas=extracted_batch_prompt_datas,
+                query_tensors=query_tensors,
+                transcript_responses=transcript_responses, 
+                train_dataset=train_dataset, 
+                
+                # TODO: might want to make use of the fact that prompt data carries these (/should be) carrying these
+                batch_overseer_answers=generated_overseer_answers,
+                batch_assessor_scores=generated_assessor_scores
+            )
 
             print("--------")
             print(f"Rewarding example with {composite_reward_list}")

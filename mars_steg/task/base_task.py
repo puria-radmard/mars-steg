@@ -156,7 +156,8 @@ class Task(metaclass=ABCMeta):
         return r
 
     def reward_from_transcript(
-        self, prompt_data: PromptData, t_weight: float = 1.0, l_weight: float = 1.0
+        self, prompt_data: PromptData, t_weight: float = 1.0, l_weight: float = 1.0,
+        *_, override_assessor_task_score: Optional[float] = None
     ) -> float:
         """
         The API handle to run user-set methods on all details from an episode
@@ -166,11 +167,15 @@ class Task(metaclass=ABCMeta):
         Full thing assumes we prompted with cot
         """
 
-        task_score = self.get_task_score(prompt_data, with_cot = True)
-        task_score = check_score('task_score', task_score)
+        if override_assessor_task_score is None:
+            task_score = self.get_task_score(prompt_data, with_cot = True)
+            task_score = check_score('task_score:', task_score)
+        else:
+            task_score = override_assessor_task_score
+            task_score = check_score('task_score from neural assessor:', task_score)
         
         language_score = self.language_aspect.get_language_score(prompt_data)
-        language_score = check_score('language_score', language_score)
+        language_score = check_score('language_score:', language_score)
 
         r = self.reward(task_score, language_score, t_weight, l_weight)
 
@@ -275,8 +280,14 @@ class TorchDatasetTask(Task, Dataset):
         pass
 
     def prompt_data_collate_fn(self, batch: List[PromptData]) -> BatchPromptData:
-
         return BatchPromptData(prompt_datas=batch)
+
+    def neural_assessor_from_batch_prompt_data(self, prompt_data: BatchPromptData, from_cot_prompt: bool) -> List[float]:
+        assert self.use_neural_assessor
+        true_answers = self.get_true_answers_from_batch_prompt_data(prompt_data)
+        idxs = [pii.idx for pii in prompt_data.infos]
+        true_answers = [self.dataset.iloc[idx]["True answer"] for idx in idxs]
+        self.neural_assessor.assess_from_batch_prompt_data(prompt_data, from_cot_prompt, true_answers)
 
 
 class GameBasedTask(Task):
