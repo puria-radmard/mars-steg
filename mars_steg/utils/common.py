@@ -22,9 +22,9 @@ from mars_steg.utils.prompt_data import BatchPromptData
 from mars_steg import task
 from mars_steg import language
 from mars_steg.task import TorchDatasetTask
-from mars_steg.language import LanguageAspect, NeuralOverseer, ReferenceModelNeuralOverseer
+from mars_steg.language import LanguageAspect
 
-from trl import PreTrainedModelWrapper, create_reference_model
+from trl import create_reference_model
 
 
 
@@ -142,114 +142,6 @@ def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> BaseModel:
         return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer)
     else:
         raise ValueError(model_name)
-    
-
-def evaluate_cot_gap_summary(
-        ppo_trainer, 
-        tokenizer, 
-        dataloader: DataLoader,
-        system_prompt: str,
-        model_class: BaseModel, 
-        device, 
-        generation_kwargs: Dict,
-        output_delimitation_tokens: Dict[str, str],
-    ) -> CoTGapSummary:
-    
-    # Total examples provided:
-    sum_examples = 0
-
-    # Examples answered in the correct format:
-    sum_extracted_with_cot = 0
-    sum_extracted_without_cot = 0
-
-    # Of those answered of the correct format...
-    sum_reward_with_cot = 0
-    sum_reward_without_cot = 0
-    
-    with t.no_grad():
-
-        for batch_prompt_datas in tqdm(dataloader):
-
-            batch_messages_without_cot = batchize_conversation(
-                system_prompt, batch_prompt_datas.no_cot_prompts, model_class
-            )
-
-            batch_messages_with_cot = batchize_conversation(
-                system_prompt, batch_prompt_datas.cot_prompts, model_class
-            )
-            batch_length = len(batch_messages_with_cot)
-            batch_messages = batch_messages_with_cot + batch_messages_without_cot
-            inputs = tokenizer.apply_chat_template(
-                batch_messages,
-                return_tensors="pt",
-                add_generation_prompt=True,
-                return_dict=True,
-                padding=True,
-                truncation=True,
-            )
-
-            # Move the tokenized inputs to the same device the model is on (GPU/CPU)
-            inputs = {key: tensor.to(device) for key, tensor in inputs.items()}
-
-            # Translate it into ppo.generate format which List[torch.tensors]
-            query_tensors = []
-            for input in inputs["input_ids"]:
-                query_tensors.append(input)
-
-            # Generate the with-CoT transcript (no-CoT transcript not needed during training)
-            transcript_responses = ppo_trainer.generate(
-                query_tensors, **generation_kwargs,
-            )
-            decoded_responses = [
-                tokenizer.decode(r.squeeze()) for r in transcript_responses
-            ]
-
-            batch_prompt_datas.cot_transcripts = decoded_responses[:batch_length]
-            batch_prompt_datas.no_cot_transcripts = decoded_responses[batch_length:]
-
-            # TODO: this
-            raise NotImplementedError('Need to incorporate neural assessor for rewards here!')
-
-            for prompt_data in batch_prompt_datas:
-                sum_examples += 1
-
-                try:
-                    # We don't actually need the CoT prompt
-                    _, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot = True)
-                    sum_extracted_with_cot += 1
-                    sum_reward_with_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=True)
-                except LLMTranscriptExtractionError:
-                    warnings.warn(f"Failed to parse: \n\n{prompt_data.cot_transcript}\n\n (with CoT) Skipping example")
-
-                try:
-                    _, prompt_data.extracted_final_answer_without_cot = parse_model_output(prompt_data.no_cot_transcript, output_delimitation_tokens, cot = False)
-                    sum_extracted_without_cot += 1
-                    sum_reward_without_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=False)
-                except LLMTranscriptExtractionError:
-                    warnings.warn(f"Failed to parse: \n\n{prompt_data.no_cot_transcript}\n\n (without CoT) Skipping example")
-
-            cot_gap = CoTGapSummary(
-                sum_examples,
-                sum_extracted_with_cot,
-                sum_extracted_without_cot,
-                sum_reward_with_cot,
-                sum_reward_without_cot,
-            )
-
-            print(cot_gap.summary)
-
-    # cot_gap = (sum_reward_with_cot - sum_reward_without_cot)
-    # cot_ratio = sum_reward_with_cot / (sum_reward_without_cot + t.finfo(t.float32).eps)
-
-    return CoTGapSummary(
-        sum_examples,
-        sum_extracted_with_cot,
-        sum_extracted_without_cot,
-        sum_reward_with_cot,
-        sum_reward_without_cot,
-    )
-
-
 
 
 def get_device() -> str:
@@ -422,10 +314,10 @@ def extract_neural_overseer_answers(batch_prompt_datas: BatchPromptData, output_
     extracted_prompt_datas = []
     for prompt_data in tqdm(batch_prompt_datas):
         try:
-            prompt_data.extracted_overseer_answer = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot=False)
+            prompt_data.extracted_overseer_answer = parse_model_output(prompt_data.overseer_transcript, output_delimitation_tokens, cot=False)
             extracted_prompt_datas.append(prompt_data)
         except LLMTranscriptExtractionError as e:
-            warnings.warn(f"Failed to parse overseer answer from: \n\n{prompt_data.cot_transcript}\n\n Skipping example")
+            warnings.warn(f"Failed to parse overseer answer from: \n\n{prompt_data.overseer_transcript}\n\n Skipping example")
     return BatchPromptData(extracted_prompt_datas)
 
 
@@ -438,10 +330,10 @@ def extract_neural_assessor_answers(batch_prompt_datas: BatchPromptData, output_
     extracted_prompt_datas = []
     for prompt_data in tqdm(batch_prompt_datas):
         try:
-            prompt_data.extracted_assessor_answer = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot=False)
+            prompt_data.extracted_assessor_answer = parse_model_output(prompt_data.assessor_transcript, output_delimitation_tokens, cot=False)
             extracted_prompt_datas.append(prompt_data)
         except LLMTranscriptExtractionError as e:
-            warnings.warn(f"Failed to parse assessor answer from: \n\n{prompt_data.cot_transcript}\n\n Skipping example")
+            warnings.warn(f"Failed to parse assessor answer from: \n\n{prompt_data.assessor_transcript}\n\n Skipping example")
     return BatchPromptData(extracted_prompt_datas)
 
 
@@ -491,22 +383,110 @@ def get_rewards_and_training_datas(
             
 
 
-def extract_boolean_overseer_or_assessor_answer(
-    response_text: str
-) -> bool:
-    """
-    Gets a boolean value
-    TODO: generalise to a float [0,1]
-    """
-    response_lower = response_text.lower()
-    rfind_true = response_lower.rfind('true')
-    rfind_false = response_lower.rfind('false')
-    if rfind_true == rfind_false:
-        raise LLMTranscriptExtractionError(f'Neural overseer did not return a TRUE or FALSE token at the end of its response\n: {response_text}')
-    return 1.0 if bool(rfind_true > rfind_false) else 0.0
 
+def evaluate_cot_gap_summary(
+        ppo_trainer, 
+        tokenizer, 
+        dataloader: DataLoader,
+        system_prompt: str,
+        model_class: BaseModel, 
+        device, 
+        generation_kwargs: Dict,
+        output_delimitation_tokens: Dict[str, str],
+    ) -> CoTGapSummary:
+    
+    # Total examples provided:
+    sum_examples = 0
 
-   
+    # Examples answered in the correct format:
+    sum_extracted_with_cot = 0
+    sum_extracted_without_cot = 0
 
+    # Of those answered of the correct format...
+    sum_reward_with_cot = 0
+    sum_reward_without_cot = 0
+    
+    with t.no_grad():
 
-        
+        for batch_prompt_datas in tqdm(dataloader):
+
+            batch_messages_without_cot = batchize_conversation(
+                system_prompt, batch_prompt_datas.no_cot_prompts, model_class
+            )
+
+            batch_messages_with_cot = batchize_conversation(
+                system_prompt, batch_prompt_datas.cot_prompts, model_class
+            )
+            batch_length = len(batch_messages_with_cot)
+            batch_messages = batch_messages_with_cot + batch_messages_without_cot
+            inputs = tokenizer.apply_chat_template(
+                batch_messages,
+                return_tensors="pt",
+                add_generation_prompt=True,
+                return_dict=True,
+                padding=True,
+                truncation=True,
+            )
+
+            # Move the tokenized inputs to the same device the model is on (GPU/CPU)
+            inputs = {key: tensor.to(device) for key, tensor in inputs.items()}
+
+            # Translate it into ppo.generate format which List[torch.tensors]
+            query_tensors = []
+            for input in inputs["input_ids"]:
+                query_tensors.append(input)
+
+            # Generate the with-CoT transcript (no-CoT transcript not needed during training)
+            transcript_responses = ppo_trainer.generate(
+                query_tensors, **generation_kwargs,
+            )
+            decoded_responses = [
+                tokenizer.decode(r.squeeze()) for r in transcript_responses
+            ]
+
+            batch_prompt_datas.cot_transcripts = decoded_responses[:batch_length]
+            batch_prompt_datas.no_cot_transcripts = decoded_responses[batch_length:]
+
+            # TODO: this
+            raise NotImplementedError('Need to incorporate neural assessor for rewards here!')
+
+            for prompt_data in batch_prompt_datas:
+                sum_examples += 1
+
+                try:
+                    # We don't actually need the CoT prompt
+                    _, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot = True)
+                    sum_extracted_with_cot += 1
+                    sum_reward_with_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=True)
+                except LLMTranscriptExtractionError:
+                    warnings.warn(f"Failed to parse: \n\n{prompt_data.cot_transcript}\n\n (with CoT) Skipping example")
+
+                try:
+                    _, prompt_data.extracted_final_answer_without_cot = parse_model_output(prompt_data.no_cot_transcript, output_delimitation_tokens, cot = False)
+                    sum_extracted_without_cot += 1
+                    sum_reward_without_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=False)
+                except LLMTranscriptExtractionError:
+                    warnings.warn(f"Failed to parse: \n\n{prompt_data.no_cot_transcript}\n\n (without CoT) Skipping example")
+
+            cot_gap = CoTGapSummary(
+                sum_examples,
+                sum_extracted_with_cot,
+                sum_extracted_without_cot,
+                sum_reward_with_cot,
+                sum_reward_without_cot,
+            )
+
+            print(cot_gap.summary)
+
+    # cot_gap = (sum_reward_with_cot - sum_reward_without_cot)
+    # cot_ratio = sum_reward_with_cot / (sum_reward_without_cot + t.finfo(t.float32).eps)
+
+    return CoTGapSummary(
+        sum_examples,
+        sum_extracted_with_cot,
+        sum_extracted_without_cot,
+        sum_reward_with_cot,
+        sum_reward_without_cot,
+    )
+
+    

@@ -2,15 +2,9 @@ from __future__ import annotations
 
 import re
 from mars_steg.task.base_task import TorchDatasetTask
-from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
-from mars_steg.utils.prompt_data import PromptData, FixedDatasetDataInfo
 from mars_steg.utils.math_equivalence import is_equiv
 from mars_steg.utils.common import extract_boolean_overseer_or_assessor_answer
 
-from trl import PreTrainedModelWrapper
-from transformers import AutoTokenizer
-
-from typing import Dict, Optional
 
 
 

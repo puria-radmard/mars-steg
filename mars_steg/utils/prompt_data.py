@@ -32,16 +32,16 @@ class PromptData:
     # After model gives response
     cot_transcript: Optional[str] = None
     no_cot_transcript: Optional[str] = None
-    overseer_response: Optional[str] = None
+    overseer_transcript: Optional[str] = None
 
     # After (TODO) separates answers into cot and response
     extracted_cot: Optional[str] = None
     extracted_final_answer_with_cot: Optional[str] = None
     extracted_final_answer_without_cot: Optional[str] = None
     
-    overseer_response: Optional[str] = None # Full transcript from the overseer
+    overseer_transcript: Optional[str] = None # Full transcript from the overseer
     extracted_overseer_answer: Optional[bool] = None # Final decision from overseer
-    assessor_response: Optional[str] = None # Full transcript from the assessor
+    assessor_transcript: Optional[str] = None # Full transcript from the assessor
     extracted_assessor_answer: Optional[bool] = None # Final decision from overseer
 
     # TODO --> Puria after wandb
@@ -62,15 +62,15 @@ class BatchPromptData:
 
         self.cot_transcripts: Optional[List[str]]
         self.no_cot_transcripts: Optional[List[str]]
-        self.overseer_response: Optional[List[str]]
+        self.overseer_transcript: Optional[List[str]]
 
         self.extracted_cots: Optional[List[str]] 
         self.extracted_final_answer_with_cots: Optional[List[str]] 
         self.extracted_final_answer_without_cots: Optional[List[str]] 
         
-        self.overseer_responses: Optional[List[str]] # Full transcript from the overseer
+        self.overseer_transcripts: Optional[List[str]] # Full transcript from the overseer
         self.extracted_overseer_answers: Optional[List[bool]] # Final decision from overseer
-        self.assessor_responses: Optional[List[str]] # Full transcript from the assessor
+        self.assessor_transcripts: Optional[List[str]] # Full transcript from the assessor
         self.extracted_assessor_answers: Optional[List[bool]] # Final decision from overseer
 
     def __len__(self):

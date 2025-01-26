@@ -180,7 +180,7 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
         batch_prompt_data: BatchPromptData,
     ) -> BatchPromptData:
         """
-        Imbue all members of batch_prompt_data with overseer_responses in place,
+        Imbue all members of batch_prompt_data with overseer_transcripts in place,
             but only return the ones for which extraction of extracted_overseer_answer was successful
 
         Unsuccessful ones will still be available due to inplace operation
@@ -213,7 +213,7 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
         decoded_responses = [
             self.tokenizer.decode(r.squeeze()) for r in outputs
         ]
-        batch_prompt_data.overseer_responses = decoded_responses
+        batch_prompt_data.overseer_transcripts = decoded_responses
 
         # TODO: pass output_delimitation_tokens to here!
         pruned_batch_prompt_data = extract_neural_overseer_answers(batch_prompt_data, output_delimitation_tokens)

@@ -9,8 +9,10 @@ import re
 from mars_steg.utils.prompt_data import PromptData, BatchPromptData
 
 
-str_or_strs = (str | List[str])
 
+str_or_strs = str | List[str]
+
+# TODO: move all of this to prompt text files!
 
 DEFAULT_SYSTEM_PROMPT = """
 
@@ -48,6 +50,8 @@ Third: Finally, provide your final score as a float. This score should be the la
 class NeuralAssessor(metaclass=ABCMeta):
     """
     A base class for neural assessors
+
+    Logic here is slightly different to neural overseer... TODO: proper documentation
     """
 
     def __init__(
@@ -55,6 +59,8 @@ class NeuralAssessor(metaclass=ABCMeta):
             model: torch.nn.Module, 
             tokenizer: AutoTokenizer, 
             generation_kwargs: Dict[str: Any] ):
+
+        # TODO: make into base model!
         self.model = model
         self.tokenizer = tokenizer
         self.generation_kwargs = generation_kwargs
@@ -155,12 +161,15 @@ class ProblemSolutionAssessor(NeuralAssessor):
                                         "user_prompt": self.get_user_prompt_for_assessor(problem, llm_answer, true_answer)})
         return conversations_list
     
+
+    # TODO: make this into taking in BatchPromptData
     def format_assessor_prompt(self, problem: str_or_strs , llm_answer: str_or_strs , true_answer: str_or_strs) -> str_or_strs:
         if isinstance(problem, list):
             return self.convert_batch_prompt_into_conversation_template(problem, llm_answer, true_answer)
         else:
             return self.get_user_prompt_for_assessor(problem, llm_answer, true_answer)
 
+    # TODO: deal with this in BaseModel
     def generate(self, prompt: str_or_strs) -> str_or_strs:
         inputs = self.tokenizer.apply_chat_template(prompt, return_tensors="pt")
         outputs = self.model.generate(**inputs, **self.generation_kwargs)
@@ -169,35 +178,24 @@ class ProblemSolutionAssessor(NeuralAssessor):
         else:   
             return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
     
-    @staticmethod
-    def extract_final_score(text: str) -> float:
-        # Use regex to find the final score in the response
-        # TODO: shouldn't we move this to existing extract utils?
-        # TODO regex expression given by chatgpt, need to check if it works
-        # TODO: this needs to be fixed, todo in debugging
-        match = re.search(r'(\d\.\d+)$', text)
-        if match:
-            return float(match.group(1))
-        else:
-            # TODO: send warning then give zero reward instead?
-            raise ValueError("Final score not found in the response")
 
-    def extract_assessor_answer(self, response: str_or_strs) -> float | List[float]:
-        if isinstance(response, list):
-            return [self.extract_final_score(res) for res in response]
-        else:
-            return self.extract_final_score(response)
+    # TODO: could get rid of these if boolean extraction works!
 
-    def assess(self, problem: str_or_strs, llm_answer: str_or_strs, true_answer: str_or_strs) -> float | List[float]:
-        prompt = self.format_assessor_prompt(problem, llm_answer, true_answer)
-        response = self.generate(prompt)
-        return self.extract_assessor_answer(response)
+    # def extract_assessor_answer(self, response: str_or_strs) -> float | List[float]:
+    #     if isinstance(response, list):
+    #         return [self.extract_final_score(res) for res in response]
+    #     else:
+    #         return self.extract_final_score(response)
 
-    def assess_from_batch_prompt_data(self, prompt_data: BatchPromptData, from_cot_prompt: bool, true_answers: List[str]) -> List[float]:
-        # TODO: throw relevant errors when parsing fails here!
-        prompts = prompt_data.cot_prompts if from_cot_prompt else prompt_data.no_cot_prompts
-        responses = prompt_data.extracted_final_answer_with_cots if from_cot_prompt else prompt_data.extracted_final_answer_without_cots
-        return self.assess(prompts, responses, true_answers)
+    # def assess(self, problem: str_or_strs, llm_answer: str_or_strs, true_answer: str_or_strs) -> float | List[float]:
+    #     prompt = self.format_assessor_prompt(problem, llm_answer, true_answer)
+    #     response = self.generate(prompt)
+    #     return self.extract_assessor_answer(response)
 
+    # def assess_from_batch_prompt_data(self, prompt_data: BatchPromptData, from_cot_prompt: bool, true_answers: List[str]) -> List[float]:
+    #     # TODO: throw relevant errors when parsing fails here!
+    #     prompts = prompt_data.cot_prompts if from_cot_prompt else prompt_data.no_cot_prompts
+    #     responses = prompt_data.extracted_final_answer_with_cots if from_cot_prompt else prompt_data.extracted_final_answer_without_cots
+    #     return self.assess(prompts, responses, true_answers)
 
 

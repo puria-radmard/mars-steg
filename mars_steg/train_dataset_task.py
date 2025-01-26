@@ -174,7 +174,9 @@ if __name__ == "__main__":
         for batch_prompt_datas in tqdm(train_loader):
 
             batch_prompt_datas: BatchPromptData
+            
 
+            # TODO: move this to BaseModel?
             batch_messages = batchize_conversation(
                 system_prompt=train_dataset.system_prompt,
                 user_prompts= batch_prompt_datas.cot_prompts, 

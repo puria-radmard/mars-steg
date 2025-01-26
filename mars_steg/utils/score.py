@@ -1,8 +1,12 @@
 import torch as t
 
-from dataclasses import dataclass
 
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
+
+
+import torch as t
+
+from dataclasses import dataclass
 
 
 # Type checking [0,1] scores
@@ -39,3 +43,24 @@ class CoTGapSummary:
         cot_gap: {cot_gap}
         cot_ratio: {cot_ratio}
         """
+
+
+
+
+
+def extract_boolean_overseer_or_assessor_answer(
+    response_text: str
+) -> bool:
+    """
+    Gets a boolean value
+    TODO: generalise to a float [0,1]
+    """
+    response_lower = response_text.lower()
+    rfind_true = response_lower.rfind('true')
+    rfind_false = response_lower.rfind('false')
+    if rfind_true == rfind_false:
+        raise LLMTranscriptExtractionError(f'Neural overseer did not return a TRUE or FALSE token at the end of its response\n: {response_text}')
+    return 1.0 if bool(rfind_true > rfind_false) else 0.0
+
+
+   
