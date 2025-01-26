@@ -10,7 +10,7 @@ from typing import List, Tuple
 
 from tqdm import tqdm
 from transformers import AutoTokenizer
-from mars_steg.config import ModelConfig, OptimizerConfig
+from mars_steg.config import ModelConfig, OptimizerConfig, PromptConfig
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.utils.score import CoTGapSummary
 from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct, Llama_32_1B_Instruct, DeepSeek_R1_1pt5B
@@ -28,10 +28,17 @@ from trl import PreTrainedModelWrapper, create_reference_model
 
 
 
+def get_prompt_config(config_dir):
+    prompt_config = PromptConfig()
+    prompt_config.from_file(config_dir)
+    return prompt_config
+
+
 def get_dataloaders_and_ref_model(
     dataset_class_name: str,
     penalisation_class_name: str,
     dataset_class_kwargs: Optional[Dict],
+    prompt_config: Optional[Dict],
     penalisation_class_kwargs: Optional[Dict],
     train_proportion: float,
     validation_proportion: float,
@@ -53,9 +60,11 @@ def get_dataloaders_and_ref_model(
 
     dataset_class_kwargs = dataset_class_kwargs or dict()
     penalisation_class_kwargs = penalisation_class_kwargs or dict()
-
+    print(dataset_class_name)
+    print(dataset_class_kwargs)
+    print(prompt_config)
     language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**penalisation_class_kwargs)
-    task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, **dataset_class_kwargs)
+    task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, prompt_config = prompt_config, **dataset_class_kwargs )
 
     need_reference_model = (
         override_create_ref_model or 
@@ -385,6 +394,11 @@ def parse_model_output(model_output: str, output_delimitation_tokens: Dict[str, 
     
 
 def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens: Dict[str, str]):
+    """
+    Take in full batch of prompts, and spit out batch of prompts for which the model was able to give
+        a well formatted answer. If output length is less than input length, this means some responses could
+        not be parsed
+    """
     extracted_prompt_datas = []
     for prompt_data in tqdm(batch_prompt_datas):
         try:

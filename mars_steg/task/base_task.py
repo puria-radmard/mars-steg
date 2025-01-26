@@ -19,7 +19,7 @@ from mars_steg.task.neural_assessor import ProblemSolutionAssessor
 import pandas as pd
 
 from mars_steg.language.base_language_aspect import LanguageAspect
-
+from mars_steg.config import PromptConfig
 
 from typing import List, Tuple, Optional, Dict
 
@@ -40,12 +40,17 @@ class Task(metaclass=ABCMeta):
     uses_local_neural_assessor: bool
 
     def __init__(
-        self,
+        self, 
         language_aspect: LanguageAspect,
         uses_local_neural_assessor: bool,
+        prompt_config: PromptConfig,
     ):
+
         self.language_aspect = language_aspect
         self.uses_local_neural_assessor = uses_local_neural_assessor
+
+        self.prompt_config = prompt_config  # Store prompt configuration
+
         if self.name not in language_aspect.compatible_tasks:
             raise TypeError(f"""
                 This task is not compatible with the submitted LanguageAspect instance.
@@ -200,15 +205,18 @@ class TorchDatasetTask(Task, Dataset):
     def __init__(self,
         dataset: str,
         language_aspect: LanguageAspect,
-        uses_local_neural_assessor: bool
+        uses_local_neural_assessor: bool,
+        prompt_config: PromptConfig
     ) -> None:
         super().__init__(
             language_aspect=language_aspect,
             uses_local_neural_assessor=uses_local_neural_assessor,
+            prompt_config=prompt_config
         )
         self.dataset_name = dataset
         self.dataset = pd.read_csv(dataset)
         self.length = len(self.dataset)
+        self.prompt_config = prompt_config
 
         if self.uses_local_neural_assessor:
             self.reference_model: Optional[PreTrainedModelWrapper] = None
@@ -265,25 +273,20 @@ class TorchDatasetTask(Task, Dataset):
         print(f"Test size: {len(test_dataset_pd)}")
         
         cls = self.__class__
-        train_dataset = cls(self.dataset_name, self.language_aspect, self.uses_local_neural_assessor)
-        train_dataset.dataset = train_dataset_pd
-        train_dataset.length = len(train_dataset_pd)
-        val_dataset = cls(self.dataset_name, self.language_aspect, self.uses_local_neural_assessor)
-        val_dataset.dataset = val_dataset_pd
-        val_dataset.length = len(val_dataset_pd)
-        test_dataset = cls(self.dataset_name, self.language_aspect, self.uses_local_neural_assessor)
-        test_dataset.dataset = test_dataset_pd
-        test_dataset.length = len(test_dataset_pd)
-
-        if self.uses_local_neural_assessor:
-            for new_dataset in train_dataset, val_dataset, test_dataset:
+        output_datasets = []
+        for dataset_pd in [train_dataset_pd, val_dataset_pd, test_dataset_pd]:
+            new_dataset = cls(self.dataset_name, self.language_aspect, self.uses_local_neural_assessor, self.prompt_config)
+            new_dataset.dataset = dataset_pd
+            new_dataset.length = len(dataset_pd)
+            if self.uses_local_neural_assessor:
                 new_dataset.recruit_neural_assessor(
                     reference_model=self.reference_model,
                     tokenizer=self.tokenizer,
                     generation_kwargs=self.generation_kwargs
                 )
+            output_datasets.append(new_dataset)
 
-        return train_dataset, val_dataset, test_dataset
+        return output_datasets
 
     def prompt_data_collate_fn(self, batch: List[PromptData]) -> BatchPromptData:
         return BatchPromptData(prompt_datas=batch)

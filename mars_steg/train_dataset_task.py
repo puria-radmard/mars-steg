@@ -13,7 +13,10 @@ from trl import PPOConfig, PPOTrainer
 
 from mars_steg.language.language_aspects.neural_overseer import NeuralOverseer
 from mars_steg.utils.prompt_data import BatchPromptData
-from mars_steg.config import ConfigLoader, ExperimentArgs
+from mars_steg.utils.exceptions import LLMTranscriptExtractionError
+from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
+
+
 from mars_steg.utils.common import (
     get_dataloaders_and_ref_model,
     batchize_conversation,
@@ -23,22 +26,44 @@ from mars_steg.utils.common import (
     get_device,
     get_rewards_and_training_datas,
     evaluate_cot_gap_summary,
-    extract_cots
+    extract_cots,
+    get_prompt_config,
+    parse_model_output,
+    # evaluate_cot_gap_and_ratio    TODO: where did this go?
 )
 
+from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 
 
 experiment_args_path = sys.argv[1]
 config_path = sys.argv[2]   # e.g. "mars_steg/configs/config.yaml"
-
-
+prompt_config_path = sys.argv[2]   # e.g. "mars_steg/configs/prompt/math_training_llama.yaml"
 
 device = get_device()
+
+####################################################################################################################
+####################################################################################################################
 
 
 model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(config_path)
 
+import pdb; pdb.set_trace()
+prompt_config = PromptConfig(prompt_config_path)
+print(prompt_config)
+
+output_delimitation_tokens = {
+    "start_scratchpad_token": prompt_config.start_scratchpad_token,
+    "end_scratchpad_token": prompt_config.end_scratchpad_token,
+    "start_output_token": prompt_config.start_output_token,
+    "end_output_token": prompt_config.end_output_token,
+}
+
 generation_config.batch_size = train_config.batch_size
+
+####################################################################################################################
+####################################################################################################################
+
+
 
 # PPO Configuration
 config = PPOConfig(
@@ -81,6 +106,7 @@ generation_kwargs = generation_config.to_dict()
 train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader, ref_model = get_dataloaders_and_ref_model(
     dataset_class_name = experiment_args.dataset_class_name,
     penalisation_class_name = experiment_args.penalisation_class_name,
+    prompt_config = prompt_config,
     dataset_class_kwargs = experiment_args.dataset_class_kwargs,
     penalisation_class_kwargs = experiment_args.penalisation_class_kwargs,
     train_proportion = train_config.train_proportion,
@@ -102,12 +128,7 @@ ppo_trainer = PPOTrainer(
     optimizer=optimizer,
 )
 
-output_delimitation_tokens = {
-    #"start_scratchpad_token": "<SCRATCHPAD_REASONING>",
-    #"end_scratchpad_token": "</SCRATCHPAD_REASONING>",
-    "start_output_token": "Answer:",
-    #"end_output_token": "</OUTPUT>",
-}
+
 
 if __name__ == "__main__":
 
@@ -205,7 +226,7 @@ if __name__ == "__main__":
             elif len(extracted_batch_prompt_datas) != len(decoded_responses):
                 num_examples_failed = len(decoded_responses) - len(extracted_batch_prompt_datas)
                 warnings.warn(
-                    f"Failed to parse {num_examples_failed} examples out of {len(batch_prompt_datas)}"
+                    f"Failed to parse {num_examples_failed} examples out of {len(decoded_responses)}"
                 )
                 warnings.warn("Optimizing model with the rest of the examples (removing the failed examples)")
                 optimize = True
@@ -218,6 +239,7 @@ if __name__ == "__main__":
 
             # Penalise CoT
             # TODO: throw relevant errors here!
+            # TODO: see if overseer answer extracted here!
             if isinstance(train_dataset.language_aspect, NeuralOverseer):
                 generated_overseer_answers = train_dataset.language_aspect.get_overseer_generated_answers(extracted_batch_prompt_datas)
             else:
@@ -225,6 +247,7 @@ if __name__ == "__main__":
 
             # Reward final answer
             # TODO: throw relevant errors here!
+            # TODO: extract assessor answer
             if train_dataset.uses_local_neural_assessor:
                 # TODO: make this usable for the game case, i.e. no true answer!
                 generated_assessor_scores = train_dataset.neural_assessor_from_batch_prompt_data(extracted_batch_prompt_datas, from_cot_prompt = True)
