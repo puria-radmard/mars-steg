@@ -261,7 +261,6 @@ class ProblemSolutionAssessor(NeuralAssessor):
             return [self.tokenizer.decode(output, skip_special_tokens=True) for output in outputs]
         else:   
             return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
-    
 
     # TODO: could get rid of these if boolean extraction works!
 
