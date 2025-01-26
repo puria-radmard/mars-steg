@@ -8,6 +8,7 @@ from transformers import (
 from abc import ABCMeta, abstractmethod
 import torch
 from trl import AutoModelForCausalLMWithValueHead
+from mars_steg.config import GenerationConfig
 import warnings
 try:
     from transformers import BitsAndBytesConfig
@@ -16,10 +17,10 @@ except ImportError:
     warnings.warn('Reintroduce: BitsAndBytesConfig. Import hasn\'t been successful.')
 
 
-
+Conversation = List[List[Dict[str, str]]]
 
 class BaseModel(metaclass=ABCMeta):
-    def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer, output_delimitation_tokens: Dict[str, str], model=None):
+    def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer, generation_config: GenerationConfig, output_delimitation_tokens: Dict[str, str], model=None):
         self.model_config = model_config
         self.model_name = model_config.model_name
         self.tokenizer = tokenizer
@@ -27,6 +28,7 @@ class BaseModel(metaclass=ABCMeta):
         self.precission_mode = model_config.load_precision_mode
         self.model_save_path = model_config.model_save_path
         self.output_delimitation_tokens = output_delimitation_tokens
+        self.generation_config = generation_config
         if model is not None:
             self.model = model
         else:
@@ -83,7 +85,7 @@ class BaseModel(metaclass=ABCMeta):
         pass
 
     def batchize_conversation(
-        self, system_prompt: str, user_prompts: List[List[Dict[str, str]]]
+        self, system_prompt: str, user_prompts: Conversation
     ):
         batch_messages = [
             [
@@ -97,3 +99,24 @@ class BaseModel(metaclass=ABCMeta):
             for user_prompt in user_prompts
         ]
         return batch_messages
+
+    def full_generate(self, conversations_list: Conversation):
+
+        inputs = self.tokenizer.apply_chat_template(
+            conversations_list,
+            return_tensors="pt",
+            add_generation_prompt=True,
+            return_dict=True,
+            padding=True,
+            truncation=True,
+        )
+
+        # Run the reference model
+        outputs = self.model.generate(**inputs, **self.generation_config.to_dict())
+
+        # These always work, so can diretly set
+        decoded_responses = [
+            self.tokenizer.decode(r.squeeze()) for r in outputs
+        ]
+
+        return decoded_responses

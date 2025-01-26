@@ -81,12 +81,12 @@ def get_dataloaders_and_ref_model(
         reference_model = None
 
     if language_aspect_class.uses_local_neural_overseer:
-        neural_overseer: BaseModel = training_model.duplicate(reference_model)   # TODO: takes in new (frozen) model, and adds own config/kwargs etc. to new instance
-        language_aspect_class.recruit_neural_overseer(neural_overseer, neural_overseer.tokenizer, generation_kwargs)    
+        neural_overseer: BaseModel = training_model.duplicate(reference_model)
+        language_aspect_class.recruit_neural_overseer(neural_overseer)    
 
     if task_class.uses_local_neural_assessor:
-        neural_assesor: BaseModel = training_model.duplicate(reference_model)   # TODO: takes in new (frozen) model, and adds own config/kwargs etc. to new instance
-        task_class.recruit_neural_assessor(neural_assesor, neural_overseer.tokenizer, generation_kwargs)   
+        neural_assesor: BaseModel = training_model.duplicate(reference_model)
+        task_class.recruit_neural_assessor(neural_assesor)   
 
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(
         train_proportion=train_proportion,
@@ -402,6 +402,8 @@ def evaluate_cot_gap_summary(
             batch_messages_with_cot = model_class.batchize_conversation(
                 system_prompt, batch_prompt_datas.cot_prompts
             )
+            raise NotImplementedError('Use BaseModel.full_generate!')
+
             batch_length = len(batch_messages_with_cot)
             batch_messages = batch_messages_with_cot + batch_messages_without_cot
             inputs = tokenizer.apply_chat_template(

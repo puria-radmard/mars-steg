@@ -9,6 +9,7 @@ from mars_steg.utils.prompt_data import (
     PromptData,
     BatchPromptData,
 )
+from mars_steg.model import BaseModel
 from mars_steg.utils.score import check_score
 from trl import PreTrainedModelWrapper
 from transformers import AutoTokenizer
@@ -182,15 +183,11 @@ class Task(metaclass=ABCMeta):
 
         return r, task_score, language_score
 
-    def recruit_neural_assessor(self, reference_model: PreTrainedModelWrapper, tokenizer: AutoTokenizer, generation_kwargs: Dict):
+    def recruit_neural_assessor(self, reference_model: BaseModel):
         assert self.uses_local_neural_assessor, f"Attempting to recruit neural assessor to a {self.__class__.__name__}, which does not use it!"
         self.reference_model = reference_model
-        self.tokenizer = tokenizer
-        self.generation_kwargs = generation_kwargs
         self.neural_assessor = ProblemSolutionAssessor(
             model = reference_model,
-            tokenizer = tokenizer,
-            generation_kwargs = generation_kwargs
         )
 
 

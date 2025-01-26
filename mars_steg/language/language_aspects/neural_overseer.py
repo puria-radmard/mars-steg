@@ -196,23 +196,9 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
             batch_prompt_data
         )
 
-        # Tokenize the conversation template
-        inputs = self.tokenizer.apply_chat_template(
-            conversations_list,
-            return_tensors="pt",
-            add_generation_prompt=True,
-            return_dict=True,
-            padding=True,
-            truncation=True,
-        )
-
         # Run the reference model
-        outputs = self.reference_model.model.generate(**inputs, **self.generation_kwargs)
+        decoded_responses = self.reference_model.full_generate(conversations_list)
 
-        # These always work, so can diretly set
-        decoded_responses = [
-            self.tokenizer.decode(r.squeeze()) for r in outputs
-        ]
         batch_prompt_data.overseer_transcripts = decoded_responses
 
         pruned_batch_prompt_data = extract_neural_overseer_answers(batch_prompt_data, self.reference_model.output_delimitation_tokens)

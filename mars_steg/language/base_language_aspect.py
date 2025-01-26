@@ -48,11 +48,9 @@ class LanguageAspect(metaclass=ABCMeta):
         """
         raise NotImplementedError
 
-    def recruit_neural_overseer(self, reference_model: BaseModel, tokenizer: AutoTokenizer, generation_kwargs: Dict):
+    def recruit_neural_overseer(self, reference_model: BaseModel):
         assert self.uses_local_neural_overseer, f"Attempting to recruit neural overseer to a {self.__class__.__name__}, which does not use it!"
         self.reference_model = reference_model
-        self.tokenizer = tokenizer
-        self.generation_kwargs = generation_kwargs
 
 
 class EmptyLanguageAspect(LanguageAspect):
