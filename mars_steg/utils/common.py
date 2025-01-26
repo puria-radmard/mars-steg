@@ -43,7 +43,7 @@ def get_dataloaders_and_ref_model(
     train_proportion: float,
     validation_proportion: float,
     batch_size: int,
-    training_model: Optional[PreTrainedModelWrapper] = None,        # TODO: turn this into BaseModel!
+    training_model: Optional[BaseModel] = None,        # TODO: turn this into BaseModel!
     tokenizer: Optional[AutoTokenizer] = None,
     generation_kwargs: Optional[Dict] = None,
     *_,
@@ -73,17 +73,19 @@ def get_dataloaders_and_ref_model(
     )
     if need_reference_model:
         reference_model = create_reference_model(
-            training_model, num_shared_layers=number_shared_layers_for_ref_model,
+            training_model.model, num_shared_layers=number_shared_layers_for_ref_model,
             pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things
         )
     else:
         reference_model = None
 
     if language_aspect_class.uses_local_neural_overseer:
-        language_aspect_class.recruit_neural_overseer(reference_model, tokenizer, generation_kwargs)
+        neural_overseer: BaseModel = training_model.duplicate(reference_model)   # TODO: takes in new (frozen) model, and adds own config/kwargs etc. to new instance
+        language_aspect_class.recruit_neural_overseer(reference_model, tokenizer, generation_kwargs)    # TODO: change this to accept BaseModel 
 
     if task_class.uses_local_neural_assessor:
-        task_class.recruit_neural_assessor(reference_model, tokenizer, generation_kwargs)
+        neural_assesor: BaseModel = training_model.duplicate(reference_model)   # TODO: takes in new (frozen) model, and adds own config/kwargs etc. to new instance
+        task_class.recruit_neural_assessor(reference_model, tokenizer, generation_kwargs)   # TODO: change this to accept BaseModel 
 
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(
         train_proportion=train_proportion,
