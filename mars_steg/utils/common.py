@@ -43,7 +43,7 @@ def get_dataloaders_and_ref_model(
     train_proportion: float,
     validation_proportion: float,
     batch_size: int,
-    training_model: Optional[BaseModel] = None,        # TODO: turn this into BaseModel!
+    training_model: Optional[BaseModel] = None,  
     tokenizer: Optional[AutoTokenizer] = None,
     generation_kwargs: Optional[Dict] = None,
     *_,
@@ -81,11 +81,11 @@ def get_dataloaders_and_ref_model(
 
     if language_aspect_class.uses_local_neural_overseer:
         neural_overseer: BaseModel = training_model.duplicate(reference_model)   # TODO: takes in new (frozen) model, and adds own config/kwargs etc. to new instance
-        language_aspect_class.recruit_neural_overseer(reference_model, tokenizer, generation_kwargs)    # TODO: change this to accept BaseModel 
+        language_aspect_class.recruit_neural_overseer(neural_overseer, neural_overseer.tokenizer, generation_kwargs)    
 
     if task_class.uses_local_neural_assessor:
         neural_assesor: BaseModel = training_model.duplicate(reference_model)   # TODO: takes in new (frozen) model, and adds own config/kwargs etc. to new instance
-        task_class.recruit_neural_assessor(reference_model, tokenizer, generation_kwargs)   # TODO: change this to accept BaseModel 
+        task_class.recruit_neural_assessor(neural_assesor, neural_overseer.tokenizer, generation_kwargs)   
 
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(
         train_proportion=train_proportion,

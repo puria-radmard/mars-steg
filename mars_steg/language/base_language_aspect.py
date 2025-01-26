@@ -1,6 +1,7 @@
 from typing import Set
 
 from mars_steg.utils.prompt_data import PromptData
+from mars_steg.model.base_model import BaseModel
 
 from abc import ABCMeta, abstractmethod
 from typing import Dict
@@ -47,7 +48,7 @@ class LanguageAspect(metaclass=ABCMeta):
         """
         raise NotImplementedError
 
-    def recruit_neural_overseer(self, reference_model: PreTrainedModelWrapper, tokenizer: AutoTokenizer, generation_kwargs: Dict):
+    def recruit_neural_overseer(self, reference_model: BaseModel, tokenizer: AutoTokenizer, generation_kwargs: Dict):
         assert self.uses_local_neural_overseer, f"Attempting to recruit neural overseer to a {self.__class__.__name__}, which does not use it!"
         self.reference_model = reference_model
         self.tokenizer = tokenizer
