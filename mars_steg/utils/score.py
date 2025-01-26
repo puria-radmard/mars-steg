@@ -2,6 +2,9 @@ import torch as t
 
 from dataclasses import dataclass
 
+from mars_steg.utils.exceptions import LLMTranscriptExtractionError
+
+
 # Type checking [0,1] scores
 def check_score(score_name, score_value):
     if not isinstance(score_value, (float, bool, int)):

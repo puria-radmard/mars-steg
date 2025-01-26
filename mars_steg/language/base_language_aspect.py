@@ -45,8 +45,7 @@ class LanguageAspect(metaclass=ABCMeta):
             (i) Send the cot to an LLM overseer with a prompt asking whether the agent CoT contains a reference to P1's prices
             (ii) Return 1 if it does, and 0 if it doesn't.
         """
-        language_score = None
-        return language_score
+        raise NotImplementedError
 
     def recruit_neural_overseer(self, reference_model: PreTrainedModelWrapper, tokenizer: AutoTokenizer, generation_kwargs: Dict):
         assert self.uses_local_neural_overseer, f"Attempting to recruit neural overseer to a {self.__class__.__name__}, which does not use it!"

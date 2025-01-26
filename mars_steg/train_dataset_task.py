@@ -211,15 +211,33 @@ if __name__ == "__main__":
             # Extract answer and CoT before given to neural overseer and assessor
             extracted_batch_prompt_datas = extract_cots(batch_prompt_datas, output_delimitation_tokens)
 
-            # Might have completely failed, so we can skip everything below entirely
-            if len(extracted_batch_prompt_datas) == 0:
+            # Penalise CoT - imbued to 
+            if isinstance(train_dataset.language_aspect, NeuralOverseer):
+                extracted_batch_prompt_datas_with_nos = train_dataset.language_aspect.get_overseer_generated_answers(extracted_batch_prompt_datas)
+            else:
+                # get_task_score will do a hard string check
+                extracted_batch_prompt_datas_with_nos = extracted_batch_prompt_datas
+
+            # Reward final answer
+            # TODO: throw relevant errors here!
+            # TODO: extract assessor answer
+            if train_dataset.uses_local_neural_assessor:
+                # TODO: make this usable for the game case, i.e. no true answer!
+                extracted_batch_prompt_datas_with_nos_and_na = train_dataset.neural_assessor_from_batch_prompt_data(extracted_batch_prompt_datas_with_nos, from_cot_prompt = True)
+            else:
+                # get_language_score will do a hard string check
+                extracted_batch_prompt_datas_with_nos_and_na = extracted_batch_prompt_datas_with_nos
+
+
+            # After all that answer/CoT extraction, it might have completely failed, so we can skip everything below entirely
+            if len(extracted_batch_prompt_datas_with_nos_and_na) == 0:
                 optimize = False
                 warnings.warn("All examples failed to parse. Skipping everything below")
                 continue
 
             # Might have partially failed...
-            elif len(extracted_batch_prompt_datas) != len(decoded_responses):
-                num_examples_failed = len(decoded_responses) - len(extracted_batch_prompt_datas)
+            elif len(extracted_batch_prompt_datas_with_nos_and_na) != len(decoded_responses):
+                num_examples_failed = len(decoded_responses) - len(extracted_batch_prompt_datas_with_nos_and_na)
                 warnings.warn(
                     f"Failed to parse {num_examples_failed} examples out of {len(decoded_responses)}"
                 )
@@ -232,35 +250,17 @@ if __name__ == "__main__":
                 optimize = True
 
 
-            # Penalise CoT
-            # TODO: throw relevant errors here!
-            # TODO: see if overseer answer extracted here!
-            if isinstance(train_dataset.language_aspect, NeuralOverseer):
-                generated_overseer_answers = train_dataset.language_aspect.get_overseer_generated_answers(extracted_batch_prompt_datas)
-            else:
-                generated_overseer_answers = None
-
-            # Reward final answer
-            # TODO: throw relevant errors here!
-            # TODO: extract assessor answer
-            if train_dataset.uses_local_neural_assessor:
-                # TODO: make this usable for the game case, i.e. no true answer!
-                generated_assessor_scores = train_dataset.neural_assessor_from_batch_prompt_data(extracted_batch_prompt_datas, from_cot_prompt = True)
-            else:
-                generated_assessor_scores = None
-
-
             # Extract rewards
             composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses = get_rewards_and_training_datas(
                 batch_prompt_datas=extracted_batch_prompt_datas,
                 query_tensors=query_tensors,
                 transcript_responses=transcript_responses, 
-                train_dataset=train_dataset, 
-                
-                # TODO: might want to make use of the fact that prompt data carries these (/should be) carrying these
-                batch_overseer_answers=generated_overseer_answers,
-                batch_assessor_scores=generated_assessor_scores
+                train_dataset=train_dataset,
             )
+
+            if len(composite_reward_list) == 0:
+                warnings.warn("All feedbacks failed to parse. Skipping actual training")
+
 
             print("--------")
             print(f"Rewarding example with {composite_reward_list}")

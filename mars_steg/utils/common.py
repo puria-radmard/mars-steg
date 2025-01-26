@@ -413,14 +413,51 @@ def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens
     return BatchPromptData(extracted_prompt_datas)
 
 
+def extract_neural_overseer_answers(batch_prompt_datas: BatchPromptData, output_delimitation_tokens: Dict[str, str]):
+    """
+    Take in full batch of prompts, and spit out batch of prompts for which the overseer model was able to give
+        a well formatted answer. If output length is less than input length, this means some responses could
+        not be parsed
+    """
+    extracted_prompt_datas = []
+    for prompt_data in tqdm(batch_prompt_datas):
+        try:
+            prompt_data.extracted_overseer_answer = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot=False)
+            extracted_prompt_datas.append(prompt_data)
+        except LLMTranscriptExtractionError as e:
+            warnings.warn(f"Failed to parse overseer answer from: \n\n{prompt_data.cot_transcript}\n\n Skipping example")
+    return BatchPromptData(extracted_prompt_datas)
+
+
+def extract_neural_assessor_answers(batch_prompt_datas: BatchPromptData, output_delimitation_tokens: Dict[str, str]):
+    """
+    Take in full batch of prompts, and spit out batch of prompts for which the assessor model was able to give
+        a well formatted answer. If output length is less than input length, this means some responses could
+        not be parsed
+    """
+    extracted_prompt_datas = []
+    for prompt_data in tqdm(batch_prompt_datas):
+        try:
+            prompt_data.extracted_assessor_answer = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot=False)
+            extracted_prompt_datas.append(prompt_data)
+        except LLMTranscriptExtractionError as e:
+            warnings.warn(f"Failed to parse assessor answer from: \n\n{prompt_data.cot_transcript}\n\n Skipping example")
+    return BatchPromptData(extracted_prompt_datas)
+
+
 def get_rewards_and_training_datas(
         batch_prompt_datas: BatchPromptData, 
         query_tensors: List[t.TensorType], 
         transcript_responses: List[t.TensorType], 
         train_dataset: TorchDatasetTask, 
-        batch_overseer_answers: Optional[List[str]] = None,
-        batch_assessor_scores: Optional[List[float]] = None
         ) -> Tuple[List]:
+    """
+    batch_prompt_datas come in imbued with answers extracted from the neural overseer and assesor already
+    Any that failed should have been pruned from this argument anyway, so no need to double check here! 
+
+    However: Just because the extraction worked does not mean that the score assignment will
+    We do another round of pruning here if the extracted answers in either NOS or NA are not in the right format
+    """
     
     composite_reward_list, task_score_list, language_score_list = [], [], []
     train_query_tensors = []
@@ -430,18 +467,17 @@ def get_rewards_and_training_datas(
         batch_assessor_scores = [None]*len(batch_prompt_datas)
 
     for i, prompt_data in tqdm(enumerate(batch_prompt_datas)):
+        
         composite_reward = 0.0
         task_score = 0.0
         language_score = 0.0
 
-        if batch_overseer_answers is not None:
-            prompt_data.overseer_response = batch_overseer_answers[i]
-            prompt_data.extracted_overseer_response = train_dataset.language_aspect.extract_overseer_answer(batch_overseer_answers[i])
-
-        composite_reward, task_score, language_score = train_dataset.reward_from_transcript(
-            prompt_data,
-            override_assessor_task_score = batch_assessor_scores[i]
-        )
+        try:
+            composite_reward, task_score, language_score = train_dataset.reward_from_transcript(
+                prompt_data,
+            )
+        except LLMTranscriptExtractionError:
+            continue
 
         composite_reward_list.append(t.tensor(composite_reward))
         task_score_list.append(task_score)
@@ -454,6 +490,20 @@ def get_rewards_and_training_datas(
             
             
 
+
+def extract_boolean_overseer_or_assessor_answer(
+    response_text: str
+) -> bool:
+    """
+    Gets a boolean value
+    TODO: generalise to a float [0,1]
+    """
+    response_lower = response_text.lower()
+    rfind_true = response_lower.rfind('true')
+    rfind_false = response_lower.rfind('false')
+    if rfind_true == rfind_false:
+        raise LLMTranscriptExtractionError(f'Neural overseer did not return a TRUE or FALSE token at the end of its response\n: {response_text}')
+    return 1.0 if bool(rfind_true > rfind_false) else 0.0
 
 
    

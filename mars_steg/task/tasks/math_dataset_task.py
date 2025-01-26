@@ -5,6 +5,7 @@ from mars_steg.task.base_task import TorchDatasetTask
 from mars_steg.language.language_aspects.math_language_aspect import EqualsSign
 from mars_steg.utils.prompt_data import PromptData, FixedDatasetDataInfo
 from mars_steg.utils.math_equivalence import is_equiv
+from mars_steg.utils.common import extract_boolean_overseer_or_assessor_answer
 
 from trl import PreTrainedModelWrapper
 from transformers import AutoTokenizer
@@ -48,6 +49,9 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         return prompt
 
     def get_task_score(self, prompt_data, with_cot: bool):
+        """
+        1 or 0
+        """
         # Get problem index from transcript
         idx = prompt_data.info.idx
         # Look up true answer
@@ -61,21 +65,8 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         if not self.uses_local_neural_assessor:
             return self.hard_string_checking(llm_answer, true_answers)
         else:
-            #TODO implement neural assessor outisde this, like in the neural overseer case!!!
-            import pdb; pdb.set_trace()
-            raise NotImplementedError("Neural assessor not implemented for this task")
+            return extract_boolean_overseer_or_assessor_answer(prompt_data.extracted_assessor_answer)
     
-    def hard_string_checking(self, llm_answer:str, true_answers:str) -> float:
-        llm_answer = llm_answer.replace("['","").replace("']","")
-        
+    def hard_string_checking(self, llm_answer:str, true_answers:str) -> float:        
         rewarded = any([is_equiv(llm_answer, ta) for ta in true_answers])
-
-        print("-------------")
-        print("LLM ANSWER: ", llm_answer)
-        print("TRUE ANSWER: ", true_answers)
-        print(f"Are equivalent? {rewarded}")
-        print("-------------")
-
         return 1.0 if rewarded else 0.0
-        
-

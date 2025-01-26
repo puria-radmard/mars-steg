@@ -123,7 +123,7 @@ class Task(metaclass=ABCMeta):
     @abstractmethod
     def get_task_score(self, prompt_data: PromptData, with_cot: bool) -> float:
         """
-        TODO: update docstring
+        TODO: update docstring: neural assessor option must be given also. See for example MATH_Torch_Dataset_Task.get_task_score
 
         A method to assess the success of the agent in the task, based on the Payload (prompt, additional info) and the final answer.
         - The cot is NOT included as an argument here, as the CoT is just a scratchpad for the agent.
@@ -163,7 +163,6 @@ class Task(metaclass=ABCMeta):
 
     def reward_from_transcript(
         self, prompt_data: PromptData, t_weight: float = 1.0, l_weight: float = 1.0,
-        *_, override_assessor_task_score: Optional[float] = None
     ) -> float:
         """
         The API handle to run user-set methods on all details from an episode
@@ -173,12 +172,8 @@ class Task(metaclass=ABCMeta):
         Full thing assumes we prompted with cot
         """
 
-        if override_assessor_task_score is None:
-            task_score = self.get_task_score(prompt_data, with_cot = True)
-            task_score = check_score('task_score:', task_score)
-        else:
-            task_score = override_assessor_task_score
-            task_score = check_score('task_score from neural assessor:', task_score)
+        task_score = self.get_task_score(prompt_data, with_cot = True)
+        task_score = check_score('task_score:', task_score)
         
         language_score = self.language_aspect.get_language_score(prompt_data)
         language_score = check_score('language_score:', language_score)
