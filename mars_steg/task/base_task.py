@@ -182,7 +182,7 @@ class Task(metaclass=ABCMeta):
 
         return r, task_score, language_score
 
-    def recruit_neural_overseer(self, reference_model: PreTrainedModelWrapper, tokenizer: AutoTokenizer, generation_kwargs: Dict):
+    def recruit_neural_assessor(self, reference_model: PreTrainedModelWrapper, tokenizer: AutoTokenizer, generation_kwargs: Dict):
         assert self.uses_local_neural_assessor, f"Attempting to recruit neural assessor to a {self.__class__.__name__}, which does not use it!"
         self.reference_model = reference_model
         self.tokenizer = tokenizer
@@ -277,7 +277,7 @@ class TorchDatasetTask(Task, Dataset):
 
         if self.uses_local_neural_assessor:
             for new_dataset in train_dataset, val_dataset, test_dataset:
-                new_dataset.recruit_neural_overseer(
+                new_dataset.recruit_neural_assessor(
                     reference_model=self.reference_model,
                     tokenizer=self.tokenizer,
                     generation_kwargs=self.generation_kwargs
@@ -288,12 +288,15 @@ class TorchDatasetTask(Task, Dataset):
     def prompt_data_collate_fn(self, batch: List[PromptData]) -> BatchPromptData:
         return BatchPromptData(prompt_datas=batch)
 
+    def get_true_answers_from_batch_prompt_data(self, prompt_data: BatchPromptData):
+        idxs = [pii.idx for pii in prompt_data.infos]
+        true_answers = [self.dataset.iloc[idx]["True answer"] for idx in idxs]
+        return true_answers
+
     def neural_assessor_from_batch_prompt_data(self, prompt_data: BatchPromptData, from_cot_prompt: bool) -> List[float]:
         assert self.uses_local_neural_assessor and self.neural_assessor is not None
         true_answers = self.get_true_answers_from_batch_prompt_data(prompt_data)
-        idxs = [pii.idx for pii in prompt_data.infos]
-        true_answers = [self.dataset.iloc[idx]["True answer"] for idx in idxs]
-        self.neural_assessor.assess_from_batch_prompt_data(prompt_data, from_cot_prompt, true_answers)
+        return self.neural_assessor.assess_from_batch_prompt_data(prompt_data, from_cot_prompt, true_answers)
 
 
 class GameBasedTask(Task):

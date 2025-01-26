@@ -87,6 +87,8 @@ train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader,
     validation_proportion = train_config.validation_proportion,
     batch_size = train_config.batch_size,
     training_model = model.model,        # This may be needed if a neural language aspect is used!
+    tokenizer = tokenizer,
+    generation_kwargs = generation_kwargs,
     override_create_ref_model = train_config.create_ref_model,
     number_shared_layers_for_ref_model = train_config.number_shared_layers_for_ref_model
 )
@@ -225,7 +227,7 @@ if __name__ == "__main__":
             # TODO: throw relevant errors here!
             if train_dataset.uses_local_neural_assessor:
                 # TODO: make this usable for the game case, i.e. no true answer!
-                generated_assessor_scores = train_dataset.neural_assessor_from_batch_prompt_data(extracted_batch_prompt_datas)
+                generated_assessor_scores = train_dataset.neural_assessor_from_batch_prompt_data(extracted_batch_prompt_datas, from_cot_prompt = True)
             else:
                 generated_assessor_scores = None
 

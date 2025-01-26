@@ -194,7 +194,7 @@ class ProblemSolutionAssessor(NeuralAssessor):
         return self.extract_assessor_answer(response)
 
     def assess_from_batch_prompt_data(self, prompt_data: BatchPromptData, from_cot_prompt: bool, true_answers: List[str]) -> List[float]:
-        # TODO: debug this!
+        # TODO: throw relevant errors when parsing fails here!
         prompts = prompt_data.cot_prompts if from_cot_prompt else prompt_data.no_cot_prompts
         responses = prompt_data.extracted_final_answer_with_cots if from_cot_prompt else prompt_data.extracted_final_answer_without_cots
         return self.assess(prompts, responses, true_answers)

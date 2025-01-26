@@ -61,6 +61,9 @@ Order critical. See neural_overseer.py for an example.
 
 class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
 
+    # Keeping this False here because we might have non-LLM neural overseers
+    uses_local_neural_overseer = False
+
     #TODO  - Add Math_dataset to compatible tasks
     compatible_tasks = {'SequentialPriceTask'}
 
@@ -81,12 +84,12 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
     def get_overseer_generated_answers(
         self,
         batch_prompt_data: BatchPromptData,
-    ) -> List[str]:
+    ) -> BatchPromptData:
         """
         A function that should:
         1) Accept a BatchPromptData object
         2) Run the LLM overseer, either using an API or a local model
-        3) Return a list of responses
+        3) Return a BatchPromptData including the responses, but drop any from which it fails to parse an assessment
         """
         pass
 
@@ -210,8 +213,8 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
         outputs = self.reference_model.generate(**inputs, **self.generation_kwargs)
 
         decoded_responses = [
-                self.tokenizer.decode(r.squeeze()) for r in outputs
-            ]
+            self.tokenizer.decode(r.squeeze()) for r in outputs
+        ]
         return decoded_responses
 
 

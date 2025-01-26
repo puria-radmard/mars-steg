@@ -63,18 +63,18 @@ def get_dataloaders_and_ref_model(
         task_class.uses_local_neural_assessor
     )
     if need_reference_model:
-        import pdb; pdb.set_trace()
         reference_model = create_reference_model(
-            training_model, num_shared_layers=number_shared_layers_for_ref_model
+            training_model, num_shared_layers=number_shared_layers_for_ref_model,
+            pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things
         )
     else:
         reference_model = None
 
     if language_aspect_class.uses_local_neural_overseer:
-        language_aspect_class.recruit_reference_model(reference_model, tokenizer, generation_kwargs)
+        language_aspect_class.recruit_neural_overseer(reference_model, tokenizer, generation_kwargs)
 
     if task_class.uses_local_neural_assessor:
-        task_class.recruit_reference_model(reference_model, tokenizer, generation_kwargs)
+        task_class.recruit_neural_assessor(reference_model, tokenizer, generation_kwargs)
 
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(
         train_proportion=train_proportion,
@@ -395,7 +395,7 @@ def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens
             extracted_prompt_datas.append(prompt_data)
         except LLMTranscriptExtractionError as e:
             warnings.warn(f"Failed to parse: \n\n{prompt_data.cot_transcript}\n\n Skipping example")
-    return extracted_prompt_datas
+    return BatchPromptData(extracted_prompt_datas)
 
 
 def get_rewards_and_training_datas(
