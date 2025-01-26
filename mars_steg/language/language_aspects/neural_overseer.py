@@ -9,9 +9,6 @@ from mars_steg.utils.prompt_data import PromptData, BatchPromptData
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.utils.score import check_score
 
-from trl import PreTrainedModelWrapper
-from transformers import AutoTokenizer
-
 from typing import Dict, List, Optional, Tuple
 
 import torch
@@ -147,6 +144,8 @@ class SlowNeuralOverseer(NeuralOverseer):
     Use GPT-4o-mini in API form. Just for testing. Too slow for integration into RL loop. 
     """
 
+    uses_local_neural_overseer = False
+
     def __init__(self, language_aspect_description: str, system_prompt: str = DEFAULT_SYSTEM_PROMPT, user_prompt_template: str = DEFAULT_USER_PROMPT_TEMPLATE):
         super().__init__(language_aspect_description, system_prompt, user_prompt_template)
     
@@ -173,40 +172,21 @@ class SlowNeuralOverseer(NeuralOverseer):
 
 class ReferenceModelNeuralOverseer(NeuralOverseer):
 
+    uses_local_neural_overseer = True
+
     def __init__(
-            self, 
-            language_aspect_description: str, 
-            system_prompt: str = DEFAULT_SYSTEM_PROMPT, 
-            user_prompt_template: str = DEFAULT_USER_PROMPT_TEMPLATE, 
-            reference_model: Optional[PreTrainedModelWrapper] = None, 
-            tokenizer: Optional[AutoTokenizer] = None, 
-            generation_kwargs: Optional[Dict[str, str]] = None
-        ):
-
+        self, 
+        language_aspect_description: str, 
+        system_prompt: str = DEFAULT_SYSTEM_PROMPT, 
+        user_prompt_template: str = DEFAULT_USER_PROMPT_TEMPLATE, 
+    ):
         super().__init__(language_aspect_description, system_prompt, user_prompt_template)
-
-        if reference_model is None:
-            warnings.warn('Reference model not set')
-        if tokenizer is None:
-            warnings.warn('Tokenizer not set')
-        if generation_kwargs is None:
-            warnings.warn('Generation kwargs not set')
-
-        self.reference_model = reference_model
-        self.tokenizer = tokenizer
-        self.generation_kwargs = generation_kwargs
 
     @torch.no_grad()
     def get_overseer_generated_answers(
         self,
         batch_prompt_data: BatchPromptData,
     ) -> List[str]:
-        if self.reference_model is None:
-            raise ValueError(f'Reference model not set, as required for {self.__class__.__name__}')
-        if self.generation_kwargs is None:
-            raise ValueError(f'Generation kwargs not set, as required for {self.__class__.__name__}')
-        if self.tokenizer is None:
-            raise ValueError(f'Tokenizer not set, as required for {self.__class__.__name__}')
         
         # Convert batch_prompt_data into a conversation template
         conversations_list = self.convert_batch_prompt_into_conversation_template(
@@ -233,6 +213,8 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
                 self.tokenizer.decode(r.squeeze()) for r in outputs
             ]
         return decoded_responses
+
+
 
 # TEST ONLY
 if __name__ == '__main__':

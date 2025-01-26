@@ -24,11 +24,11 @@ from mars_steg import language
 from mars_steg.task import TorchDatasetTask
 from mars_steg.language import LanguageAspect, NeuralOverseer, ReferenceModelNeuralOverseer
 
-from trl import PreTrainedModelWrapper
+from trl import PreTrainedModelWrapper, create_reference_model
 
 
 
-def get_dataloaders(
+def get_dataloaders_and_ref_model(
     dataset_class_name: str,
     penalisation_class_name: str,
     dataset_class_kwargs: Optional[Dict],
@@ -36,10 +36,20 @@ def get_dataloaders(
     train_proportion: float,
     validation_proportion: float,
     batch_size: int,
-    reference_model: Optional[PreTrainedModelWrapper] = None,
+    training_model: Optional[PreTrainedModelWrapper] = None,        # TODO: turn this into BaseModel!
     tokenizer: Optional[AutoTokenizer] = None,
     generation_kwargs: Optional[Dict] = None,
+    *_,
+    override_create_ref_model: bool = False,
+    number_shared_layers_for_ref_model: Optional[int] = None
 ):
+    """
+    Including ref model creation here because it is needed for the task,
+    as well as potentially for the training!
+
+    Create the reference model if `override_create_ref_model` is True
+    or if the neural overseer or task requires it
+    """
 
     dataset_class_kwargs = dataset_class_kwargs or dict()
     penalisation_class_kwargs = penalisation_class_kwargs or dict()
@@ -47,20 +57,25 @@ def get_dataloaders(
     language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**penalisation_class_kwargs)
     task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, **dataset_class_kwargs)
 
+    need_reference_model = (
+        override_create_ref_model or 
+        language_aspect_class.uses_local_neural_overseer or
+        task_class.uses_local_neural_assessor
+    )
+    if need_reference_model:
+        import pdb; pdb.set_trace()
+        reference_model = create_reference_model(
+            training_model, num_shared_layers=number_shared_layers_for_ref_model
+        )
+    else:
+        reference_model = None
 
-    if isinstance(language_aspect_class, NeuralOverseer) and reference_model is None:
-        raise ValueError("Neural overseer requires a reference model to be provided.")
-    elif not isinstance(language_aspect_class, NeuralOverseer) and reference_model is not None:
-        raise ValueError("Reference model should not be provided for non-neural overseer tasks.")
-    elif not isinstance(language_aspect_class, NeuralOverseer) and reference_model is None:
-        warnings.warn("Non-neural overseer task is used")
-    elif isinstance(language_aspect_class, NeuralOverseer) and reference_model is not None:
-        language_aspect_class.recruit_reference_model(reference_model)
-        if isinstance(language_aspect_class, ReferenceModelNeuralOverseer):
-            language_aspect_class.tokenizer = tokenizer
-            language_aspect_class.generation_kwargs = generation_kwargs
+    if language_aspect_class.uses_local_neural_overseer:
+        language_aspect_class.recruit_reference_model(reference_model, tokenizer, generation_kwargs)
 
-    # TODO: check that validation_proportion = 0, train_proportion = 1 gives empty test and valid datasets!!!
+    if task_class.uses_local_neural_assessor:
+        task_class.recruit_reference_model(reference_model, tokenizer, generation_kwargs)
+
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(
         train_proportion=train_proportion,
         validation_proportion=validation_proportion
@@ -84,8 +99,7 @@ def get_dataloaders(
         shuffle=False,
         collate_fn=task_class.prompt_data_collate_fn)
 
-
-    return train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader
+    return train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader, reference_model
 
 
 

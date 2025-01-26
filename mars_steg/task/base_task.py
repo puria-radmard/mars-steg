@@ -37,14 +37,15 @@ class Task(metaclass=ABCMeta):
     """
     name: str
     system_prompt: str
+    uses_local_neural_assessor: bool
 
     def __init__(
         self,
         language_aspect: LanguageAspect,
-        use_neural_assessor: bool,
+        uses_local_neural_assessor: bool,
     ):
         self.language_aspect = language_aspect
-        self.use_neural_assessor = use_neural_assessor
+        self.uses_local_neural_assessor = uses_local_neural_assessor
         if self.name not in language_aspect.compatible_tasks:
             raise TypeError(f"""
                 This task is not compatible with the submitted LanguageAspect instance.
@@ -181,6 +182,17 @@ class Task(metaclass=ABCMeta):
 
         return r, task_score, language_score
 
+    def recruit_neural_overseer(self, reference_model: PreTrainedModelWrapper, tokenizer: AutoTokenizer, generation_kwargs: Dict):
+        assert self.uses_local_neural_assessor, f"Attempting to recruit neural assessor to a {self.__class__.__name__}, which does not use it!"
+        self.reference_model = reference_model
+        self.tokenizer = tokenizer
+        self.generation_kwargs = generation_kwargs
+        self.neural_assessor = ProblemSolutionAssessor(
+            model = reference_model,
+            tokenizer = tokenizer,
+            generation_kwargs = generation_kwargs
+        )
+
 
 
 class TorchDatasetTask(Task, Dataset):
@@ -188,32 +200,21 @@ class TorchDatasetTask(Task, Dataset):
     def __init__(self,
         dataset: str,
         language_aspect: LanguageAspect,
-        use_neural_assessor: bool, 
-        reference_model: Optional[PreTrainedModelWrapper] = None, 
-        tokenizer: Optional[AutoTokenizer] = None, 
-        generation_kwargs: Optional[Dict[str, str]] = None
+        uses_local_neural_assessor: bool
     ) -> None:
         super().__init__(
             language_aspect=language_aspect,
-            use_neural_assessor=use_neural_assessor,
+            uses_local_neural_assessor=uses_local_neural_assessor,
         )
         self.dataset_name = dataset
         self.dataset = pd.read_csv(dataset)
         self.length = len(self.dataset)
-        self.use_neural_assessor = use_neural_assessor
 
-        if use_neural_assessor:
-            self.reference_model = reference_model
-            self.tokenizer = tokenizer
-            self.generation_kwargs = generation_kwargs
-            self.neural_assessor = ProblemSolutionAssessor(
-                reference_model = reference_model,
-                tokenizer = tokenizer,
-                generation_kwargs = generation_kwargs
-            )
-        else:
-            assert reference_model == tokenizer == generation_kwargs == None,\
-                "Provided TorchDatasetTask with neural assessor objects but use_neural_assessor is set to False"
+        if self.uses_local_neural_assessor:
+            self.reference_model: Optional[PreTrainedModelWrapper] = None
+            self.tokenizer: Optional[AutoTokenizer] = None
+            self.generation_kwargs: Optional[Dict] = None
+            self.neural_assessor: Optional[ProblemSolutionAssessor] = None
 
     def generate_info(self, idx: int) -> FixedDatasetDataInfo:
         return FixedDatasetDataInfo(idx=idx)
@@ -254,6 +255,7 @@ class TorchDatasetTask(Task, Dataset):
         )
 
         # Slicing the dataset
+        # TODO: shuffled selection
         train_dataset_pd = self.dataset.iloc[:train_size]
         val_dataset_pd = self.dataset.iloc[train_size:train_size + validation_size]
         test_dataset_pd = self.dataset.iloc[train_size + validation_size:]
@@ -261,29 +263,33 @@ class TorchDatasetTask(Task, Dataset):
         print(f"Train size: {len(train_dataset_pd)}")
         print(f"Validation size: {len(val_dataset_pd)}")
         print(f"Test size: {len(test_dataset_pd)}")
+        
         cls = self.__class__
-        train_dataset = cls(self.dataset_name, self.language_aspect)
+        train_dataset = cls(self.dataset_name, self.language_aspect, self.uses_local_neural_assessor)
         train_dataset.dataset = train_dataset_pd
         train_dataset.length = len(train_dataset_pd)
-        val_dataset = cls(self.dataset_name, self.language_aspect)
+        val_dataset = cls(self.dataset_name, self.language_aspect, self.uses_local_neural_assessor)
         val_dataset.dataset = val_dataset_pd
         val_dataset.length = len(val_dataset_pd)
-        test_dataset = cls(self.dataset_name, self.language_aspect)
+        test_dataset = cls(self.dataset_name, self.language_aspect, self.uses_local_neural_assessor)
         test_dataset.dataset = test_dataset_pd
         test_dataset.length = len(test_dataset_pd)
-        return train_dataset, val_dataset, test_dataset
 
-    def iterate_data(self, shuffle=True):
-        """
-        Will need to be modified at the end of the branch completed
-        """
-        pass
+        if self.uses_local_neural_assessor:
+            for new_dataset in train_dataset, val_dataset, test_dataset:
+                new_dataset.recruit_neural_overseer(
+                    reference_model=self.reference_model,
+                    tokenizer=self.tokenizer,
+                    generation_kwargs=self.generation_kwargs
+                )
+
+        return train_dataset, val_dataset, test_dataset
 
     def prompt_data_collate_fn(self, batch: List[PromptData]) -> BatchPromptData:
         return BatchPromptData(prompt_datas=batch)
 
     def neural_assessor_from_batch_prompt_data(self, prompt_data: BatchPromptData, from_cot_prompt: bool) -> List[float]:
-        assert self.use_neural_assessor
+        assert self.uses_local_neural_assessor and self.neural_assessor is not None
         true_answers = self.get_true_answers_from_batch_prompt_data(prompt_data)
         idxs = [pii.idx for pii in prompt_data.infos]
         true_answers = [self.dataset.iloc[idx]["True answer"] for idx in idxs]

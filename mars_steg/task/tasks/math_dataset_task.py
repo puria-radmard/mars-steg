@@ -91,18 +91,12 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         self,
         dataset,
         language_aspect,
-        use_neural_assessor: bool,
-        reference_model: Optional[PreTrainedModelWrapper] = None, 
-        tokenizer: Optional[AutoTokenizer] = None, 
-        generation_kwargs: Optional[Dict[str, str]] = None
+        uses_local_neural_assessor: bool,
     ):
         super().__init__(
             dataset=dataset,
             language_aspect=language_aspect,
-            use_neural_assessor=use_neural_assessor,
-            reference_model=reference_model,
-            tokenizer=tokenizer,
-            generation_kwargs=generation_kwargs,
+            uses_local_neural_assessor=uses_local_neural_assessor,
         )
         answers_as_list = self.dataset['True answer'].map(eval)
         assert answers_as_list.map(lambda x: isinstance(x, list)).all()
@@ -130,10 +124,11 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
             if with_cot
             else prompt_data.extracted_final_answer_without_cot
         )
-        if not self.use_neural_assessor:
+        if not self.uses_local_neural_assessor:
             return self.hard_string_checking(llm_answer, true_answers)
         else:
             #TODO implement neural assessor outisde this, like in the neural overseer case!!!
+            import pdb; pdb.set_trace()
             raise NotImplementedError("Neural assessor not implemented for this task")
     
     def hard_string_checking(self, llm_answer:str, true_answers:str) -> float:

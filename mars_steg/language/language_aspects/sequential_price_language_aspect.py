@@ -7,6 +7,8 @@ class PriceMention(LanguageAspect):
 
     compatible_tasks = {"SequentialPriceTask"}
 
+    uses_local_neural_overseer = False
+
     def __init__(self):
         super().__init__()
 

@@ -6,6 +6,8 @@ class EqualsSign(LanguageAspect):
 
     compatible_tasks = {"MATH_Dataset_Task"}
 
+    uses_local_neural_overseer = False
+
     def __init__(self, penalise_substring="=", max_freq=50):
         super().__init__()
         self.penalise_substring = penalise_substring

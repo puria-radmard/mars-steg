@@ -20,8 +20,8 @@ except ImportError:
 
 class BaseModel(metaclass=ABCMeta):
     def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer):
-        self.model_name = model_config.model_name
         self.model_config = model_config
+        self.model_name = model_config.model_name
         self.tokenizer = tokenizer
         self.lora = model_config.lora
         self.precission_mode = model_config.load_precision_mode

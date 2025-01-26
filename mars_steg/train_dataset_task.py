@@ -9,13 +9,13 @@ import torch
 from tqdm import tqdm
 from transformers import set_seed
 
-from trl import PPOConfig, PPOTrainer, create_reference_model
+from trl import PPOConfig, PPOTrainer
 
 from mars_steg.language.language_aspects.neural_overseer import NeuralOverseer
 from mars_steg.utils.prompt_data import BatchPromptData
 from mars_steg.config import ConfigLoader, ExperimentArgs
 from mars_steg.utils.common import (
-    get_dataloaders,
+    get_dataloaders_and_ref_model,
     batchize_conversation,
     get_optimizer,
     get_tokenizer,
@@ -77,15 +77,8 @@ optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
 
 generation_kwargs = generation_config.to_dict()
 
-if train_config.create_ref_model is True:
-    ref_model = create_reference_model(
-        model.model, num_shared_layers=train_config.number_shared_layers_for_ref_model
-    )
-else:
-    ref_model = None
 
-
-train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = get_dataloaders(
+train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader, ref_model = get_dataloaders_and_ref_model(
     dataset_class_name = experiment_args.dataset_class_name,
     penalisation_class_name = experiment_args.penalisation_class_name,
     dataset_class_kwargs = experiment_args.dataset_class_kwargs,
@@ -93,7 +86,9 @@ train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader 
     train_proportion = train_config.train_proportion,
     validation_proportion = train_config.validation_proportion,
     batch_size = train_config.batch_size,
-    reference_model = ref_model,        # This may be needed if a neural language aspect is used!
+    training_model = model.model,        # This may be needed if a neural language aspect is used!
+    override_create_ref_model = train_config.create_ref_model,
+    number_shared_layers_for_ref_model = train_config.number_shared_layers_for_ref_model
 )
 
 
@@ -187,10 +182,10 @@ if __name__ == "__main__":
             decoded_responses = [
                 tokenizer.decode(r.squeeze()) for r in transcript_responses
             ]
-            print("RESPONSES")
-            for response in decoded_responses:
-                print(response)
-            print("-------------")
+            #print("RESPONSES")
+            #for response in decoded_responses:
+            #    print(response)
+            #print("-------------")
             # extraction of answer and cot (because cot_mode = True) parts of the transcript
             batch_prompt_datas.cot_transcripts = decoded_responses
 
@@ -206,7 +201,7 @@ if __name__ == "__main__":
 
             # Might have partially failed...
             elif len(extracted_batch_prompt_datas) != len(decoded_responses):
-                num_examples_failed = len(decoded_responses) - len(composite_reward_list)
+                num_examples_failed = len(decoded_responses) - len(extracted_batch_prompt_datas)
                 warnings.warn(
                     f"Failed to parse {num_examples_failed} examples out of {len(batch_prompt_datas)}"
                 )
@@ -228,7 +223,7 @@ if __name__ == "__main__":
 
             # Reward final answer
             # TODO: throw relevant errors here!
-            if train_dataset.use_neural_overseer:
+            if train_dataset.uses_local_neural_assessor:
                 # TODO: make this usable for the game case, i.e. no true answer!
                 generated_assessor_scores = train_dataset.neural_assessor_from_batch_prompt_data(extracted_batch_prompt_datas)
             else:
