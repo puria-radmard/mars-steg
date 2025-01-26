@@ -142,7 +142,6 @@ if __name__ == "__main__":
 
         if train_config.evaluate_cot_gap and epoch_to_evaluate == epoch:
 
-
             print("--------")
             print("CoT Gap Evaluation")
             print("--------")
@@ -205,13 +204,9 @@ if __name__ == "__main__":
             decoded_responses = [
                 tokenizer.decode(r.squeeze()) for r in transcript_responses
             ]
-            #print("RESPONSES")
-            #for response in decoded_responses:
-            #    print(response)
-            #print("-------------")
+            
             # extraction of answer and cot (because cot_mode = True) parts of the transcript
             batch_prompt_datas.cot_transcripts = decoded_responses
-
 
             # Extract answer and CoT before given to neural overseer and assessor
             extracted_batch_prompt_datas = extract_cots(batch_prompt_datas, output_delimitation_tokens)

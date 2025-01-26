@@ -164,12 +164,13 @@ class SlowNeuralOverseer(NeuralOverseer):
     def get_overseer_generated_answers(
         self,
         batch_prompt_data: BatchPromptData,
-    ) -> List[str]:
+    ) -> BatchPromptData:
         responses = []
         for prompt_data in batch_prompt_data:
             user_prompt = self.get_user_prompt_for_overseer(prompt_data)
             response_text, _ = self.get_gpt_4o_mini_response(user_prompt, self.system_prompt)
             responses.append(response_text)
+        raise NotADirectoryError('Need to extract acutal answer and drop cases where neural overseer failed')
         return responses
 
 
@@ -189,7 +190,7 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
     def get_overseer_generated_answers(
         self,
         batch_prompt_data: BatchPromptData,
-    ) -> List[str]:
+    ) -> BatchPromptData:
         
         # Convert batch_prompt_data into a conversation template
         conversations_list = self.convert_batch_prompt_into_conversation_template(
@@ -212,10 +213,17 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
         # Run the reference model
         outputs = self.reference_model.generate(**inputs, **self.generation_kwargs)
 
+        # These always work, so can diretly set
         decoded_responses = [
             self.tokenizer.decode(r.squeeze()) for r in outputs
         ]
-        return decoded_responses
+        batch_prompt_data.overseer_responses = decoded_responses
+
+        # TODO: finish parsing and pruning!
+
+
+        
+        return pruned_batch_prompt_data
 
 
 

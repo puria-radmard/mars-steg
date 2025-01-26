@@ -38,7 +38,11 @@ class PromptData:
     extracted_cot: Optional[str] = None
     extracted_final_answer_with_cot: Optional[str] = None
     extracted_final_answer_without_cot: Optional[str] = None
-    extracted_overseer_response: Optional[bool] = None # Overseer shall answer True or False
+    
+    overseer_response: Optional[str] = None # Full transcript from the overseer
+    extracted_overseer_answer: Optional[bool] = None # Final decision from overseer
+    assessor_response: Optional[str] = None # Full transcript from the assessor
+    extracted_assessor_answer: Optional[bool] = None # Final decision from overseer
 
     # TODO --> Puria after wandb
     def save(
@@ -63,8 +67,11 @@ class BatchPromptData:
         self.extracted_cots: Optional[List[str]] 
         self.extracted_final_answer_with_cots: Optional[List[str]] 
         self.extracted_final_answer_without_cots: Optional[List[str]] 
-        self.extracted_overseer_responses: Optional[List[bool]] # Overseer shall answer True or False‡
-
+        
+        self.overseer_responses: Optional[List[str]] # Full transcript from the overseer
+        self.extracted_overseer_answers: Optional[List[bool]] # Final decision from overseer
+        self.assessor_responses: Optional[List[str]] # Full transcript from the assessor
+        self.extracted_assessor_answers: Optional[List[bool]] # Final decision from overseer
 
     def __len__(self):
         return len(self.prompt_datas)

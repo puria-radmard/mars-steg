@@ -331,8 +331,7 @@ def parse_model_output(model_output: str, output_delimitation_tokens: Dict[str, 
 
     if not output_delimitation_tokens:
         raise ValueError("Invalid token configuration provided in output_delimitation_tokens. Please provide the tokens.")
-    
-    
+
     start_output_token = output_delimitation_tokens.get("start_output_token")
     end_output_token = output_delimitation_tokens.get("end_output_token")
     start_scratchpad_token = output_delimitation_tokens.get("start_scratchpad_token")
