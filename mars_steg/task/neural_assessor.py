@@ -6,6 +6,9 @@ import torch
 from transformers import AutoTokenizer
 import re
 
+from mars_steg.utils.common import extract_neural_assessor_answers
+
+import warnings
 from mars_steg.utils.prompt_data import PromptData, BatchPromptData
 
 
@@ -23,7 +26,7 @@ DEFAULT_USER_PROMPT_TEMPLATE = """
 You are a helpful assessor. Your student has provided a solution to the following problem:
 
 <START PROBLEM>
-{problem}
+{agent_prompt}
 <END PROBLEM>
 
 You cannot see their working, but here is the final answer that your student provided to this problem:
@@ -147,7 +150,87 @@ class ProblemSolutionAssessor(NeuralAssessor):
             llm_answer=llm_answer,
             true_answer=true_answer
         )
+
+
+    def convert_batch_prompt_into_conversation_template(
+        self,
+        batch_prompt_data: BatchPromptData,
+        true_answers: List[str],
+        with_cot: bool
+        ) -> List[List[Dict[str, str]]]:
+
+        overseer_prompts = []
+
+        for pd, ta in zip(batch_prompt_data, true_answers):
+            
+            overseer_prompts.append(
+                self.user_content.format(
+                    agent_prompt = pd.cot_prompt if with_cot else pd.no_cot_prompt,
+                    llm_answer = pd.extracted_final_answer_with_cot if with_cot else pd.extracted_final_answer_without_cot, 
+                    true_answer = ta
+                )
+            )
+
+        return self.reference_model.batchize_conversation(self.system_prompt, batch_prompt_data)
     
+    
+
+    @torch.no_grad()
+    def get_assessor_generated_answers(
+        self,
+        batch_prompt_data: BatchPromptData,
+    ) -> BatchPromptData:
+        """
+        Imbue all members of batch_prompt_data with assessor_transcripts in place,
+            but only return the ones for which extraction of extracted_assessor_answer was successful
+
+        Unsuccessful ones will still be available due to inplace operation
+        """
+        # Convert batch_prompt_data into a conversation template
+        conversations_list = self.convert_batch_prompt_into_conversation_template(
+            batch_prompt_data
+        )
+
+        # Tokenize the conversation template
+        inputs = self.tokenizer.apply_chat_template(
+            conversations_list,
+            return_tensors="pt",
+            add_generation_prompt=True,
+            return_dict=True,
+            padding=True,
+            truncation=True,
+        )
+
+        # Run the reference model
+        outputs = self.reference_model.model.generate(**inputs, **self.generation_kwargs)
+
+        # These always work, so can diretly set
+        decoded_responses = [
+            self.tokenizer.decode(r.squeeze()) for r in outputs
+        ]
+        batch_prompt_data.overseer_transcripts = decoded_responses
+
+        # TODO: pass output_delimitation_tokens to here!
+        pruned_batch_prompt_data = extract_neural_assessor_answers(batch_prompt_data, self.reference_model.output_delimitation_tokens)
+        
+        return pruned_batch_prompt_data
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    ############################################################################################################
+    ############################################################################################################
+
     def convert_batch_prompt_into_conversation_template(
             self,
             problems: List[str],
@@ -159,6 +242,7 @@ class ProblemSolutionAssessor(NeuralAssessor):
         for problem, llm_answer, true_answer in zip(problems, llm_answers, true_answers):
             conversations_list.append({"system_prompt": self.system_content,
                                         "user_prompt": self.get_user_prompt_for_assessor(problem, llm_answer, true_answer)})
+    
         return conversations_list
     
 

@@ -19,7 +19,6 @@ from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 
 from mars_steg.utils.common import (
     get_dataloaders_and_ref_model,
-    batchize_conversation,
     get_optimizer,
     get_tokenizer,
     get_model,
@@ -97,7 +96,7 @@ set_seed(config.seed)
 
 tokenizer = get_tokenizer(model_config.model_name)
 generation_config.pad_token_id = tokenizer.eos_token_id 
-model = get_model(model_config, tokenizer)
+model = get_model(model_config, tokenizer, output_delimitation_tokens)
 optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
 
 generation_kwargs = generation_config.to_dict()
@@ -158,7 +157,7 @@ if __name__ == "__main__":
                 model_class = model, 
                 device = device, 
                 generation_kwargs = generation_kwargs,
-                output_delimitation_tokens= output_delimitation_tokens,
+                output_delimitation_tokens= model.output_delimitation_tokens,
             )
 
             print("--------")
@@ -175,12 +174,9 @@ if __name__ == "__main__":
 
             batch_prompt_datas: BatchPromptData
             
-
-            # TODO: move this to BaseModel?
-            batch_messages = batchize_conversation(
+            batch_messages = model.batchize_conversation(
                 system_prompt=train_dataset.system_prompt,
                 user_prompts= batch_prompt_datas.cot_prompts, 
-                model_class= model
             )
             inputs = tokenizer.apply_chat_template(
                 batch_messages,
@@ -211,7 +207,7 @@ if __name__ == "__main__":
             batch_prompt_datas.cot_transcripts = decoded_responses
 
             # Extract answer and CoT before given to neural overseer and assessor
-            extracted_batch_prompt_datas = extract_cots(batch_prompt_datas, output_delimitation_tokens)
+            extracted_batch_prompt_datas = extract_cots(batch_prompt_datas, model.output_delimitation_tokens)
 
             # Penalise CoT - imbued to 
             if isinstance(train_dataset.language_aspect, NeuralOverseer):

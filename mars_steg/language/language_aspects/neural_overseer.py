@@ -105,17 +105,23 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
         )
     
     def convert_batch_prompt_into_conversation_template(
-            self,
-            batch_prompt_data: BatchPromptData
-            ) -> List[str]:
-        
-        # TODO: make self.reference model a BaseModel instance so that this doesn't need to be reimplemented!
+        self,
+        batch_prompt_data: BatchPromptData
+        ) -> List[List[Dict[str, str]]]:
 
-        conversations_list = []
-        for prompt_data in batch_prompt_data:
-            conversations_list.append({"system_prompt": self.system_prompt,
-                                        "user_prompt": self.get_user_prompt_for_overseer(prompt_data)})
-        return conversations_list
+        overseer_prompts = []
+
+        for pd in batch_prompt_data:
+            
+            overseer_prompts.append(
+                self.user_prompt_template.format(
+                    agent_prompt = pd.cot_prompt,
+                    language_aspect_description = self.language_aspect_description,
+                    extracted_cot = pd.extracted_cot
+                )
+            )
+
+        return self.reference_model.batchize_conversation(self.system_prompt, batch_prompt_data)
     
     def get_language_score(
         self,
@@ -185,29 +191,23 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
 
         Unsuccessful ones will still be available due to inplace operation
         """
-
-        # TODO break this function up!
-        
         # Convert batch_prompt_data into a conversation template
         conversations_list = self.convert_batch_prompt_into_conversation_template(
-            self.user_prompt_template,
-            self.system_prompt,
-            self.language_aspect_description,
             batch_prompt_data
         )
 
         # Tokenize the conversation template
         inputs = self.tokenizer.apply_chat_template(
-                conversations_list,
-                return_tensors="pt",
-                add_generation_prompt=True,
-                return_dict=True,
-                padding=True,
-                truncation=True,
-            )
+            conversations_list,
+            return_tensors="pt",
+            add_generation_prompt=True,
+            return_dict=True,
+            padding=True,
+            truncation=True,
+        )
 
         # Run the reference model
-        outputs = self.reference_model.generate(**inputs, **self.generation_kwargs)
+        outputs = self.reference_model.model.generate(**inputs, **self.generation_kwargs)
 
         # These always work, so can diretly set
         decoded_responses = [
@@ -215,8 +215,7 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
         ]
         batch_prompt_data.overseer_transcripts = decoded_responses
 
-        # TODO: pass output_delimitation_tokens to here!
-        pruned_batch_prompt_data = extract_neural_overseer_answers(batch_prompt_data, output_delimitation_tokens)
+        pruned_batch_prompt_data = extract_neural_overseer_answers(batch_prompt_data, self.reference_model.output_delimitation_tokens)
         
         return pruned_batch_prompt_data
 

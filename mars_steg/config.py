@@ -15,6 +15,7 @@ def load_yaml(yaml_file: str) -> dict:
     with open(file_path, "r") as file:
         return yaml.safe_load(file)
 
+
 @dataclass(frozen=True)
 class ModelConfig:
     model_name: str

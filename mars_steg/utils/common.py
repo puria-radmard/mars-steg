@@ -72,6 +72,7 @@ def get_dataloaders_and_ref_model(
         task_class.uses_local_neural_assessor
     )
     if need_reference_model:
+        import pdb; pdb.set_trace(header = 'check pattern is right!')
         reference_model = create_reference_model(
             training_model.model, num_shared_layers=number_shared_layers_for_ref_model,
             pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things
@@ -129,17 +130,17 @@ def get_optimizer(optimizer_config: OptimizerConfig, model: nn.Module) -> t.opti
         return optimizer
 
 
-def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> BaseModel:
+def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer, output_delimitation_tokens: Dict[str, str]) -> BaseModel:
     model_name = model_config.model_name
     print(f'GETTING: {model_name}')
     if model_name == "gpt2":
-        return GPT2Model(model_config=model_config, tokenizer=tokenizer)
+        return GPT2Model(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens)
     elif model_name == 'meta-llama/Llama-3.1-8B-Instruct':
-        return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer)
+        return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens)
     elif model_name == 'meta-llama/Llama-3.2-1B-Instruct':
-        return Llama_32_1B_Instruct(model_config=model_config, tokenizer=tokenizer)
+        return Llama_32_1B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens)
     elif model_name == 'deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B':
-        return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer)
+        return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens)
     else:
         raise ValueError(model_name)
 
@@ -165,22 +166,6 @@ def set_seed(seed: int = 42) -> None:
         t.backends.cudnn.deterministic = True
         t.backends.cudnn.benchmark = False
 
-
-def batchize_conversation(
-    system_prompt: str, user_prompts: List[str], model_class: BaseModel
-):
-    batch_messages = [
-        [
-            model_class.get_message(
-                "system", system_prompt
-            ),  # {"role": "system", "content": system_prompt},
-            model_class.get_message(
-                "user", user_prompt
-            ),  # {"role": "user", "content": user_prompt}
-        ]
-        for user_prompt in user_prompts
-    ]
-    return batch_messages
 
         
 def extract_section(output_start: int, start_section_token: str, output_end: int ,model_output: str):
@@ -410,12 +395,12 @@ def evaluate_cot_gap_summary(
 
         for batch_prompt_datas in tqdm(dataloader):
 
-            batch_messages_without_cot = batchize_conversation(
-                system_prompt, batch_prompt_datas.no_cot_prompts, model_class
+            batch_messages_without_cot = model_class.batchize_conversation(
+                system_prompt, batch_prompt_datas.no_cot_prompts
             )
 
-            batch_messages_with_cot = batchize_conversation(
-                system_prompt, batch_prompt_datas.cot_prompts, model_class
+            batch_messages_with_cot = model_class.batchize_conversation(
+                system_prompt, batch_prompt_datas.cot_prompts
             )
             batch_length = len(batch_messages_with_cot)
             batch_messages = batch_messages_with_cot + batch_messages_without_cot

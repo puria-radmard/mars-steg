@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import List, Optional
+from typing import List, Optional, Iterable
 from dataclasses import dataclass
 
 from torch import Tensor as _T
@@ -76,7 +76,7 @@ class BatchPromptData:
     def __len__(self):
         return len(self.prompt_datas)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[PromptData]:
         """Make the object iterable by returning an iterator over the prompt_datas list."""
         return iter(self.prompt_datas)
 
