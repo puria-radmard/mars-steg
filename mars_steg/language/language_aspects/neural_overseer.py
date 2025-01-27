@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-import warnings
 
 from mars_steg.language.base_language_aspect import LanguageAspect
 from mars_steg.utils.openai_api_helpers import single_query
 from mars_steg.utils.prompt_data import PromptData, BatchPromptData
-from mars_steg.utils.score import check_score
-from mars_steg.utils.common import extract_neural_overseer_answers, extract_boolean_overseer_or_assessor_answer
+from mars_steg.utils.answer_extraction import extract_neural_overseer_answers, extract_boolean_overseer_or_assessor_answer
 
 from typing import Dict, List, Optional, Tuple
 

@@ -100,27 +100,41 @@ class PromptConfig:
     end_output_token_dir: Optional[str] = None
     end_output_token: Optional[str] = None
 
-    def from_file(self, file_path: str):
-        self.load_prompt_dir(file_path)
+
+    @classmethod
+    def from_file(cls, file_path: str):
+        """
+        XXX: *super* hacky
+        Initialise all as Nones
+        Replace all of those with config entries
+        Delete everything that remains None --> attrbute error if used later
+        """
+        config_dict = load_yaml(file_path)
+        instance = cls()
         
-    def load_prompt_dir(self, file):
-        config_dict = load_yaml(file)
-        prompt_dir = config_dict["PromptDir"]
-        for name, dir_ in prompt_dir.items():
-            setattr(self, name, dir_)
+        for name, dir_ in config_dict.items():
             attr_name = name.replace("_dir", "")
+            assert getattr(instance, name) is None
+            assert getattr(instance, attr_name) is None
+            setattr(instance, name, dir_)
             with open(dir_, 'r') as f:
-                setattr(self, attr_name, f.read().strip())
+                setattr(instance, attr_name, f.read().strip())
+        
+        for name, attr in instance.__dict__.items():
+            if attr is None:
+                delattr(instance, name)
+        
+        return instance
 
     #def __getattribute__(self, __name: str):
 
         #if self.__getattr__(__name) == None:
             #raise ValueError(f'PromptConfig not given a {__name} field')
  
-    def __setattribute__(self, name : str, value: str):
-        # set attribute to value
-        if not isinstance(value,str):
-            raise ValueError(f'The value of {name} should be a string')
+    # def __setattribute__(self, name : str, value: str):
+    #     # set attribute to value
+    #     if not isinstance(value,str):
+    #         raise ValueError(f'The value of {name} should be a string')
         
 
 

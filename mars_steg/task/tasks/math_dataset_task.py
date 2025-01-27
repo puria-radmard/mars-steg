@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from mars_steg.task.base_task import TorchDatasetTask
 from mars_steg.utils.math_equivalence import is_equiv
-from mars_steg.utils.common import extract_boolean_overseer_or_assessor_answer
+from mars_steg.utils.answer_extraction import extract_boolean_overseer_or_assessor_answer
 
 
 

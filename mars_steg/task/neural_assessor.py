@@ -1,17 +1,14 @@
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
-from typing import Any, Dict, List
+from typing import Dict, List
 import torch
-from transformers import AutoTokenizer
-import re
 
 from mars_steg.model import BaseModel
 
-from mars_steg.utils.common import extract_neural_assessor_answers
+from mars_steg.utils.answer_extraction import extract_neural_assessor_answers
 
-import warnings
-from mars_steg.utils.prompt_data import PromptData, BatchPromptData
+from mars_steg.utils.prompt_data import BatchPromptData
 
 
 # TODO: move all of this to prompt text files!

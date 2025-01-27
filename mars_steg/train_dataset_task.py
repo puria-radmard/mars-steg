@@ -25,18 +25,17 @@ from mars_steg.utils.common import (
     get_device,
     get_rewards_and_training_datas,
     evaluate_cot_gap_summary,
-    extract_cots,
     get_prompt_config,
-    parse_model_output,
     # evaluate_cot_gap_and_ratio    TODO: where did this go?
 )
 
-from mars_steg.utils.exceptions import LLMTranscriptExtractionError
+from mars_steg.utils.answer_extraction import extract_cots
 
 
+# TODO: argsparsify
 experiment_args_path = sys.argv[1]
 config_path = sys.argv[2]   # e.g. "mars_steg/configs/config.yaml"
-prompt_config_path = sys.argv[2]   # e.g. "mars_steg/configs/prompt/math_training_llama.yaml"
+prompt_config_path = sys.argv[3]   # e.g. "mars_steg/configs/prompt/math_training_llama.yaml"
 
 device = get_device()
 
@@ -46,8 +45,8 @@ device = get_device()
 
 model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(config_path)
 
+prompt_config = PromptConfig.from_file(prompt_config_path)
 import pdb; pdb.set_trace()
-prompt_config = PromptConfig(prompt_config_path)
 print(prompt_config)
 
 output_delimitation_tokens = {
