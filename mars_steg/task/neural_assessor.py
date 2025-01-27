@@ -49,17 +49,15 @@ Third: Finally, provide your final score as a float. This score should be the la
 class NeuralAssessor(metaclass=ABCMeta):
     """
     A base class for neural assessors
-
-    Logic here is slightly different to neural overseer... TODO: proper documentation
     """
 
     def __init__(
         self, 
-        model: BaseModel, 
+        model: BaseModel,
     ):
 
-        self.model = model
-        self.model.eval()
+        self.whitebox_model = model
+        self.whitebox_model.eval()
         
         # TODO: move to config
         self.user_content = DEFAULT_USER_PROMPT_TEMPLATE
@@ -163,9 +161,7 @@ class ProblemSolutionAssessor(NeuralAssessor):
                 )
             )
 
-        return self.model.batchize_conversation(self.system_prompt, batch_prompt_data)
-    
-    
+        return self.whitebox_model.batchize_conversation(self.system_prompt, batch_prompt_data)
 
     @torch.no_grad()
     def get_assessor_generated_answers(
@@ -183,12 +179,12 @@ class ProblemSolutionAssessor(NeuralAssessor):
             batch_prompt_data
         )
 
-        decoded_responses = self.reference_model.full_generate(conversations_list)
+        decoded_responses = self.whitebox_model.full_generate(conversations_list)
 
         batch_prompt_data.overseer_transcripts = decoded_responses
 
         # TODO: pass output_delimitation_tokens to here!
-        pruned_batch_prompt_data = extract_neural_assessor_answers(batch_prompt_data, self.reference_model.output_delimitation_tokens)
+        pruned_batch_prompt_data = extract_neural_assessor_answers(batch_prompt_data, self.whitebox_model.output_delimitation_tokens)
         
         return pruned_batch_prompt_data
 

@@ -44,11 +44,11 @@ def get_dataloaders_and_ref_model(
     validation_proportion: float,
     batch_size: int,
     training_model: Optional[BaseModel] = None,  
-    tokenizer: Optional[AutoTokenizer] = None,
-    generation_kwargs: Optional[Dict] = None,
     *_,
     override_create_ref_model: bool = False,
-    number_shared_layers_for_ref_model: Optional[int] = None
+    number_shared_layers_for_ref_model: Optional[int] = None,
+    override_neural_overseer_model: Optional[BaseModel] = None,
+    override_neural_assessor_model: Optional[BaseModel] = None,
 ):
     """
     Including ref model creation here because it is needed for the task,
@@ -68,8 +68,8 @@ def get_dataloaders_and_ref_model(
 
     need_reference_model = (
         override_create_ref_model or 
-        language_aspect_class.uses_local_neural_overseer or
-        task_class.uses_local_neural_assessor
+        (language_aspect_class.uses_local_neural_overseer and override_neural_overseer_model is None) or
+        (task_class.uses_local_neural_assessor and override_neural_assessor_model is None)
     )
     if need_reference_model:
         import pdb; pdb.set_trace(header = 'check pattern is right!')
@@ -81,12 +81,18 @@ def get_dataloaders_and_ref_model(
         reference_model = None
 
     if language_aspect_class.uses_local_neural_overseer:
-        neural_overseer: BaseModel = training_model.duplicate(reference_model)
+        if override_neural_overseer_model is None:
+            neural_overseer: BaseModel = training_model.duplicate(reference_model)
+        else:
+            neural_overseer = override_neural_overseer_model.eval()
         language_aspect_class.recruit_neural_overseer(neural_overseer)    
 
     if task_class.uses_local_neural_assessor:
-        neural_assesor: BaseModel = training_model.duplicate(reference_model)
-        task_class.recruit_neural_assessor(neural_assesor)   
+        if override_neural_assessor_model is None:
+            neural_assessor: BaseModel = training_model.duplicate(reference_model)
+        else:
+            neural_assessor = override_neural_assessor_model.eval()
+        task_class.recruit_neural_assessor(neural_assessor)   
 
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(
         train_proportion=train_proportion,

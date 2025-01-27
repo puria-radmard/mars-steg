@@ -46,7 +46,6 @@ device = get_device()
 model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(config_path)
 
 prompt_config = PromptConfig.from_file(prompt_config_path)
-import pdb; pdb.set_trace()
 print(prompt_config)
 
 output_delimitation_tokens = {
@@ -268,6 +267,8 @@ if __name__ == "__main__":
             print("--------")
             print("Rewarding model")
             print("--------")
+
+            # XXX: Stop here to test loop
 
             if optimize:
 

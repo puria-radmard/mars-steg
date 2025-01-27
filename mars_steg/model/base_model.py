@@ -65,13 +65,13 @@ class BaseModel(metaclass=ABCMeta):
         print(f"Model loaded in {self.precission_mode} mode")
         print("------------------")
     
-    def duplicate(self, reference_model):
+    def duplicate(self, whitebox_model):
         # Create a new instance of the same class
         new_instance = self.__class__(
             model_config=self.model_config,
             tokenizer=self.tokenizer,
             output_delimitation_tokens = self.output_delimitation_tokens,
-            model=reference_model if reference_model is not None else None
+            model=whitebox_model if whitebox_model is not None else None
         )
 
         new_instance.model.eval()
@@ -101,6 +101,8 @@ class BaseModel(metaclass=ABCMeta):
         return batch_messages
 
     def full_generate(self, conversations_list: Conversation):
+
+        import pdb; pdb.set_trace(header = 'Check every possible prompt - make sure it has all the nec. components!')
 
         inputs = self.tokenizer.apply_chat_template(
             conversations_list,

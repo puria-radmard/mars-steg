@@ -119,7 +119,7 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
                 )
             )
 
-        return self.reference_model.batchize_conversation(self.system_prompt, batch_prompt_data)
+        return self.whitebox_model.batchize_conversation(self.system_prompt, batch_prompt_data)
     
     def get_language_score(
         self,
@@ -195,11 +195,11 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
         )
 
         # Run the reference model
-        decoded_responses = self.reference_model.full_generate(conversations_list)
+        decoded_responses = self.whitebox_model.full_generate(conversations_list)
 
         batch_prompt_data.overseer_transcripts = decoded_responses
 
-        pruned_batch_prompt_data = extract_neural_overseer_answers(batch_prompt_data, self.reference_model.output_delimitation_tokens)
+        pruned_batch_prompt_data = extract_neural_overseer_answers(batch_prompt_data, self.whitebox_model.output_delimitation_tokens)
         
         return pruned_batch_prompt_data
 

@@ -183,11 +183,11 @@ class Task(metaclass=ABCMeta):
 
         return r, task_score, language_score
 
-    def recruit_neural_assessor(self, reference_model: BaseModel):
+    def recruit_neural_assessor(self, model: BaseModel):
         assert self.uses_local_neural_assessor, f"Attempting to recruit neural assessor to a {self.__class__.__name__}, which does not use it!"
-        self.reference_model = reference_model
+        self.whitebox_model = model
         self.neural_assessor = ProblemSolutionAssessor(
-            model = reference_model,
+            model = model,
         )
 
 
@@ -211,7 +211,7 @@ class TorchDatasetTask(Task, Dataset):
         self.prompt_config = prompt_config
 
         if self.uses_local_neural_assessor:
-            self.reference_model: Optional[PreTrainedModelWrapper] = None
+            self.whitebox_model: Optional[PreTrainedModelWrapper] = None
             self.tokenizer: Optional[AutoTokenizer] = None
             self.generation_kwargs: Optional[Dict] = None
             self.neural_assessor: Optional[ProblemSolutionAssessor] = None
@@ -272,7 +272,7 @@ class TorchDatasetTask(Task, Dataset):
             new_dataset.length = len(dataset_pd)
             if self.uses_local_neural_assessor:
                 new_dataset.recruit_neural_assessor(
-                    reference_model=self.reference_model,
+                    reference_model=self.whitebox_model,
                     tokenizer=self.tokenizer,
                     generation_kwargs=self.generation_kwargs
                 )
