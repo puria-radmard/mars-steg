@@ -13,7 +13,7 @@ from transformers import AutoTokenizer
 from mars_steg.config import ModelConfig, OptimizerConfig
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.utils.score import CoTGapSummary
-from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct, Llama_32_1B_Instruct
+from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct, Llama_32_1B_Instruct, Deepseek_R1_15b_Distill_Qwen, Deepseek_R1_7b_Distill_Qwen, Deepseek_R1_8b_Distill_Llama
 
 from torch.utils.data import DataLoader
 
@@ -113,6 +113,12 @@ def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> BaseModel:
         return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer)
     elif model_name == 'meta-llama/Llama-3.2-1B-Instruct':
         return Llama_32_1B_Instruct(model_config=model_config, tokenizer=tokenizer)
+    elif model_name == 'deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B':
+        return Deepseek_R1_15b_Distill_Qwen(model_config=model_config, tokenizer=tokenizer)
+    elif model_name == 'deepseek-ai/DeepSeek-R1-Distill-Qwen-7B':
+        return Deepseek_R1_7b_Distill_Qwen(model_config=model_config, tokenizer=tokenizer)
+    elif model_name == 'deepseek-ai/DeepSeek-R1-Distill-Llama-8B':
+        return Deepseek_R1_8b_Distill_Llama(model_config=model_config, tokenizer=tokenizer)
     else:
         raise ValueError(model_name)
     
