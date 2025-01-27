@@ -121,7 +121,7 @@ class PromptConfig:
                 setattr(instance, attr_name, f.read().strip())
         
         for name, attr in instance.__dict__.items():
-            if attr is None:
+            if (attr is None) and ('token' not in name):
                 delattr(instance, name)
         
         return instance
