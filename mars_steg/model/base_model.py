@@ -71,6 +71,7 @@ class BaseModel(metaclass=ABCMeta):
             model_config=self.model_config,
             tokenizer=self.tokenizer,
             output_delimitation_tokens = self.output_delimitation_tokens,
+            generation_config = self.generation_config,
             model=whitebox_model if whitebox_model is not None else None
         )
 

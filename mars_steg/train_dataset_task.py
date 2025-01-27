@@ -108,9 +108,7 @@ train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader,
     train_proportion = train_config.train_proportion,
     validation_proportion = train_config.validation_proportion,
     batch_size = train_config.batch_size,
-    training_model = model.model,        # This may be needed if a neural language aspect is used!
-    tokenizer = tokenizer,
-    generation_kwargs = generation_kwargs,
+    training_model = model,
     override_create_ref_model = train_config.create_ref_model,
     number_shared_layers_for_ref_model = train_config.number_shared_layers_for_ref_model
 )

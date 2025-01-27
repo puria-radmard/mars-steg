@@ -10,7 +10,7 @@ from typing import List, Tuple
 
 from tqdm import tqdm
 from transformers import AutoTokenizer
-from mars_steg.config import ModelConfig, OptimizerConfig, PromptConfig
+from mars_steg.config import ModelConfig, OptimizerConfig, PromptConfig, GenerationConfig
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.utils.score import CoTGapSummary
 from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct, Llama_32_1B_Instruct, DeepSeek_R1_1pt5B
@@ -60,9 +60,6 @@ def get_dataloaders_and_ref_model(
 
     dataset_class_kwargs = dataset_class_kwargs or dict()
     penalisation_class_kwargs = penalisation_class_kwargs or dict()
-    print(dataset_class_name)
-    print(dataset_class_kwargs)
-    print(prompt_config)
     language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**penalisation_class_kwargs)
     task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, prompt_config = prompt_config, **dataset_class_kwargs )
 
@@ -72,7 +69,6 @@ def get_dataloaders_and_ref_model(
         (task_class.uses_local_neural_assessor and override_neural_assessor_model is None)
     )
     if need_reference_model:
-        import pdb; pdb.set_trace(header = 'check pattern is right!')
         reference_model = create_reference_model(
             training_model.model, num_shared_layers=number_shared_layers_for_ref_model,
             pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things
@@ -136,17 +132,17 @@ def get_optimizer(optimizer_config: OptimizerConfig, model: nn.Module) -> t.opti
         return optimizer
 
 
-def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer, output_delimitation_tokens: Dict[str, str]) -> BaseModel:
+def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer, output_delimitation_tokens: Dict[str, str], generation_config=GenerationConfig) -> BaseModel:
     model_name = model_config.model_name
     print(f'GETTING: {model_name}')
     if model_name == "gpt2":
-        return GPT2Model(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens)
+        return GPT2Model(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config)
     elif model_name == 'meta-llama/Llama-3.1-8B-Instruct':
-        return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens)
+        return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config)
     elif model_name == 'meta-llama/Llama-3.2-1B-Instruct':
-        return Llama_32_1B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens)
+        return Llama_32_1B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config)
     elif model_name == 'deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B':
-        return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens)
+        return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config)
     else:
         raise ValueError(model_name)
 

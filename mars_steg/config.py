@@ -100,7 +100,6 @@ class PromptConfig:
     end_output_token_dir: Optional[str] = None
     end_output_token: Optional[str] = None
 
-
     @classmethod
     def from_file(cls, file_path: str):
         """
@@ -114,22 +113,21 @@ class PromptConfig:
         
         for name, dir_ in config_dict.items():
             attr_name = name.replace("_dir", "")
-            assert getattr(instance, name) is None
-            assert getattr(instance, attr_name) is None
+            assert super(PromptConfig, instance).__getattribute__(name) is None
+            assert super(PromptConfig, instance).__getattribute__(attr_name) is None
             setattr(instance, name, dir_)
             with open(dir_, 'r') as f:
                 setattr(instance, attr_name, f.read().strip())
-        
-        for name, attr in instance.__dict__.items():
-            if (attr is None) and ('token' not in name):
-                delattr(instance, name)
-        
+
         return instance
 
-    #def __getattribute__(self, __name: str):
+    def __getattribute__(self, __name: str):
 
-        #if self.__getattr__(__name) == None:
-            #raise ValueError(f'PromptConfig not given a {__name} field')
+        ret = super().__getattribute__(__name)
+        if (ret == None) and ('token' not in __name):
+            raise ValueError(f'PromptConfig not given a {__name} field')
+
+        return ret
  
     # def __setattribute__(self, name : str, value: str):
     #     # set attribute to value

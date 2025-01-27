@@ -46,11 +46,13 @@ Second: We need a score for their solution between 0 and 1, given as a float. If
 Third: Finally, provide your final score as a float. This score should be the last thing that you output.
 """
 
-class NeuralAssessor(metaclass=ABCMeta):
-    """
-    A base class for neural assessors
-    """
 
+
+class ProblemSolutionAssessor:
+    """
+    A neural assessor for math tasks
+    """
+    
     def __init__(
         self, 
         model: BaseModel,
@@ -63,71 +65,6 @@ class NeuralAssessor(metaclass=ABCMeta):
         self.user_content = DEFAULT_USER_PROMPT_TEMPLATE
         self.system_content = DEFAULT_SYSTEM_PROMPT
 
-    @abstractmethod
-    def format_assessor_prompt(self, llm_answer: str, true_answer: str) -> str:
-        """
-        Format the prompt for the assessor.
-
-        Args:
-            prompt: the prompt to format
-
-        Returns:
-            the formatted prompt
-        """
-        pass
-
-    @abstractmethod
-    def generate(self, prompt: str) -> str:
-        """
-        Generate a prompt for the response to the given prompt.
-
-        Args:
-            prompt: the prompt to which the response is given
-            response: the response to the prompt
-
-        Returns:
-            a prompt for the response
-        """
-        pass
-
-    @abstractmethod
-    def extract_assessor_answer(self, response: str) -> str:
-        """
-        Extract the assessor's answer from the response.
-
-        Args:
-            response: the response to the prompt
-
-        Returns:
-            the assessor's answer
-        """
-        pass
-
-
-    @abstractmethod
-    def assess(self, llm_answer: str, true_answer: str) -> float:
-        """
-        Assess the llm_answer against the true_answer.
-
-        Args:
-            llm_answer: the answer from the language model
-            true_answer: the true answer
-
-        Returns:
-            a score between 0 and 1
-        """
-        pass
-
-
-class ProblemSolutionAssessor(NeuralAssessor):
-    """
-    A neural assessor for math tasks
-    """
-    def __init__(
-        self,
-        model: BaseModel
-    ):
-        super().__init__(model)
     
     def get_user_prompt_for_assessor(
         self,
