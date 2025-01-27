@@ -6,4 +6,4 @@
 
 # mars_steg/configs/config_deepseek_15b.yaml
 
-python -m mars_steg.train_dataset_task experiments/a_math/1_equals_mention.yaml mars_steg/configs/config_deepseek_15b.yaml
+python -m mars_steg.train_dataset_task experiments/a_math/1_equals_mention.yaml mars_steg/configs/config_deepseek_8b.yaml
