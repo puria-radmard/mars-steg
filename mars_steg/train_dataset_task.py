@@ -46,7 +46,6 @@ device = get_device()
 model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(config_path)
 
 prompt_config = PromptConfig.from_file(prompt_config_path)
-print(prompt_config)
 
 output_delimitation_tokens = {
     "start_scratchpad_token": prompt_config.start_scratchpad_token,
