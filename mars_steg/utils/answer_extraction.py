@@ -142,7 +142,7 @@ def extract_neural_assessor_answers(batch_prompt_datas: BatchPromptData, output_
             warnings.warn(f"Failed to parse assessor answer from: \n\n{prompt_data.assessor_transcript}\n\n Skipping example")
     return BatchPromptData(extracted_prompt_datas)
 
-def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens: Dict[str, str]):
+def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens: Dict[str, str]) -> BatchPromptData:
     """
     Take in full batch of prompts, and spit out batch of prompts for which the model was able to give
         a well formatted answer. If output length is less than input length, this means some responses could

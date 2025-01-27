@@ -55,7 +55,7 @@ class BatchPromptData:
 
     def __init__(self, prompt_datas: List[PromptData]):
         assert len(prompt_datas) > 0, "BatchPromptData must have at least one PromptData"
-        self.prompt_datas : List[PromptData] = prompt_datas
+        self.prompt_datas: List[PromptData] = prompt_datas
         self.cot_prompts: Optional[List[str]] 
         self.no_cot_prompts: Optional[List[str]] 
         self.infos: Optional[List[str]] 

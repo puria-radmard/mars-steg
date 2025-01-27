@@ -207,18 +207,15 @@ if __name__ == "__main__":
             # Extract answer and CoT before given to neural overseer and assessor
             extracted_batch_prompt_datas = extract_cots(batch_prompt_datas, model.output_delimitation_tokens)
 
-            # Penalise CoT - imbued to 
+            # Penalise CoT - imbue relevant information to PromptData's
             if isinstance(train_dataset.language_aspect, NeuralOverseer):
                 extracted_batch_prompt_datas_with_nos = train_dataset.language_aspect.get_overseer_generated_answers(extracted_batch_prompt_datas)
             else:
                 # get_task_score will do a hard string check
                 extracted_batch_prompt_datas_with_nos = extracted_batch_prompt_datas
 
-            # Reward final answer
-            # TODO: throw relevant errors here!
-            # TODO: extract assessor answer
+            # Reward final answer - imbue relevant information to PromptData's
             if train_dataset.uses_local_neural_assessor:
-                # TODO: make this usable for the game case, i.e. no true answer!
                 extracted_batch_prompt_datas_with_nos_and_na = train_dataset.neural_assessor_from_batch_prompt_data(extracted_batch_prompt_datas_with_nos, from_cot_prompt = True)
             else:
                 # get_language_score will do a hard string check
@@ -247,7 +244,8 @@ if __name__ == "__main__":
 
 
             # Extract rewards
-            composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses = get_rewards_and_training_datas(
+            composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses = \
+            get_rewards_and_training_datas(
                 batch_prompt_datas=extracted_batch_prompt_datas,
                 query_tensors=query_tensors,
                 transcript_responses=transcript_responses, 
