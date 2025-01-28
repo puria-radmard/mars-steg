@@ -272,9 +272,7 @@ class TorchDatasetTask(Task, Dataset):
             new_dataset.length = len(dataset_pd)
             if self.uses_local_neural_assessor:
                 new_dataset.recruit_neural_assessor(
-                    reference_model=self.whitebox_model,
-                    tokenizer=self.tokenizer,
-                    generation_kwargs=self.generation_kwargs
+                    model=self.whitebox_model
                 )
             output_datasets.append(new_dataset)
 

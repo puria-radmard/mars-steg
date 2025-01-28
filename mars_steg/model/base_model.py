@@ -103,7 +103,7 @@ class BaseModel(metaclass=ABCMeta):
 
     def full_generate(self, conversations_list: Conversation):
 
-        import pdb; pdb.set_trace(header = 'Check every possible prompt - make sure it has all the nec. components!')
+        # import pdb; pdb.set_trace(header = 'Check every possible prompt - make sure it has all the nec. components!')
 
         inputs = self.tokenizer.apply_chat_template(
             conversations_list,
@@ -114,8 +114,11 @@ class BaseModel(metaclass=ABCMeta):
             truncation=True,
         )
 
+        # create a new dict without ['return_prompt', 'generate_ref_response', 'batch_size'] keys
+        generation_kwargs = {k: v for k, v in self.generation_config.to_dict().items() if k not in ['return_prompt', 'generate_ref_response', 'batch_size']}
+
         # Run the reference model
-        outputs = self.model.generate(**inputs, **self.generation_config.to_dict())
+        outputs = self.model.generate(**inputs, **generation_kwargs)
 
         # These always work, so can diretly set
         decoded_responses = [

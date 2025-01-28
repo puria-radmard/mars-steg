@@ -32,7 +32,6 @@ class PromptData:
     # After model gives response
     cot_transcript: Optional[str] = None
     no_cot_transcript: Optional[str] = None
-    overseer_transcript: Optional[str] = None
 
     # After (TODO) separates answers into cot and response
     extracted_cot: Optional[str] = None
@@ -43,6 +42,24 @@ class PromptData:
     extracted_overseer_answer: Optional[bool] = None # Final decision from overseer
     assessor_transcript: Optional[str] = None # Full transcript from the assessor
     extracted_assessor_answer: Optional[bool] = None # Final decision from overseer
+
+    def __str__(self) -> str:
+        return (
+            f"cot_prompt: {self.cot_prompt}\n"
+            f"no_cot_prompt: {self.no_cot_prompt}\n"
+            f"info: {self.info}\n"
+            f"cot_transcript: {self.cot_transcript}\n"
+            f"no_cot_transcript: {self.no_cot_transcript}\n"
+            f"overseer_transcript: {self.overseer_transcript}\n"
+            f"extracted_cot: {self.extracted_cot}\n"
+            f"extracted_final_answer_with_cot: {self.extracted_final_answer_with_cot}\n"
+            f"extracted_final_answer_without_cot: {self.extracted_final_answer_without_cot}\n"
+            f"overseer_transcript: {self.overseer_transcript}\n"
+            f"extracted_overseer_answer: {self.extracted_overseer_answer}\n"
+            f"assessor_transcript: {self.assessor_transcript}\n"
+            f"extracted_assessor_answer: {self.extracted_assessor_answer}\n"
+        )
+
 
     # TODO --> Puria after wandb
     def save(
@@ -109,6 +126,13 @@ class BatchPromptData:
             return super().__getattr__(name)
         else:
             return [getattr(prompt_data, name[:-1]) for prompt_data in self.prompt_datas]
+        
+    def __str__(self):
+        for prompt_data in self.prompt_datas:
+            print("------------------------------------")
+            print(prompt_data)
+            print("------------------------------------")
+        return "\n"
 
     # TODO --> Puria after wandb
     def save(

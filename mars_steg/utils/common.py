@@ -47,8 +47,8 @@ def get_dataloaders_and_ref_model(
     *_,
     override_create_ref_model: bool = False,
     number_shared_layers_for_ref_model: Optional[int] = None,
-    override_neural_overseer_model: Optional[BaseModel] = None,
-    override_neural_assessor_model: Optional[BaseModel] = None,
+    neural_overseer_model: Optional[BaseModel] = None,
+    neural_assessor_model: Optional[BaseModel] = None,
 ):
     """
     Including ref model creation here because it is needed for the task,
@@ -65,8 +65,8 @@ def get_dataloaders_and_ref_model(
 
     need_reference_model = (
         override_create_ref_model or 
-        (language_aspect_class.uses_local_neural_overseer and override_neural_overseer_model is None) or
-        (task_class.uses_local_neural_assessor and override_neural_assessor_model is None)
+        (language_aspect_class.uses_local_neural_overseer and neural_overseer_model is None) or
+        (task_class.uses_local_neural_assessor and neural_assessor_model is None)
     )
     if need_reference_model:
         reference_model = create_reference_model(
@@ -77,17 +77,17 @@ def get_dataloaders_and_ref_model(
         reference_model = None
 
     if language_aspect_class.uses_local_neural_overseer:
-        if override_neural_overseer_model is None:
+        if neural_overseer_model is None:
             neural_overseer: BaseModel = training_model.duplicate(reference_model)
         else:
-            neural_overseer = override_neural_overseer_model.eval()
+            neural_overseer = neural_overseer_model.eval()
         language_aspect_class.recruit_neural_overseer(neural_overseer)    
 
     if task_class.uses_local_neural_assessor:
-        if override_neural_assessor_model is None:
+        if neural_assessor_model is None:
             neural_assessor: BaseModel = training_model.duplicate(reference_model)
         else:
-            neural_assessor = override_neural_assessor_model.eval()
+            neural_assessor = neural_assessor_model.eval()
         task_class.recruit_neural_assessor(neural_assessor)   
 
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(
@@ -132,7 +132,12 @@ def get_optimizer(optimizer_config: OptimizerConfig, model: nn.Module) -> t.opti
         return optimizer
 
 
-def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer, output_delimitation_tokens: Dict[str, str], generation_config=GenerationConfig) -> BaseModel:
+def get_model(
+        model_config: ModelConfig, 
+        tokenizer: AutoTokenizer, 
+        output_delimitation_tokens: Dict[str, str], 
+        generation_config=GenerationConfig) -> BaseModel:
+    
     model_name = model_config.model_name
     print(f'GETTING: {model_name}')
     if model_name == "gpt2":

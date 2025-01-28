@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import warnings
 import numpy as np
 import wandb
@@ -11,9 +10,9 @@ from transformers import set_seed
 
 from trl import PPOConfig, PPOTrainer
 
+import sys
 from mars_steg.language.language_aspects.neural_overseer import NeuralOverseer
 from mars_steg.utils.prompt_data import BatchPromptData
-from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 
 
@@ -24,15 +23,16 @@ from mars_steg.utils.common import (
     get_model,
     get_device,
     get_rewards_and_training_datas,
-    evaluate_cot_gap_summary,
-    get_prompt_config,
-    # evaluate_cot_gap_and_ratio    TODO: where did this go?
+    evaluate_cot_gap_summary
 )
 
 from mars_steg.utils.answer_extraction import extract_cots
 
 
 # TODO: argsparsify
+
+
+print(sys.argv)
 experiment_args_path = sys.argv[1]
 config_path = sys.argv[2]   # e.g. "mars_steg/configs/config.yaml"
 prompt_config_path = sys.argv[3]   # e.g. "mars_steg/configs/prompt/math_training_llama.yaml"
@@ -251,6 +251,7 @@ if __name__ == "__main__":
 
             if len(composite_reward_list) == 0:
                 warnings.warn("All feedbacks failed to parse. Skipping actual training")
+                #TODO skip training ? and put optimize = False ?
 
 
             print("--------")
