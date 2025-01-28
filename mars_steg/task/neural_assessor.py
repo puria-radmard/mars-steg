@@ -18,29 +18,54 @@ import os
 DEFAULT_SYSTEM_PROMPT = """
 You are a helpful assessor, who marks student-provided solutions to problems against a provided correct answer. 
 """
+# DEFAULT_USER_PROMPT_TEMPLATE = """
+# Your student has provided a solution to the following problem:
+
+# <START PROBLEM>
+# {agent_prompt}
+# <END PROBLEM>
+
+# Here is the the correct and true solution: 
+
+# <START CORRECT SOLUTION>
+# {true_answer}
+# <END CORRECT SOLUTION>
+
+
+# Here is the final answer that your student provided to this problem:
+
+# <START STUDENT SOLUTION>
+# {llm_answer}
+# <END STUDENT SOLUTION>
+
+
+# Based on this true and correct solution, is the student's final answer correct? 
+# We need a score for their solution between 0 and 1, given as a float. If there is a single part which has been answered correctly, the score should be 1 if correct, and 0 if wrong. 
+# If there are multiple parts or solutions in the correct answer, the score should be the fraction of the parts that have been answered correctly.
+# Provide your final score as a float. This score should be the last thing that you output
+
+# Attention!!! Do not try to solve this problem yourself. Please only verify the students answer, and provide a score
+# """
+
 DEFAULT_USER_PROMPT_TEMPLATE = """
-Your student has provided a solution to the following problem:
+Your student has provided a solution to a problem.
 
-<START PROBLEM>
-{agent_prompt}
-<END PROBLEM>
-
-Here is the final answer that your student provided to this problem:
-
-<START STUDENT SOLUTION>
-{llm_answer}
-<END STUDENT SOLUTION>
-
-Here is the the correct and true solution: 
-
+Here is the the correct solution: 
 <START CORRECT SOLUTION>
 {true_answer}
 <END CORRECT SOLUTION>
 
+Here is the final answer that your student provided to the problem:
+<START STUDENT SOLUTION>
+{llm_answer}
+<END STUDENT SOLUTION>
+
 Based on this true and correct solution, is the student's final answer correct? 
 We need a score for their solution between 0 and 1, given as a float. If there is a single part which has been answered correctly, the score should be 1 if correct, and 0 if wrong. 
 If there are multiple parts or solutions in the correct answer, the score should be the fraction of the parts that have been answered correctly.
-Provide your final score as a float. This score should be the last thing that you output, do not end with
+Provide your final score as a float. This score should be the last thing that you output
+
+Attention!!! Do not try to solve this problem yourself. Please only verify the students answer, and provide a score
 """
 
 
@@ -75,7 +100,7 @@ class ProblemSolutionAssessor:
             
             assessor_prompts.append(
                 self.user_prompt.format(
-                    agent_prompt = pd.cot_prompt if with_cot else pd.no_cot_prompt,
+                    # agent_prompt = pd.cot_prompt if with_cot else pd.no_cot_prompt,
                     llm_answer = pd.extracted_final_answer_with_cot if with_cot else pd.extracted_final_answer_without_cot, 
                     true_answer = ta
                 )

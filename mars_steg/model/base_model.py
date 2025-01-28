@@ -126,6 +126,7 @@ class BaseModel(metaclass=ABCMeta):
 
         # These always work, so can diretly set
         decoded_responses = [
+            # TODO: self.tokenizer.decode(r.squeeze()[prompt_length:]) for prompt_length, r in zip(prompt_lengths, outputs)
             self.tokenizer.decode(r.squeeze()) for r in outputs
         ]
 

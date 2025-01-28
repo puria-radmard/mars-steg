@@ -122,7 +122,7 @@ def extract_neural_overseer_answers(batch_prompt_datas: BatchPromptData, output_
     extracted_prompt_datas = []
     for prompt_data in tqdm(batch_prompt_datas):
         try:
-            prompt_data.extracted_overseer_answer = parse_model_output(prompt_data.overseer_transcript, output_delimitation_tokens, cot=False)
+            _, prompt_data.extracted_overseer_answer = parse_model_output(prompt_data.overseer_transcript, output_delimitation_tokens, cot=False)
             extracted_prompt_datas.append(prompt_data)
         except LLMTranscriptExtractionError as e:
             warnings.warn(f"Failed to parse overseer answer from: \n\n{prompt_data.overseer_transcript}\n\n Skipping example")
@@ -138,7 +138,7 @@ def extract_neural_assessor_answers(batch_prompt_datas: BatchPromptData, output_
     extracted_prompt_datas = []
     for prompt_data in tqdm(batch_prompt_datas):
         try:
-            prompt_data.extracted_assessor_answer = parse_model_output(prompt_data.assessor_transcript, output_delimitation_tokens, cot=False)
+            _, prompt_data.extracted_assessor_answer = parse_model_output(prompt_data.assessor_transcript, output_delimitation_tokens, cot=False)
             extracted_prompt_datas.append(prompt_data)
         except LLMTranscriptExtractionError as e:
             warnings.warn(f"Failed to parse assessor answer from: \n\n{prompt_data.assessor_transcript}\n\n Skipping example")
