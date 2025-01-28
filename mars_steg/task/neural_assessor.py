@@ -107,7 +107,7 @@ class ProblemSolutionAssessor:
 
         decoded_responses = self.whitebox_model.full_generate(conversations_list)
 
-        batch_prompt_data.overseer_transcripts = decoded_responses
+        batch_prompt_data.assessor_transcripts = decoded_responses
 
         # TODO: pass output_delimitation_tokens to here!
         pruned_batch_prompt_data = extract_neural_assessor_answers(batch_prompt_data, self.whitebox_model.output_delimitation_tokens)
