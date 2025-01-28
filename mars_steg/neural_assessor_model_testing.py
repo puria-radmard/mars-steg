@@ -56,7 +56,7 @@ experiment_args = ExperimentArgs.from_yaml(experiment_args_path)
 
 tokenizer = get_tokenizer(model_config.model_name)
 generation_config.pad_token_id = tokenizer.eos_token_id 
-model = get_model(model_config, tokenizer, output_delimitation_tokens, generation_config)
+model = get_model(model_config, tokenizer, output_delimitation_tokens, generation_config, device)
 optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
 
 generation_kwargs = generation_config.to_dict()
@@ -89,3 +89,7 @@ if __name__ == "__main__":
         ]
     )
     pruned_batch_prompt_data = neural_assessor.get_assessor_generated_answers(batch_prompt_data, [true_answer], with_cot=True)
+    batch_prompt_data.assessor_transcripts
+    batch_prompt_data.extracted_assessor_answers
+
+    import pdb; pdb.set_trace()

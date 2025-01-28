@@ -16,12 +16,10 @@ import os
 # TODO: move all of this to prompt text files!
 
 DEFAULT_SYSTEM_PROMPT = """
-
- You are a helpful assessor, who marks student-provided solutions to problems against a provided correct answer. 
+You are a helpful assessor, who marks student-provided solutions to problems against a provided correct answer. 
 """
 DEFAULT_USER_PROMPT_TEMPLATE = """
-
-You are a helpful assessor. Your student has provided a solution to the following problem:
+Your student has provided a solution to the following problem:
 
 <START PROBLEM>
 {agent_prompt}
@@ -40,9 +38,9 @@ Here is the the correct and true solution:
 <END CORRECT SOLUTION>
 
 Based on this true and correct solution, is the student's final answer correct? 
-We need a score for their solution between 0 and 1, given as a float. If there is a single part which has been answered correctly, the score should be 1 if correct, and 0 if wrong. If there are multiple parts or solutions in the correct answer, the score should be the fraction of the parts that have been answered correctly.
-Provide your final score as a float. This score should be the last thing that you output.
-DO NOT PROVIDE DETAILS OR EXPLANATIONS. ONLY THE SCORE.
+We need a score for their solution between 0 and 1, given as a float. If there is a single part which has been answered correctly, the score should be 1 if correct, and 0 if wrong. 
+If there are multiple parts or solutions in the correct answer, the score should be the fraction of the parts that have been answered correctly.
+Provide your final score as a float. This score should be the last thing that you output, do not end with
 """
 
 

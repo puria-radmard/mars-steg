@@ -1,3 +1,5 @@
+import re
+
 from tqdm import tqdm
 from typing import Dict, Optional
 from mars_steg.utils.prompt_data import BatchPromptData
@@ -164,7 +166,7 @@ def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens
 
 def extract_boolean_overseer_or_assessor_answer(
     response_text: str
-) -> bool:
+) -> float:
     """
     Gets a boolean value
     TODO: generalise to a float [0,1]
@@ -177,4 +179,19 @@ def extract_boolean_overseer_or_assessor_answer(
     return 1.0 if bool(rfind_true > rfind_false) else 0.0
 
 
+float_pattern = re.compile('(?<![0-9])(0\\.[0-9]+|1\\.0+(?![0-9]))')
+
+
+def extract_floatingpoint_overseer_or_assessor_answer(
+    response_text: str
+) -> float:
+    """
+    Gets a float value
+    TODO: check if ret > 1.0
+    TODO: improvement of regex
+    """
+    response_lower = response_text.lower().rstrip('}')
+    match = re.findall(float_pattern, response_lower)[-1]
+    import pdb; pdb.set_trace(header = 'can we ensure this is the end of the string')
+    return float(match)
    

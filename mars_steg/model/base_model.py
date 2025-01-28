@@ -20,7 +20,7 @@ except ImportError:
 Conversation = List[List[Dict[str, str]]]
 
 class BaseModel(metaclass=ABCMeta):
-    def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer, generation_config: GenerationConfig, output_delimitation_tokens: Dict[str, str], model=None):
+    def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer, generation_config: GenerationConfig, output_delimitation_tokens: Dict[str, str], device: str, model=None):
         self.model_config = model_config
         self.model_name = model_config.model_name
         self.tokenizer = tokenizer
@@ -33,6 +33,8 @@ class BaseModel(metaclass=ABCMeta):
             self.model = model
         else:
             self.model = self.load_model()
+        self.device = device
+        self.model.to(device)
 
     def load_model(self):
         self.log_loading()
@@ -72,7 +74,8 @@ class BaseModel(metaclass=ABCMeta):
             tokenizer=self.tokenizer,
             output_delimitation_tokens = self.output_delimitation_tokens,
             generation_config = self.generation_config,
-            model=whitebox_model if whitebox_model is not None else None
+            model=whitebox_model if whitebox_model is not None else None,
+            device = self.device
         )
 
         new_instance.model.eval()
@@ -113,6 +116,7 @@ class BaseModel(metaclass=ABCMeta):
             padding=True,
             truncation=True,
         )
+        inputs = {key: tensor.to(self.device) for key, tensor in inputs.items()}
 
         # create a new dict without ['return_prompt', 'generate_ref_response', 'batch_size'] keys
         generation_kwargs = {k: v for k, v in self.generation_config.to_dict().items() if k not in ['return_prompt', 'generate_ref_response', 'batch_size']}

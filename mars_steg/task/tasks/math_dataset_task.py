@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 from mars_steg.task.base_task import TorchDatasetTask
 from mars_steg.utils.math_equivalence import is_equiv
-from mars_steg.utils.answer_extraction import extract_boolean_overseer_or_assessor_answer
+from mars_steg.utils.answer_extraction import extract_floatingpoint_overseer_or_assessor_answer
 
 
 
@@ -59,7 +59,7 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         if not self.uses_local_neural_assessor:
             return self.hard_string_checking(llm_answer, true_answers)
         else:
-            return extract_boolean_overseer_or_assessor_answer(prompt_data.extracted_assessor_answer)
+            return extract_floatingpoint_overseer_or_assessor_answer(prompt_data.extracted_assessor_answer)
     
     def hard_string_checking(self, llm_answer:str, true_answers:str) -> float:        
         rewarded = any([is_equiv(llm_answer, ta) for ta in true_answers])

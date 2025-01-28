@@ -5,7 +5,7 @@ from abc import ABCMeta, abstractmethod
 from mars_steg.language.base_language_aspect import LanguageAspect
 from mars_steg.utils.openai_api_helpers import single_query
 from mars_steg.utils.prompt_data import PromptData, BatchPromptData
-from mars_steg.utils.answer_extraction import extract_neural_overseer_answers, extract_boolean_overseer_or_assessor_answer
+from mars_steg.utils.answer_extraction import extract_neural_overseer_answers, extract_floatingpoint_overseer_or_assessor_answer
 
 from typing import Dict, List, Optional, Tuple
 
@@ -129,7 +129,7 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
         For now, we only use the neural overseer for a binary (boolean check)
         See logic in extract_overseer_answer
         """
-        detected = extract_boolean_overseer_or_assessor_answer(prompt_data.extracted_overseer_answer)
+        detected = extract_floatingpoint_overseer_or_assessor_answer(prompt_data.extracted_overseer_answer)
         return detected
 
 
