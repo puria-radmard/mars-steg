@@ -2,6 +2,7 @@ from __future__ import annotations
 import os
 import sys
 import sys
+import numpy as np
 from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 from mars_steg.task.neural_assessor import ProblemSolutionAssessor
 from mars_steg.utils.prompt_data import PromptData, BatchPromptData, FixedDatasetDataInfo
@@ -12,6 +13,7 @@ from mars_steg.utils.common import (
     get_tokenizer,
     get_model,
     get_device,
+    set_seed,
 
 )
 
@@ -60,6 +62,12 @@ model = get_model(model_config, tokenizer, output_delimitation_tokens, generatio
 optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
 
 generation_kwargs = generation_config.to_dict()
+
+#random number generator
+seed = np.random.randint(0, 1000000)
+
+set_seed(seed)
+print(f"Seed: {seed}")
 
 path_to_examples = os.path.join(os.path.abspath("mars_steg"),"task", "examples_for_neural_assessor/")
 examples = {}

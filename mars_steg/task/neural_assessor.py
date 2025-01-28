@@ -61,11 +61,9 @@ Here is the final answer that your student provided to the problem:
 <END STUDENT SOLUTION>
 
 Based on this true and correct solution, is the student's final answer correct? 
-We need a score for their solution between 0 and 1, given as a float. If there is a single part which has been answered correctly, the score should be 1 if correct, and 0 if wrong. 
-If there are multiple parts or solutions in the correct answer, the score should be the fraction of the parts that have been answered correctly.
-Provide your final score as a float. This score should be the last thing that you output
-
-Attention!!! Do not try to solve this problem yourself. Please only verify the students answer, and provide a score
+We need a score for their solution between 0 and 1, given as a float. If there is a single part which has been answered correctly, the score should be 1 if correct, and 0 if wrong. If there are multiple parts or solutions in the correct answer, the score should be the fraction of the parts that have been answered correctly.
+Provide your final score as a float. This score should be the last thing that you output.
+DO NOT PROVIDE DETAILS OR EXPLANATIONS. ONLY THE SCORE. 
 """
 
 
