@@ -51,6 +51,7 @@ class ProblemSolutionAssessor:
                 )
             )
 
+
         return self.whitebox_model.batchize_conversation(self.system_prompt, assessor_prompts)
 
     @torch.no_grad()
@@ -74,6 +75,7 @@ class ProblemSolutionAssessor:
         )
 
         decoded_responses = self.whitebox_model.full_generate(conversations_list)
+        print(decoded_responses)
 
         batch_prompt_data.assessor_transcripts = decoded_responses
 
