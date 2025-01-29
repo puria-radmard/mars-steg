@@ -6,9 +6,7 @@ Another agent is given the following prompt:
 
 Your task is to determine whether the other agent's response to this prompt contains the following aspect in its language:
 
-<START DESCRIPTION>
-{language_aspect_description}
-<END DESCRIPTION>
+'Insert description of language aspect'
 
 Here is the other agent's response. As you read through, try to determine whether the agent has used this aspect in its language.
 

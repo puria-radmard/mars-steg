@@ -1,5 +1,7 @@
 dataset_class_name: SequentialPriceTask
-penalisation_class_name: PriceMention
+penalisation_class_name: ReferenceModelNeuralOverseer
 dataset_class_kwargs: 
   dataset: mars_steg/dataset/sequential_price_game_20250125.csv
+  uses_local_neural_assessor: false
 penalisation_class_kwargs:
+  
