@@ -38,8 +38,7 @@ class ProblemSolutionAssessor:
     system_prompt : str
         Template for system-level prompts.
     """
-
-
+    
     def __init__(
         self, 
         model: BaseModel,
@@ -53,8 +52,6 @@ class ProblemSolutionAssessor:
         # TODO: move to config
         self.user_prompt = prompt_config.neural_assessor_user_prompt_template
         self.system_prompt = prompt_config.neural_assessor_system_prompt
-
-
 
     def convert_batch_prompt_into_conversation_template(
         self,
@@ -90,14 +87,15 @@ class ProblemSolutionAssessor:
             assessor_prompts.append(
                 self.user_prompt.format(
                     # agent_prompt = pd.cot_prompt if with_cot else pd.no_cot_prompt,
-                    llm_answer=pd.extracted_final_answer_with_cot if with_cot else pd.extracted_final_answer_without_cot, 
-                    true_answer=ta
-                    )
+                    llm_answer = pd.extracted_final_answer_with_cot if with_cot else pd.extracted_final_answer_without_cot, 
+                    true_answer = ta
                 )
+            )
 
         return self.whitebox_model.batchize_conversation(assessor_prompts, self.system_prompt)
 
 
+        return self.whitebox_model.batchize_conversation(self.system_prompt, assessor_prompts)
 
     @torch.no_grad()
     def get_assessor_generated_answers(
