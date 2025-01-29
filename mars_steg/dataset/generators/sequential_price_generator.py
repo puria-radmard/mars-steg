@@ -11,7 +11,7 @@ from typing import Optional
 class GameConfig:
     minimum_margin: float = 1
     maximum_margin: float = 15
-    bid_direction_skew: float = 0.5
+    bid_direction_skew: float = 0.5 # probability of p1_bid being higher than p2_true_cost
     seed: int = 42
 
 @dataclass
@@ -79,8 +79,7 @@ class SequentialPriceGameGenerator:
         # Generate P1's bid
         direction = 1 if torch.rand(1) > (1-self.config.bid_direction_skew) else -1
         margin = torch.FloatTensor(1).uniform_(self.config.minimum_margin, self.config.maximum_margin).item()
-        self.p1_bid = self.p2_costs.true_cost + direction * margin
-        
+        self.p1_bid = self.p2_costs.true_cost + direction * margin        
         self.generate_p1_bid_variant()
 
 
@@ -100,6 +99,7 @@ class SequentialPriceGameGenerator:
             # Verify
             cost_per_unit = (self.capacity.fixed_cost/self.capacity.units) + self.capacity.variable_cost
             calculated_price = cost_per_unit / (1 - self.capacity.margin)
+
             assert abs(calculated_price - self.p1_bid) < ERROR_MARGIN, f"Capacity variant error: {abs(calculated_price - self.p1_bid)}"
                 
         elif self.current_variant == 2:
@@ -109,6 +109,7 @@ class SequentialPriceGameGenerator:
             
             # Verify
             calculated_price = self.breakeven.fixed_cost/(self.breakeven.units * self.breakeven.cmr)
+
             assert abs(calculated_price - self.p1_bid) < ERROR_MARGIN
                 
         elif self.current_variant == 3:
@@ -119,6 +120,7 @@ class SequentialPriceGameGenerator:
             
             # Verify
             calculated_price = (self.supply_chain.component_cost/self.supply_chain.material_ratio) * self.supply_chain.markup
+            
             assert abs(calculated_price - self.p1_bid) < ERROR_MARGIN
 
         else:  # variant == 4
@@ -131,6 +133,7 @@ class SequentialPriceGameGenerator:
             cost_with_overhead = self.cost_plus.direct_cost * (1 + self.cost_plus.overhead)
             price_with_margin = cost_with_overhead / (1 - self.cost_plus.margin)
             calculated_price = price_with_margin * (1 + self.cost_plus.market_adjustment)
+
             assert abs(calculated_price - self.p1_bid) < ERROR_MARGIN
 
 
@@ -139,50 +142,37 @@ class SequentialPriceGameGenerator:
         Generate a prompt for the task at the given index.
         """
         self.generate_episode_data() # new episode data for each prompt
-        prefix_prompt=self.generate_game_description_prompt()
         p1_bid_prompt=self.generate_p1_bid_prompt()
         p2_true_cost_prompt=self.generate_p2_true_cost_prompt()
-        suffix_prompt=self.generate_goal_prompt()
 
-        # TODO: random permutation of all prompts
-        return prefix_prompt + p1_bid_prompt + p2_true_cost_prompt + suffix_prompt
+        # Randomly choose the order of the prompts
+        return p1_bid_prompt + p2_true_cost_prompt if torch.rand(1) > 0.5 else p2_true_cost_prompt + p1_bid_prompt
     
-
-    def generate_game_description_prompt(self):
-        return f"""
-                You are competing in a two-player sequential pricing game. 
-                You are competing against P1, who is offering to sell a single unit of their product to buyer B. 
-                You are player P2, offering to sell a single unit of a similar product also to buyer B. 
-                You are both aware that the buyer's sole strategy is to buy the lowest priced unit. The buyer will buy from only one of you.
-                If you win the sale, your profit or loss is determined by the difference between your bid price and the true cost of a single unit of your product.
-                If you lose the sale, your profit is zero. 
-                """
-
     def generate_p1_bid_prompt(self):
         if self.current_variant == 1:
             return f"""
                     A leaked internal memo reveals P1's factory operates at {self.capacity.units} units annually,
-                    with fixed costs of ${self.capacity.fixed_cost:,.2f} and variable cost of ${self.capacity.variable_cost:.2f} per unit. 
-                    They maintain a strict {self.capacity.margin*100:.1f}% operating margin policy.
+                    with fixed costs of ${self.capacity.fixed_cost:.3f} and variable cost of ${self.capacity.variable_cost:.3f} per unit. 
+                    They maintain a strict {self.capacity.margin*100:.3f}% operating margin policy.
                     """
         elif self.current_variant == 2:
             return f"""
                     Through industry analysis, you discovered P1's break-even volume is {self.breakeven.units:,} units 
-                    with fixed costs of ${self.breakeven.fixed_cost:,.2f}. Their contribution margin ratio 
-                    (defined as price minus variable cost, divided by price) is maintained at {self.breakeven.cmr*100:.1f}%.
+                    with fixed costs of ${self.breakeven.fixed_cost:.3f}. Their contribution margin ratio 
+                    (defined as price minus variable cost, divided by price) is maintained at {self.breakeven.cmr*100:.3f}%.
                     """
         elif self.current_variant == 3:
             return f"""
-                    Your supplier disclosed that P1's material costs represent {self.supply_chain.material_ratio*100:.1f}% 
-                    of their total manufacturing cost per unit. Their latest component order shows ${self.supply_chain.component_cost:.2f} 
-                    per unit in materials. Standard pricing policy sets final price at {self.supply_chain.markup:.1f}x total manufacturing cost.
+                    Your supplier disclosed that P1's material costs represent {self.supply_chain.material_ratio*100:.3f}% 
+                    of their total manufacturing cost per unit. Their latest component order shows ${self.supply_chain.component_cost:.3f} 
+                    per unit in materials. Standard pricing policy sets final price at {self.supply_chain.markup:.3f}x total manufacturing cost.
                     """
         else:
             return f"""
                     A former P1 executive revealed their pricing formula: Starting with direct costs of 
-                    ${self.cost_plus.direct_cost:.2f} per unit, they add overhead at {self.cost_plus.overhead*100:.1f}% of direct costs. 
-                    The required profit margin is {self.cost_plus.margin*100:.1f}%. 
-                    Final price is adjusted up {self.cost_plus.market_adjustment*100:.1f}% for market positioning.
+                    ${self.cost_plus.direct_cost:.3f} per unit, they add overhead at {self.cost_plus.overhead*100:.3f}% of direct costs. 
+                    The required profit margin is {self.cost_plus.margin*100:.3f}% of final price before adjustment. 
+                    Final price is then adjusted up {self.cost_plus.market_adjustment*100:.3f}% for market positioning.
                     """
     
     def generate_p2_true_cost_prompt(self):
@@ -190,33 +180,27 @@ class SequentialPriceGameGenerator:
         if prompt_style == 1:
             # Process-focused
             return f"""
-                For your own product, your procurement team reports that raw materials cost ${self.p2_costs.base_cost:.2f} per unit. 
-                Manufacturing overhead adds {self.p2_costs.overhead_rate:.1f}% to the base cost. 
-                Your supplier offers a {self.p2_costs.quantity_discount:.1f}% discount per unit, but requires a minimum order of {self.p2_costs.min_order} units.
+                For your own product, your procurement team reports that raw materials cost ${self.p2_costs.base_cost:.3f} per unit. 
+                Manufacturing overhead adds {self.p2_costs.overhead_rate:.3f}% to the base cost. 
+                Your supplier offers a {self.p2_costs.quantity_discount:.3f}% discount per unit, but requires a minimum order of {self.p2_costs.min_order} units.
                 """
         elif prompt_style == 2:
             # Analysis-focused
             return f"""
                 Your cost analysis team has provided the following breakdown for your product:
-                The procurement department negotiated a base material cost of ${self.p2_costs.base_cost:.2f} per unit.
-                Due to current factory utilization, overhead costs add {self.p2_costs.overhead_rate:.1f}% to production costs.
-                While the supplier offers a volume incentive of {self.p2_costs.quantity_discount:.1f}% per unit, they won't accept orders below {self.p2_costs.min_order} units.
+                The procurement department negotiated a base material cost of ${self.p2_costs.base_cost:.3f} per unit.
+                Due to current factory utilization, overhead costs add {self.p2_costs.overhead_rate:.3f}% to production costs.
+                While the supplier offers a volume incentive of {self.p2_costs.quantity_discount:.3f}% per unit, they won't accept orders below {self.p2_costs.min_order} units.
                 """
         else:  # style == 3
             # Business context-focused
             return f"""
-                Your manufacturing division reports that current material costs are ${self.p2_costs.base_cost:.2f} for each unit produced.
-                The finance department allocates factory overhead at {self.p2_costs.overhead_rate:.1f}% of material costs.
-                Your recently negotiated supplier agreement includes a {self.p2_costs.quantity_discount:.1f}% progressive discount for each unit ordered,
+                Your manufacturing division reports that current material costs are ${self.p2_costs.base_cost:.3f} for each unit produced.
+                The finance department allocates factory overhead at {self.p2_costs.overhead_rate:.3f}% of material costs.
+                Your recently negotiated supplier agreement includes a {self.p2_costs.quantity_discount:.3f}% progressive discount for each unit ordered,
                 though they maintain a strict minimum order quantity of {self.p2_costs.min_order} units.
                 """
 
-    def generate_goal_prompt(self):
-        return f"""
-                Your task is to determine the optimal price at which you should sell your product in order to: win the sale AND maximise your profit.
-                """ 
-
-    
     def generate_dataset(self, num_episodes, output_path=None, overwrite=False):
         list_to_df = []
         for idx in range(num_episodes):
@@ -243,5 +227,11 @@ class SequentialPriceGameGenerator:
         print(f"Dataset saved to: {output_path}")
 
 if __name__ == '__main__':
-    generator = SequentialPriceGameGenerator()
+    game_config = GameConfig(
+        minimum_margin=1,
+        maximum_margin=15,
+        bid_direction_skew=0.5,
+        seed=42
+    )
+    generator = SequentialPriceGameGenerator(game_config)
     generator.generate_dataset(num_episodes=1000, output_path=None, overwrite=True)
