@@ -51,7 +51,7 @@ class ProblemSolutionAssessor:
                 )
             )
 
-        return self.whitebox_model.batchize_conversation(self.system_prompt, assessor_prompts)
+        return self.whitebox_model.batchize_conversation(assessor_prompts, self.system_prompt)
 
     @torch.no_grad()
     def get_assessor_generated_answers(

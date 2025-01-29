@@ -175,6 +175,8 @@ class GenerationConfig:
     length_sampler: Optional[Callable] = None
     batch_size: Optional[int] = None
     pad_token_id: Optional[int] = None
+    bos_token_id: Optional[int] = None
+    eos_token_id: Optional[int] = None
     
     # return_full_text: bool = False
 

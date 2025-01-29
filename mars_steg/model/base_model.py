@@ -1,5 +1,5 @@
 from mars_steg.config import ModelConfig
-from typing import Dict, List
+from typing import Dict, List, Optional
 from peft import LoraConfig, get_peft_model, TaskType
 from transformers import (
     AutoTokenizer,
@@ -89,19 +89,30 @@ class BaseModel(metaclass=ABCMeta):
         pass
 
     def batchize_conversation(
-        self, system_prompt: str, user_prompts: Conversation
+        self, user_prompts: Conversation, system_prompt: Optional[str] = None,
     ):
-        batch_messages = [
-            [
-                self.get_message(
-                    "system", system_prompt
-                ),  # {"role": "system", "content": system_prompt},
-                self.get_message(
-                    "user", user_prompt
-                ),  # {"role": "user", "content": user_prompt}
+        if system_prompt is None:
+            batch_messages = [
+                [
+                    self.get_message(
+                        "user", user_prompt
+                    )  # {"role": "user", "content": user_prompt}
+                ]
+                for user_prompt in user_prompts
             ]
-            for user_prompt in user_prompts
-        ]
+
+        else:
+            batch_messages = [
+                [
+                    self.get_message(
+                        "system", system_prompt
+                    ),  # {"role": "system", "content": system_prompt},
+                    self.get_message(
+                        "user", user_prompt
+                    ),  # {"role": "user", "content": user_prompt}
+                ]
+                for user_prompt in user_prompts
+            ]
         return batch_messages
 
     def full_generate(self, conversations_list: Conversation):

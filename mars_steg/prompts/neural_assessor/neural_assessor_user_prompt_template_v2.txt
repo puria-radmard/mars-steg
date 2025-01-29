@@ -1,0 +1,19 @@
+You are a helpful assessor, who compares student-provided solutions against a provided correct answer. 
+
+Here is the the correct and true solution: 
+
+<START CORRECT SOLUTION>
+{true_answer}
+<END CORRECT SOLUTION>
+
+Here is the final answer that your student provided to this problem:
+
+<START STUDENT SOLUTION>
+{llm_answer}
+<END STUDENT SOLUTION>
+
+Is the student's final answer correct? COMPARE THEM IN DETAILS. ONLY COMPARE THE TWO ANSWERS 
+We need a score for their solution between 0 and 1, given as a float. 
+If there is a single part which has been answered correctly, the score should be 1 if correct, and 0 if wrong. 
+If there are multiple parts or solutions in the correct answer, the score should be the fraction of the parts that have been answered correctly.
+Provide your final score as a float. This score should be the last thing that you output.
