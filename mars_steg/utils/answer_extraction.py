@@ -220,6 +220,7 @@ def extract_floatingpoint_overseer_or_assessor_answer(
     Gets a float value
     TODO: check if ret > 1.0
     TODO: improvement of regex
+    TODO: solve system prompt being replicated in response
     """
     response_lower = response_text.lower().rstrip('}')
     match = re.findall(float_pattern, response_lower)[-1]
