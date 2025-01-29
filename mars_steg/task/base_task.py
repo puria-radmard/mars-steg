@@ -110,10 +110,14 @@ class Task(metaclass=ABCMeta):
         self.language_aspect = language_aspect
         self.uses_local_neural_assessor = uses_local_neural_assessor
         self.prompt_config = prompt_config  #TODO Store prompt configuration ?
+        self.prompt_config = prompt_config  #TODO Store prompt configuration ?
 
         if self.name not in language_aspect.compatible_tasks:
             raise TypeError(f"""
                 This task is not compatible with the submitted LanguageAspect instance.
+                If there is no real compatibility issue, just update the compatible_tasks 
+                property in your LanguageAspect. You should add this task's name property, 
+                which is '{self.name}'.
                 If there is no real compatibility issue, just update the compatible_tasks 
                 property in your LanguageAspect. You should add this task's name property, 
                 which is '{self.name}'.
@@ -150,7 +154,9 @@ class Task(metaclass=ABCMeta):
         return self.prompt_config.no_cot_instruction
 
 
+
     @abstractmethod
+    def generate_prompt(self, index: int) -> Optional[str]:
     def generate_prompt(self, index: int) -> Optional[str]:
         """
         Generates the main body of the LLM prompt for the task.
@@ -188,6 +194,20 @@ class Task(metaclass=ABCMeta):
     @abstractmethod
     def generate_info(self, idx: int) -> FixedDatasetDataInfo:
         """
+        Generates additional metadata or context for a task instance.
+
+        This method must be implemented by subclasses to return a `FixedDatasetDataInfo` 
+        object, which provides supplementary information related to the task at a given index.
+
+        Parameters
+        ----------
+        idx : int
+            The index specifying which task instance to retrieve additional information for.
+
+        Returns
+        -------
+        FixedDatasetDataInfo
+            An object containing metadata or extra context related to the specified task.
         Generates additional metadata or context for a task instance.
 
         This method must be implemented by subclasses to return a `FixedDatasetDataInfo` 
@@ -256,7 +276,7 @@ class Task(metaclass=ABCMeta):
     @abstractmethod
     def get_task_score(self, prompt_data: PromptData, with_cot: bool) -> float:
         """
-        Evaluates task performance based on PromptData object (cf. See Also).
+        Evaluates task performance based on PromptData object (see mars_steg.utils.prompt_data to see all the infos encapsulated in this object).
 
         This method assesses whether the agent successfully completed the task 
         by analyzing the generated response in relation to the correct answer. 
@@ -295,14 +315,7 @@ class Task(metaclass=ABCMeta):
         Notes
         -----
         - The method may use different evaluation strategies depending on the task type.
-        - The neural assessor option must also be considered (cf. See Also).
-
-        See Also
-        --------
-        mars_steg.utils.prompt_data.PromptData
-            The structure of the PromptData object used in this method.
-        MATH_Torch_Dataset_Task.get_task_score
-            An example implementation for a dataset-based math task.  
+        - The neural assessor option must also be considered (see `MATH_Torch_Dataset_Task.get_task_score`).
         """
         raise NotImplementedError
 
