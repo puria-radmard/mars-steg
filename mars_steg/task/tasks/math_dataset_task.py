@@ -30,7 +30,11 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         assert answers_as_list.map(lambda x: isinstance(x, list)).all()
         self.dataset['True answer'] = answers_as_list
 
-        self.system_prompt = prompt_config.task_description + prompt_config.task_examples 
+        self.system_prompt = (
+            prompt_config.task_description + '\n\n' +
+            prompt_config.answer_format_instruction + '\n\n' +
+            prompt_config.task_examples + '\n\n'
+        )
 
     def generate_prompt(self, index):
         # Just for safety
@@ -39,8 +43,10 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         # Get problem
         problem = self.dataset.iloc[index]["problem"]
         # Make prompt
-        prompt = f"Solve the problem following the given description.\n\n{problem}\n\n"     # TODO: incorporate this into prompt config
-        return prompt
+        # import pdb; pdb.set_trace(header = 'is this part needed?')
+        # prompt = f"Solve the problem following the given description.\n\n{problem}\n\n"     # TODO: incorporate this into prompt config
+        # return prompt
+        return problem
 
     def get_task_score(self, prompt_data, with_cot: bool):
         """

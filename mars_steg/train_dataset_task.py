@@ -35,7 +35,7 @@ from mars_steg.utils.answer_extraction import extract_cots
 print(sys.argv)
 experiment_args_path = sys.argv[1]
 config_path = sys.argv[2]   # e.g. "mars_steg/configs/config.yaml"
-prompt_config_path = sys.argv[3]   # e.g. "mars_steg/configs/prompt/math_training_llama.yaml"
+prompt_config_path = sys.argv[3]   # e.g. "mars_steg/configs/prompt/math_training_deepseek.yaml"
 
 device = get_device()
 
@@ -96,7 +96,8 @@ generation_config.pad_token_id = tokenizer.eos_token_id
 model = get_model(model_config, tokenizer, output_delimitation_tokens, generation_config, device)
 optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
 
-generation_kwargs = generation_config.to_dict()
+training_generation_kwargs = generation_config.to_training_dict()
+generation_generation_kwargs = generation_config.to_generation_dict()
 
 
 train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader, ref_model = get_dataloaders_and_ref_model(
@@ -151,7 +152,6 @@ if __name__ == "__main__":
                 system_prompt = val_dataset.system_prompt,
                 model_class = model, 
                 device = device, 
-                generation_kwargs = generation_kwargs,
                 output_delimitation_tokens= model.output_delimitation_tokens,
             )
 
@@ -192,7 +192,7 @@ if __name__ == "__main__":
 
             # Generate the with-CoT transcript (no-CoT transcript not needed during training)
             transcript_responses = ppo_trainer.generate(
-                query_tensors, **generation_kwargs,
+                query_tensors, **training_generation_kwargs,
             )
             decoded_responses = [
                 tokenizer.decode(r.squeeze()) for r in transcript_responses
@@ -226,7 +226,7 @@ if __name__ == "__main__":
                 continue
 
             # Might have partially failed...
-            elif len(extracted_batch_prompt_datas_with_nos_and_na) != len(decoded_responses):
+            elif len(extracted_batch_prompt_datas_with_nos_and_na) != len(batch_prompt_datas):
                 num_examples_failed = len(decoded_responses) - len(extracted_batch_prompt_datas_with_nos_and_na)
                 warnings.warn(
                     f"Failed to parse {num_examples_failed} examples out of {len(decoded_responses)}"
@@ -243,7 +243,7 @@ if __name__ == "__main__":
             # Extract rewards
             composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses = \
             get_rewards_and_training_datas(
-                batch_prompt_datas=extracted_batch_prompt_datas,
+                batch_prompt_datas=extracted_batch_prompt_datas_with_nos_and_na,
                 query_tensors=query_tensors,
                 transcript_responses=transcript_responses, 
                 train_dataset=train_dataset,

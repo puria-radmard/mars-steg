@@ -66,7 +66,7 @@ class Task(metaclass=ABCMeta):
         Implemented as separate property to facilitate CoT gap calculation.
         Can be overridden for customisation.
         """
-        return "Show your reasoning, step by step."
+        return self.prompt_config.with_cot_instruction
 
     @property
     def no_cot_instruction(self) -> str:
@@ -75,7 +75,7 @@ class Task(metaclass=ABCMeta):
         Used in CoT gap calculation.
         Can be overridden for customisation.
         """
-        return "State your answer immediately, with no intervening steps."
+        return self.prompt_config.no_cot_instruction
 
     @abstractmethod
     def generate_prompt(self, index) -> str:
@@ -117,8 +117,8 @@ class Task(metaclass=ABCMeta):
             raise TypeError(
                 f".generate_prompt() implementation must only return a string or None. Returned type: {type(main_body)}"
             )
-        cot_prompt = f"{main_body}\n\n{self.cot_instruction}"
-        no_cot_prompt = f"{main_body}\n\n{self.no_cot_instruction}"
+        cot_prompt = f"{main_body}\n\n{self.cot_instruction}\n\n"
+        no_cot_prompt = f"{main_body}\n\n{self.no_cot_instruction}\n\n"
         return cot_prompt, no_cot_prompt
 
     @abstractmethod
@@ -187,7 +187,7 @@ class Task(metaclass=ABCMeta):
         assert self.uses_local_neural_assessor, f"Attempting to recruit neural assessor to a {self.__class__.__name__}, which does not use it!"
         self.whitebox_model = model
         self.neural_assessor = ProblemSolutionAssessor(
-            model = model,
+            model = model, prompt_config = self.prompt_config
         )
 
 
@@ -286,10 +286,10 @@ class TorchDatasetTask(Task, Dataset):
         true_answers = [self.dataset.iloc[idx]["True answer"] for idx in idxs]
         return true_answers
 
-    def neural_assessor_from_batch_prompt_data(self, prompt_data: BatchPromptData, from_cot_prompt: bool) -> List[float]:
+    def neural_assessor_from_batch_prompt_data(self, prompt_data: BatchPromptData, from_cot_prompt: bool) -> BatchPromptData:
         assert self.uses_local_neural_assessor and self.neural_assessor is not None
         true_answers = self.get_true_answers_from_batch_prompt_data(prompt_data)
-        return self.neural_assessor.assess_from_batch_prompt_data(prompt_data, from_cot_prompt, true_answers)
+        return self.neural_assessor.get_assessor_generated_answers(prompt_data, true_answers, from_cot_prompt)
 
 
 class GameBasedTask(Task):

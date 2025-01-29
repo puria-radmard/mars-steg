@@ -8,7 +8,7 @@ class EqualsSign(LanguageAspect):
 
     uses_local_neural_overseer = False
 
-    def __init__(self, penalise_substring="=", max_freq=50):
+    def __init__(self, penalise_substring="=", max_freq=50, **kwargs):
         super().__init__()
         self.penalise_substring = penalise_substring
         self.max_freq = max_freq

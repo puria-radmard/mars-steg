@@ -4,9 +4,10 @@ no_cot_instruction_dir: "mars_steg/prompts/cot_usage/without.txt"
 task_examples_dir: "mars_steg/prompts/task_examples/math.txt"
 
 ### DeepThink R1 almost always ends CoT (starts answer) with </think>
+start_output_token_dir: "mars_steg/prompts/answer_format/deepseek_end_scratchpad_token.txt"
 # start_scratchpad_token_dir: "mars_steg/prompts/answer_format/start_scratchpad_token.txt"
 # end_scratchpad_token_dir: "mars_steg/prompts/answer_format/end_scratchpad_token.txt"
-start_output_token_dir: "mars_steg/prompts/answer_format/default_start_output_token.txt"
+# start_output_token_dir: "mars_steg/prompts/answer_format/start_output_token.txt"
 # end_output_token_dir: "mars_steg/prompts/answer_format/end_output_token.txt"
 
 neural_assessor_user_prompt_template_dir: "mars_steg/prompts/neural_assessor/neural_assessor_user_prompt_template.txt"

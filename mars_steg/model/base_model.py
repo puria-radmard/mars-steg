@@ -119,7 +119,8 @@ class BaseModel(metaclass=ABCMeta):
         inputs = {key: tensor.to(self.device) for key, tensor in inputs.items()}
 
         # create a new dict without ['return_prompt', 'generate_ref_response', 'batch_size'] keys
-        generation_kwargs = {k: v for k, v in self.generation_config.to_dict().items() if k not in ['return_prompt', 'generate_ref_response', 'batch_size']}
+        generation_kwargs = self.generation_config.to_generation_dict()
+        {k: v for k, v in self.generation_config.to_dict().items() if k not in ['return_prompt', 'generate_ref_response', 'batch_size']}
 
         # Run the reference model
         outputs = self.model.generate(**inputs, **generation_kwargs)

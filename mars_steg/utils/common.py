@@ -28,17 +28,12 @@ from trl import create_reference_model
 
 
 
-def get_prompt_config(config_dir):
-    prompt_config = PromptConfig()
-    prompt_config.from_file(config_dir)
-    return prompt_config
-
 
 def get_dataloaders_and_ref_model(
     dataset_class_name: str,
     penalisation_class_name: str,
     dataset_class_kwargs: Optional[Dict],
-    prompt_config: Optional[Dict],
+    prompt_config: PromptConfig,
     penalisation_class_kwargs: Optional[Dict],
     train_proportion: float,
     validation_proportion: float,
@@ -60,8 +55,8 @@ def get_dataloaders_and_ref_model(
 
     dataset_class_kwargs = dataset_class_kwargs or dict()
     penalisation_class_kwargs = penalisation_class_kwargs or dict()
-    language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**penalisation_class_kwargs)
-    task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, prompt_config = prompt_config, **dataset_class_kwargs )
+    language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**penalisation_class_kwargs, prompt_config=prompt_config)
+    task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, prompt_config = prompt_config, **dataset_class_kwargs)
 
     need_reference_model = (
         override_create_ref_model or 
@@ -192,9 +187,6 @@ def get_rewards_and_training_datas(
     composite_reward_list, task_score_list, language_score_list = [], [], []
     train_query_tensors = []
     train_transcript_responses = []
-
-    if batch_assessor_scores is None:
-        batch_assessor_scores = [None]*len(batch_prompt_datas)
 
     for i, prompt_data in tqdm(enumerate(batch_prompt_datas)):
         

@@ -5,6 +5,7 @@ import sys
 from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 from mars_steg.task.neural_assessor import ProblemSolutionAssessor
 from mars_steg.utils.prompt_data import PromptData, BatchPromptData, FixedDatasetDataInfo
+from mars_steg.utils.answer_extraction import extract_floatingpoint_overseer_or_assessor_answer
 
 
 from mars_steg.utils.common import (
@@ -23,7 +24,7 @@ from mars_steg.utils.common import (
 print(sys.argv)
 experiment_args_path = sys.argv[1]
 config_path = sys.argv[2]   # e.g. "mars_steg/configs/config.yaml"
-prompt_config_path = sys.argv[3]   # e.g. "mars_steg/configs/prompt/math_training_llama.yaml"
+prompt_config_path = sys.argv[3]   # e.g. "mars_steg/configs/prompt/math_training_deepseek.yaml"
 
 device = get_device()
 
@@ -76,7 +77,7 @@ llm_answer = examples["debug_llm_answer"]
 info = FixedDatasetDataInfo(idx=0)
 
 if __name__ == "__main__":
-    neural_assessor = ProblemSolutionAssessor(model=model)
+    neural_assessor = ProblemSolutionAssessor(model=model, prompt_config=prompt_config)
     batch_prompt_data = BatchPromptData(
         [
             PromptData(cot_prompt=agent_prompt,
@@ -91,5 +92,6 @@ if __name__ == "__main__":
     pruned_batch_prompt_data = neural_assessor.get_assessor_generated_answers(batch_prompt_data, [true_answer], with_cot=True)
     batch_prompt_data.assessor_transcripts
     batch_prompt_data.extracted_assessor_answers
+    batch_prompt_data.cot_prompts[0]
 
-    import pdb; pdb.set_trace()
+    print(extract_floatingpoint_overseer_or_assessor_answer(batch_prompt_data.extracted_assessor_answers[0]))

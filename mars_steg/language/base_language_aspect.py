@@ -57,7 +57,7 @@ class EmptyLanguageAspect(LanguageAspect):
 
     uses_local_neural_overseer = False
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         super().__init__()
 
     def get_language_score(self, prompt_data: PromptData) -> float:

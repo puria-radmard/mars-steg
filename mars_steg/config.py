@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import yaml
 from typing import Callable, Tuple
 from dataclasses import asdict
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 
 
 def load_yaml(yaml_file: str) -> dict:
@@ -58,10 +58,10 @@ class PromptConfig:
     task_description: Optional[str] = None
 
     # Instructions on CoT usage
-    with_cot_dir: Optional[str] = None
-    with_cot: Optional[str] = None
-    no_cot_dir: Optional[str] = None
-    no_cot: Optional[str] = None
+    with_cot_instruction_dir: Optional[str] = None
+    with_cot_instruction: Optional[str] = None
+    no_cot_instruction_dir: Optional[str] = None
+    no_cot_instruction: Optional[str] = None
 
     # Task dependent
     # TODO: Absorb examples in mars_steg/task/tasks/math_dataset_task.py
@@ -70,25 +70,17 @@ class PromptConfig:
 
     # Instructions on answer
     # TODO: Absorb the answer format instructions in system_prompt in mars_steg/task/tasks/math_dataset_task.py
-    answer_format_dir: Optional[str] = None
-    answer_format: Optional[str] = None
+    answer_format_instruction_dir: Optional[str] = None
+    answer_format_instruction: Optional[str] = None
 
-    # XXX: General template, needs other things slotted in
-    # TODO: mars_steg/language/language_aspects/neural_overseer.py --> DEFAULT_SYSTEM_PROMPT, DEFAULT_USER_PROMPT_TEMPLATE
-    # TODO: slotting in logic
-    neural_overseer_instruction_dir: Optional[str] = None
-    neural_overseer_instruction: Optional[str] = None
-
-    # TODO: slot into general format in mars_steg/language/language_aspects/neural_overseer.py
-        # REPLACE: "Make sure this boolean is the last token you output."
-    neural_overseer_answer_format_dir: Optional[str] = None
-    neural_overseer_answer_format: Optional[str] = None
-
-    # XXX: TODO: open up space for this!
-    neural_assessor_instruction_dir: Optional[str] = None
-    neural_assessor_instruction: Optional[str] = None
-    neural_assessor_answer_format_dir: Optional[str] = None
-    neural_assessor_answer_format: Optional[str] = None
+    neural_overseer_user_prompt_template_dir: Optional[str] = None
+    neural_overseer_user_prompt_template: Optional[str] = None
+    neural_overseer_system_prompt_dir: Optional[str] = None
+    neural_overseer_system_prompt: Optional[str] = None
+    neural_assessor_user_prompt_template_dir: Optional[str] = None
+    neural_assessor_user_prompt_template: Optional[str] = None
+    neural_assessor_system_prompt_dir: Optional[str] = None
+    neural_assessor_system_prompt: Optional[str] = None
 
     # Delimination
     start_scratchpad_token_dir: Optional[str] = None
@@ -184,14 +176,25 @@ class GenerationConfig:
     batch_size: Optional[int] = None
     pad_token_id: Optional[int] = None
     
+    # return_full_text: bool = False
 
     def __post_init__(self):
         if not self.do_sample:
             assert self.temperature == self.top_k == self.top_p == None,\
                 "Cannot specify GenerationConfig.temperature if GenerationConfig.do_sample is specified"
     
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
+
+    def to_generation_dict(self) -> Dict[str, Any]:
+        return {
+            k: v for k, v in self.to_dict().items() if k not in ['return_prompt', 'generate_ref_response', 'batch_size', 'return_full_text']
+        }
+
+    def to_training_dict(self) -> Dict[str, Any]:
+        return {
+            k: v for k, v in self.to_dict().items() if k not in []
+        }
 
     # @classmethod
     # def from_yaml(cls, yaml_file):

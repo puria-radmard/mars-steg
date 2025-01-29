@@ -8,6 +8,14 @@ from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 import warnings
 
 
+END_TOKENS = [
+    "<｜end▁of▁sentence｜>",
+    "<|end_of_text|>",
+    "</OUTPUT>",
+    "<|eot_id|>",
+]
+
+
 def extract_section(output_start: int, start_section_token: str, output_end: int ,model_output: str):
     '''
     Extract a section from the output of the model based on start and end positions.
@@ -73,23 +81,16 @@ def parse_model_output(model_output: str, output_delimitation_tokens: Dict[str, 
         output = extract_section(output_start,start_output_token,output_end,model_output)
 
         # Extract the scratchpad reasoning
-        chain_of_thought = None
-
         if cot:
             if scratchpad_start == -1:
                 raise LLMTranscriptExtractionError(
                     "CoT section could not be parsed from the prompt."
                 )
-
             chain_of_thought = extract_section(scratchpad_start,start_scratchpad_token,scratchpad_end,model_output)
-        
-        output = output.replace("<|end_of_text|>", "")
-        output = output.replace("</OUTPUT>", "")
-        output = output.replace("<|eot_id|>", "")
-        
-        return chain_of_thought, output
+        else:
+            chain_of_thought = None
     
-    elif not start_scratchpad_token and not end_scratchpad_token  and start_output_token:
+    elif not (start_scratchpad_token or end_scratchpad_token) and start_output_token:
 
         output_start = model_output.find(start_output_token)
         if output_start == -1:
@@ -101,15 +102,45 @@ def parse_model_output(model_output: str, output_delimitation_tokens: Dict[str, 
         else:
             output_end = model_output.find(end_output_token)
             output = extract_section(output_start,start_output_token,output_end,model_output)
-        chain_of_thought = None
+        
         if cot:
             chain_of_thought = extract_section(0,start_output_token, output_start,model_output)
+        else:
+            chain_of_thought = None
+
+    elif start_scratchpad_token and end_scratchpad_token and not (start_output_token or end_output_token):
+
+        raise NotImplementedError('This needs to be debugged!')
+
+        scratchpad_start = model_output.find(start_scratchpad_token)
+        scratchpad_end = model_output.find(end_scratchpad_token)
+
+        # Extract the output
+        if output_start == -1 or output_end == -1 or output_start >= output_end:
+            raise LLMTranscriptExtractionError(
+                "OUTPUT section could not be parsed from the prompt."
+            )
         
-        output = output.replace("<|end_of_text|>", "")
-        output = output.replace("</OUTPUT>", "")
-        output = output.replace("<|eot_id|>", "")        
+        if scratchpad_end == -1:
+            output = extract_section(output_start,0,len(model_output),model_output)
+        else:
+            output = extract_section(output_start,scratchpad_end,len(model_output),model_output)
+
+        # Extract the scratchpad reasoning
+        chain_of_thought = None
+
+        if cot:
+            if scratchpad_start == -1:
+                raise LLMTranscriptExtractionError(
+                    "CoT section could not be parsed from the prompt."
+                )
+            chain_of_thought = extract_section(scratchpad_start,start_scratchpad_token,scratchpad_end,model_output)
         
-        return chain_of_thought, output
+    for et in END_TOKENS:
+        output = output.replace(et, "")
+        
+    return chain_of_thought, output
+
     
 
 
@@ -192,6 +223,5 @@ def extract_floatingpoint_overseer_or_assessor_answer(
     """
     response_lower = response_text.lower().rstrip('}')
     match = re.findall(float_pattern, response_lower)[-1]
-    import pdb; pdb.set_trace(header = 'can we ensure this is the end of the string')
     return float(match)
    
