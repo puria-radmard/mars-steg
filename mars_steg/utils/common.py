@@ -46,11 +46,62 @@ def get_dataloaders_and_ref_model(
     neural_assessor_model: Optional[BaseModel] = None,
 ):
     """
-    Including ref model creation here because it is needed for the task,
+
+    A getter for the Task subclasses to be used here; handles splitting into train, val, test. 
+    Also returns torch dataloaders for all three. 
+
+    Note - Including ref model creation here because it is needed for the task,
     as well as potentially for the training!
 
     Create the reference model if `override_create_ref_model` is True
     or if the neural overseer or task requires it
+
+    Parameters
+    ----------
+    dataset_class_name : str
+        The name of the Task subclass used here (defined name, NOT name attribute)
+    penalisation_class_name : str
+        The name of the LanguageAspect subclass used here
+    dataset_class_kwargs : Optional[Dict]
+        Kwargs to configure the dataset class being used; these should NOT include (i) language_aspect, or (ii) prompt_config, which will be set by other args.  
+    prompt_config : PromptConfig
+        PromptConfig to configure the prompt generation in the task subclass. May also be used to configure prompts in LanguageAspect, e.g if this is a NeuralOverseer. 
+    penalisation_class_kwargs : Optional[Dict]
+        Kwargs to configure the dataset class being used; these should NOT include prompt_config, which will be set automatically. 
+    train_proportion : float
+        Proportion of dataset to use for train (float in range [0-1])
+    validation_proportion : float
+        Proportion of dataset to use for validation (float in range [0-1])
+    batch_size : int
+        Batch size for torch dataloaders
+    training_model : Optional[BaseModel], optional
+        By default None. Need to pass this if if `override_create_ref_model` is True or if the neural overseer or task requires it
+    override_create_ref_model : bool, optional
+        By default False. If True, forces creation of a reference model. 
+    number_shared_layers_for_ref_model : Optional[int], optional
+        Required if reference model created, by default None
+    neural_overseer_model : Optional[BaseModel], optional
+        If model for neural overseer has already been created, pass here.
+    neural_assessor_model : Optional[BaseModel], optional
+        If model for neural assessor has already been created, pass here.
+
+
+    Returns
+    -------
+    TorchDatasetTask
+        train_dataset 
+    TorchDatasetTask
+        val_dataset
+    TorchDatasetTask
+        test_dataset
+    torch.utils.data.DataLoader
+        train_loader
+    torch.utils.data.DataLoader
+        val_loader
+    torch.utils.data.DataLoader
+        test_loader
+    torch.utils.data.DataLoader
+        reference_model
     """
 
     dataset_class_kwargs = dataset_class_kwargs or dict()
@@ -112,13 +163,49 @@ def get_dataloaders_and_ref_model(
 
 
 
-def get_tokenizer(model_name: str):
+def get_tokenizer(
+    model_name: str
+):
+
+    """
+    Get tokenizer and set pad token to be same as end-of-sequence token
+
+    Parameters
+    ----------
+    model_name : str
+        The model name - get string from huggingface
+
+    Returns
+    -------
+    AutoTokenizer
+        Configured tokenizer
+    """
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
     return tokenizer
 
 
-def get_optimizer(optimizer_config: OptimizerConfig, model: nn.Module) -> t.optim.Optimizer:
+def get_optimizer(
+    optimizer_config: OptimizerConfig,
+    model: nn.Module
+) -> t.optim.Optimizer:
+    
+    """
+    Returns an instance of torch.optim.Adam configured to work with submitted model/with settings from optimizer_config
+
+    Parameters
+    ----------
+    optimizer_config : OptimizerConfig
+        Optimisation config
+    model : nn.Module
+        torch model that the optimizer will be used with
+
+    Returns
+    -------
+    torch.optim.Adam
+        Configured optimizer
+    """
+
     if optimizer_config.optimizer_name == "adam":
         optimizer = Adam(
             filter(lambda p: p.requires_grad, model.parameters()),
@@ -128,13 +215,34 @@ def get_optimizer(optimizer_config: OptimizerConfig, model: nn.Module) -> t.opti
 
 
 def get_model(
-        model_config: ModelConfig, 
-        tokenizer: AutoTokenizer, 
-        output_delimitation_tokens: Dict[str, str], 
-        generation_config=GenerationConfig,
-        device: str = 'cuda'
-        ) -> BaseModel:
+    model_config: ModelConfig, 
+    tokenizer: AutoTokenizer, 
+    output_delimitation_tokens: Dict[str, str], 
+    generation_config=GenerationConfig,
+    device: str = 'cuda'
+) -> BaseModel:
     
+    """_summary_
+
+    
+
+    model_config: ModelConfig, 
+    tokenizer: AutoTokenizer, 
+    output_delimitation_tokens: Dict[str, str], 
+    generation_config=GenerationConfig,
+    device: str = 'cuda'
+
+    Returns
+    -------
+    _type_
+        _description_
+
+    Raises
+    ------
+    ValueError
+        _description_
+    """
+
     model_name = model_config.model_name
     print(f'GETTING: {model_name}')
     if model_name == "gpt2":
