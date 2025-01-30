@@ -88,6 +88,10 @@ class BaseModel(metaclass=ABCMeta):
     def get_message(self, user_string: str, system_prompt: str) -> Dict:
         pass
 
+    @abstractmethod
+    def transform_conversation(self, conversations_list: Conversation) :
+        pass
+
     def batchize_conversation(
         self, system_prompt: str, user_prompts: Conversation
     ):
@@ -103,51 +107,19 @@ class BaseModel(metaclass=ABCMeta):
             for user_prompt in user_prompts
         ]
         return batch_messages
-        
-    def transform_conversation(self,conversations_list: Conversation):
-        conversation = ""
-        for message in conversations_list:
-            print(message)
-            role = message["role"]
-            content = message["content"]
-            
-            # Adjust the role tokens: <|User|> for user input, <|Assistant|> for assistant responses
-            if role == "user":
-                conversation += f"<｜User｜> {content}\n"
-            elif role == "assistant":
-                conversation += f"<｜Assistant｜> {content}\n"  
-        return conversation
-
 
     def full_generate(self, conversations_list: Conversation):
 
         # import pdb; pdb.set_trace(header = 'Check every possible prompt - make sure it has all the nec. components!')
 
-        conversations_list[0].append({'role': 'assistant', 'content': "<think> Okay, so I need to figure out if the student's final answer is correct based on the provided correct solution so Im going to give the direct Answer in decimal values from 0.0 to 1.0 and Im not going to break it step by step "})
-        conversation = self.transform_conversation(conversations_list[0])
-        print(conversation)
-        input_ids = self.tokenizer(conversation, return_tensors="pt").to("cuda")
-        # Generate the model's response using the custom generation settings
-        generation_kwargs = self.generation_config.to_generation_dict()
-        {k: v for k, v in self.generation_config.to_dict().items() if k not in ['return_prompt', 'generate_ref_response', 'batch_size']}
-
-        # Run the reference model
-        outputs = self.model.generate(input_ids["input_ids"], **generation_kwargs)
-
-        #inputs = self.tokenizer.apply_chat_template(
-        #    conversations_list,
-        #    return_tensors="pt",
-        #    add_generation_prompt=True,
-        #    return_dict=True,
-        #    padding=True,
-        #    truncation=True,
-        #)
-        #outputs = model.generate(input_ids["input_ids"], max_new_tokens=1024, **generation_config)
-        #decoded_inputs = self.tokenizer.decode(inputs["input_ids"][0], skip_special_tokens=True)
-        response = self.tokenizer.decode(outputs[0], skip_special_tokens=True)  # Clean output without special tokens
-        assistant_response = response.split('<｜Assistant｜>')[-1].strip()
-        print(assistant_response)
-        exit()
+        inputs = self.tokenizer.apply_chat_template(
+            conversations_list,
+            return_tensors="pt",
+            add_generation_prompt=True,
+            return_dict=True,
+            padding=True,
+            truncation=True,
+        )
         inputs = {key: tensor.to(self.device) for key, tensor in inputs.items()}
 
         # create a new dict without ['return_prompt', 'generate_ref_response', 'batch_size'] keys

@@ -87,7 +87,6 @@ info = FixedDatasetDataInfo(idx=0)
 
 if __name__ == "__main__":
     neural_assessor = ProblemSolutionAssessor(model=model, prompt_config=prompt_config)
-
     batch_prompt_data = BatchPromptData(
         [
             PromptData(cot_prompt=agent_prompt,
