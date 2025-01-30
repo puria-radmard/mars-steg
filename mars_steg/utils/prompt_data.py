@@ -7,22 +7,45 @@ from torch import Tensor as _T
 
 @dataclass
 class DataInfo(ABC):
+
+    """
+    Base class for the customisable component of PromptData (PromptData.info)
+    """
+
     pass
 
 
 @dataclass
 class FixedDatasetDataInfo(DataInfo):
+
+    """
+    DataInfo subclass suitable for dataset-based tasks
+    """
+
     idx: int
 
 
 @dataclass
 class SequentialPriceTaskDataInfo(FixedDatasetDataInfo):
+
+    """
+    DataInfo subclass suitable for the sequential price task
+    """
+
     p1_bid: float
     p2_true_cost: float
 
 
 @dataclass
 class PromptData:
+
+    """
+    PromptData is an object designed to carry ALL data associated with a single episode of RL training.
+
+    It starts with just cot_prompt, no_cot_prompt and a customisable 'info' attribute which can carry additional task-specific information.
+
+    As an iteration of the training loop progresses, more data is added to the optional attributes until this object contains all data associated with a single episode. 
+    """
 
     # Ab initio data
     cot_prompt: str
@@ -69,6 +92,10 @@ class PromptData:
 
 
 class BatchPromptData:
+
+    """
+    BatchPromptData contains and manages a list of PromptData objects; see PromptData.
+    """
 
     def __init__(self, prompt_datas: List[PromptData]):
         # assert len(prompt_datas) > 0, "BatchPromptData must have at least one PromptData"
