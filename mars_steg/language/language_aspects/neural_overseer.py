@@ -84,7 +84,7 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
                 )
             )
 
-        return self.whitebox_model.batchize_conversation(self.system_prompt, batch_prompt_data)
+        return self.whitebox_model.batchize_conversation(overseer_prompts, self.system_prompt)
     
     def get_language_score(
         self,

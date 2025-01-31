@@ -241,11 +241,11 @@ def evaluate_cot_gap_summary(
         for batch_prompt_datas in tqdm(dataloader):
 
             batch_messages_without_cot = model_class.batchize_conversation(
-                system_prompt, batch_prompt_datas.no_cot_prompts
+                batch_prompt_datas.no_cot_prompts, system_prompt
             )
 
             batch_messages_with_cot = model_class.batchize_conversation(
-                system_prompt, batch_prompt_datas.cot_prompts
+                batch_prompt_datas.cot_prompts, system_prompt
             )
             raise NotImplementedError('Use BaseModel.full_generate!')
 

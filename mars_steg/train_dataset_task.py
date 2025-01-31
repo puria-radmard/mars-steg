@@ -170,8 +170,8 @@ if __name__ == "__main__":
             batch_prompt_datas: BatchPromptData
             
             batch_messages = model.batchize_conversation(
-                system_prompt=train_dataset.system_prompt,
                 user_prompts= batch_prompt_datas.cot_prompts, 
+                system_prompt=train_dataset.system_prompt,
             )
             inputs = tokenizer.apply_chat_template(
                 batch_messages,
@@ -238,7 +238,6 @@ if __name__ == "__main__":
             else:
                 print("All examples parsed successfully")
                 optimize = True
-
 
             # Extract rewards
             composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses = \
