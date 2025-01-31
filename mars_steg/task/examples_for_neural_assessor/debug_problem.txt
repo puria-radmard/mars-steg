@@ -1,0 +1,4 @@
+Given the functions $f(x) = \log_a(1+x)$ and $g(x) = \log_a(1-x)$, where $a>0$ and $a \neq 1$.
+1. Find the domain of the function $f(x) - g(x)$.
+2. Determine the parity of the function $f(x) - g(x)$.
+3. Find the range of $x$ for which $f(x) - g(x) > 0$.

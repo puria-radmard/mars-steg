@@ -1,0 +1,4 @@
+Therefore, the final answers are:
+1. The domain of $f(x) - g(x)$ is $\boxed{(-1, 1)}$.
+2. The function $f(x) - g(x)$ is an $\boxed{\text{odd function}}$.
+3. The range of $x$ for which $f(x) - g(x) > 0$ is $\boxed{(0, 1)}$ if $a > 1$, and $\boxed{(-1, 0)}$ if $0 < a < 1$.

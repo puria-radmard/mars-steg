@@ -4,7 +4,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-hannes_openai_API_key = "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"
+hannes_openai_API_key = ...
 client = OpenAI(api_key=hannes_openai_API_key)
 
 def single_query(

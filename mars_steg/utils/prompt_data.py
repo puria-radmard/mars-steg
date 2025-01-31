@@ -1,5 +1,5 @@
 from abc import ABC
-from typing import List, Optional
+from typing import List, Optional, Iterable
 from dataclasses import dataclass
 
 from torch import Tensor as _T
@@ -32,13 +32,34 @@ class PromptData:
     # After model gives response
     cot_transcript: Optional[str] = None
     no_cot_transcript: Optional[str] = None
-    overseer_response: Optional[str] = None
 
     # After (TODO) separates answers into cot and response
     extracted_cot: Optional[str] = None
     extracted_final_answer_with_cot: Optional[str] = None
     extracted_final_answer_without_cot: Optional[str] = None
-    extracted_overseer_response: Optional[bool] = None # Overseer shall answer True or False
+    
+    overseer_transcript: Optional[str] = None # Full transcript from the overseer
+    extracted_overseer_answer: Optional[bool] = None # Final decision from overseer
+    assessor_transcript: Optional[str] = None # Full transcript from the assessor
+    extracted_assessor_answer: Optional[bool] = None # Final decision from overseer
+
+    def __str__(self) -> str:
+        return (
+            f"cot_prompt: {self.cot_prompt}\n"
+            f"no_cot_prompt: {self.no_cot_prompt}\n"
+            f"info: {self.info}\n"
+            f"cot_transcript: {self.cot_transcript}\n"
+            f"no_cot_transcript: {self.no_cot_transcript}\n"
+            f"overseer_transcript: {self.overseer_transcript}\n"
+            f"extracted_cot: {self.extracted_cot}\n"
+            f"extracted_final_answer_with_cot: {self.extracted_final_answer_with_cot}\n"
+            f"extracted_final_answer_without_cot: {self.extracted_final_answer_without_cot}\n"
+            f"overseer_transcript: {self.overseer_transcript}\n"
+            f"extracted_overseer_answer: {self.extracted_overseer_answer}\n"
+            f"assessor_transcript: {self.assessor_transcript}\n"
+            f"extracted_assessor_answer: {self.extracted_assessor_answer}\n"
+        )
+
 
     # TODO --> Puria after wandb
     def save(
@@ -50,26 +71,30 @@ class PromptData:
 class BatchPromptData:
 
     def __init__(self, prompt_datas: List[PromptData]):
-        assert len(prompt_datas) > 0, "BatchPromptData must have at least one PromptData"
-        self.prompt_datas : List[PromptData] = prompt_datas
+        # assert len(prompt_datas) > 0, "BatchPromptData must have at least one PromptData"
+
+        self.prompt_datas: List[PromptData] = prompt_datas
         self.cot_prompts: Optional[List[str]] 
         self.no_cot_prompts: Optional[List[str]] 
         self.infos: Optional[List[str]] 
 
         self.cot_transcripts: Optional[List[str]]
         self.no_cot_transcripts: Optional[List[str]]
-        self.overseer_response: Optional[List[str]]
+        self.overseer_transcript: Optional[List[str]]
 
         self.extracted_cots: Optional[List[str]] 
         self.extracted_final_answer_with_cots: Optional[List[str]] 
         self.extracted_final_answer_without_cots: Optional[List[str]] 
-        self.extracted_overseer_responses: Optional[List[bool]] # Overseer shall answer True or False‡
-
+        
+        self.overseer_transcripts: Optional[List[str]] # Full transcript from the overseer
+        self.extracted_overseer_answers: Optional[List[bool]] # Final decision from overseer
+        self.assessor_transcripts: Optional[List[str]] # Full transcript from the assessor
+        self.extracted_assessor_answers: Optional[List[bool]] # Final decision from overseer
 
     def __len__(self):
         return len(self.prompt_datas)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterable[PromptData]:
         """Make the object iterable by returning an iterator over the prompt_datas list."""
         return iter(self.prompt_datas)
 
@@ -102,6 +127,13 @@ class BatchPromptData:
             return super().__getattr__(name)
         else:
             return [getattr(prompt_data, name[:-1]) for prompt_data in self.prompt_datas]
+        
+    def __str__(self):
+        for prompt_data in self.prompt_datas:
+            print("------------------------------------")
+            print(prompt_data)
+            print("------------------------------------")
+        return "\n"
 
     # TODO --> Puria after wandb
     def save(

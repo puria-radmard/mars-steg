@@ -4,7 +4,7 @@ from dataclasses import dataclass
 import yaml
 from typing import Callable, Tuple
 from dataclasses import asdict
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 
 
 def load_yaml(yaml_file: str) -> dict:
@@ -14,6 +14,7 @@ def load_yaml(yaml_file: str) -> dict:
     file_path = f"{yaml_file}"
     with open(file_path, "r") as file:
         return yaml.safe_load(file)
+
 
 @dataclass(frozen=True)
 class ModelConfig:
@@ -45,6 +46,88 @@ class OptimizerConfig:
     warmup_steps: int
     max_grad_norm: float
 
+@dataclass
+class PromptConfig:
+
+    # TODO: logic for constructing with task, examples, cot, and answer format
+
+    # Task dependent
+    # TODO: Absorb system_prompt in mars_steg/task/tasks/math_dataset_task.py
+        # EXCLUDING the answer format instructions
+    task_description_dir: Optional[str] = None
+    task_description: Optional[str] = None
+
+    # Instructions on CoT usage
+    with_cot_instruction_dir: Optional[str] = None
+    with_cot_instruction: Optional[str] = None
+    no_cot_instruction_dir: Optional[str] = None
+    no_cot_instruction: Optional[str] = None
+
+    # Task dependent
+    # TODO: Absorb examples in mars_steg/task/tasks/math_dataset_task.py
+    task_examples_dir: Optional[str] = None
+    task_examples: Optional[str] = None
+
+    # Instructions on answer
+    # TODO: Absorb the answer format instructions in system_prompt in mars_steg/task/tasks/math_dataset_task.py
+    answer_format_instruction_dir: Optional[str] = None
+    answer_format_instruction: Optional[str] = None
+
+    neural_overseer_user_prompt_template_dir: Optional[str] = None
+    neural_overseer_user_prompt_template: Optional[str] = None
+    neural_overseer_system_prompt_dir: Optional[str] = None
+    neural_overseer_system_prompt: Optional[str] = None
+    neural_assessor_user_prompt_template_dir: Optional[str] = None
+    neural_assessor_user_prompt_template: Optional[str] = None
+    neural_assessor_system_prompt_dir: Optional[str] = None
+    neural_assessor_system_prompt: Optional[str] = None
+
+    # Delimination
+    start_scratchpad_token_dir: Optional[str] = None
+    start_scratchpad_token: Optional[str] = None
+    end_scratchpad_token_dir: Optional[str] = None
+    end_scratchpad_token: Optional[str] = None
+    start_output_token_dir: Optional[str] = None
+    start_output_token: Optional[str] = None
+    end_output_token_dir: Optional[str] = None
+    end_output_token: Optional[str] = None
+
+    @classmethod
+    def from_file(cls, file_path: str):
+        """
+        XXX: *super* hacky
+        Initialise all as Nones
+        Replace all of those with config entries
+        Delete everything that remains None --> attrbute error if used later
+        """
+        config_dict = load_yaml(file_path)
+        instance = cls()
+        
+        for name, dir_ in config_dict.items():
+            attr_name = name.replace("_dir", "")
+            assert super(PromptConfig, instance).__getattribute__(name) is None
+            assert super(PromptConfig, instance).__getattribute__(attr_name) is None
+            setattr(instance, name, dir_)
+            with open(dir_, 'r') as f:
+                setattr(instance, attr_name, f.read().strip())
+
+        return instance
+
+    def __getattribute__(self, __name: str):
+
+        ret = super().__getattribute__(__name)
+        if (ret == None) and ('token' not in __name):
+            raise ValueError(f'PromptConfig not given a {__name} field')
+
+        return ret
+ 
+    # def __setattribute__(self, name : str, value: str):
+    #     # set attribute to value
+    #     if not isinstance(value,str):
+    #         raise ValueError(f'The value of {name} should be a string')
+        
+
+
 
 
 @dataclass
@@ -58,7 +141,6 @@ class ExperimentArgs:
     def from_yaml(cls, yaml_file: str) -> ExperimentArgs:
         config_dict = load_yaml(yaml_file)
         return cls(**config_dict)
-
 
 
 @dataclass
@@ -93,15 +175,28 @@ class GenerationConfig:
     length_sampler: Optional[Callable] = None
     batch_size: Optional[int] = None
     pad_token_id: Optional[int] = None
+    bos_token_id: Optional[int] = None
+    eos_token_id: Optional[int] = None
     
+    # return_full_text: bool = False
 
     def __post_init__(self):
         if not self.do_sample:
             assert self.temperature == self.top_k == self.top_p == None,\
                 "Cannot specify GenerationConfig.temperature if GenerationConfig.do_sample is specified"
     
-    def to_dict(self):
+    def to_dict(self) -> Dict[str, Any]:
         return asdict(self)
+
+    def to_generation_dict(self) -> Dict[str, Any]:
+        return {
+            k: v for k, v in self.to_dict().items() if k not in ['return_prompt', 'generate_ref_response', 'batch_size', 'return_full_text']
+        }
+
+    def to_training_dict(self) -> Dict[str, Any]:
+        return {
+            k: v for k, v in self.to_dict().items() if k not in []
+        }
 
     # @classmethod
     # def from_yaml(cls, yaml_file):
@@ -113,10 +208,29 @@ class GenerationConfig:
     #     with open(yaml_file, "w") as file:
     #         yaml.dump(asdict(self), file)
 
+class PromptConfigLoader:
+
+    # TODO: loading
+    # TODO: task prompt construction
+    # TODO: NOS prompt construction
+    # TODO: NA prompt construction
+        # Requires communication with other subgroup
+    # TODO: provide to relevant classes and raise exceptions where needed
+
+    @staticmethod
+    def load_config(yaml_file: str) -> PromptConfig:
+        config_dict = load_yaml(yaml_file)
+        prompt_dir = config_dict["PromptDir"]
+        for name, dir_ in prompt_dir:
+            attr_name = name.replace("_dir", "")
+        return prompt_config
+
+
+
 class ConfigLoader:
 
     @staticmethod
-    def load_config(yaml_file: str) -> Tuple[ModelConfig, OptimizerConfig, TrainConfig]:
+    def load_config(yaml_file: str) -> Tuple[ModelConfig, OptimizerConfig, TrainConfig, GenerationConfig]:
         """
         Load YAML data and map it to configuration dataclasses.
         """
@@ -150,3 +264,11 @@ class ConfigLoader:
         }
         with open(yaml_file, "w") as file:
             yaml.dump(config_dict, file)
+
+if __name__ == "__main__":
+    CONFIG_DIR = "mars_steg/configs/config.yaml"
+    prompt_config = PromptConfig()
+    prompt_config.from_file(CONFIG_DIR)
+    print(prompt_config.task_description_dir)
+    print(prompt_config.task_examples)
+    print(prompt_config.task_examples_dir)

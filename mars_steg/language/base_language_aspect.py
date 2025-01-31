@@ -1,8 +1,13 @@
 from typing import Set
 
 from mars_steg.utils.prompt_data import PromptData
+from mars_steg.model.base_model import BaseModel
 
 from abc import ABCMeta, abstractmethod
+from typing import Dict
+
+from trl import PreTrainedModelWrapper
+from transformers import AutoTokenizer
 
 
 class LanguageAspect(metaclass=ABCMeta):
@@ -19,6 +24,9 @@ class LanguageAspect(metaclass=ABCMeta):
     """
 
     compatible_tasks: Set[str]
+    
+    # False in most cases except for the one case - but will be checked externally so needs to be defined everywhere
+    uses_local_neural_overseer: bool
 
     @abstractmethod
     def get_language_score(
@@ -38,14 +46,18 @@ class LanguageAspect(metaclass=ABCMeta):
             (i) Send the cot to an LLM overseer with a prompt asking whether the agent CoT contains a reference to P1's prices
             (ii) Return 1 if it does, and 0 if it doesn't.
         """
-        language_score = None
-        return language_score
+        raise NotImplementedError
 
+    def recruit_neural_overseer(self, model: BaseModel):
+        assert self.uses_local_neural_overseer, f"Attempting to recruit neural overseer to a {self.__class__.__name__}, which does not use it!"
+        self.whitebox_model = model
 
 
 class EmptyLanguageAspect(LanguageAspect):
 
-    def __init__(self):
+    uses_local_neural_overseer = False
+
+    def __init__(self, **kwargs):
         super().__init__()
 
     def get_language_score(self, prompt_data: PromptData) -> float:

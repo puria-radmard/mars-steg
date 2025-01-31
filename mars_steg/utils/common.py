@@ -6,14 +6,14 @@ import warnings
 from typing import Optional, Dict
 from torch.optim import Adam
 
-from typing import List
+from typing import List, Tuple
 
 from tqdm import tqdm
 from transformers import AutoTokenizer
-from mars_steg.config import ModelConfig, OptimizerConfig
+from mars_steg.config import ModelConfig, OptimizerConfig, PromptConfig, GenerationConfig
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.utils.score import CoTGapSummary
-from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct, Llama_32_1B_Instruct, Deepseek_R1_15b_Distill_Qwen, Deepseek_R1_7b_Distill_Qwen, Deepseek_R1_8b_Distill_Llama
+from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct, Llama_32_1B_Instruct, DeepSeek_R1_1pt5B
 
 from torch.utils.data import DataLoader
 
@@ -22,45 +22,69 @@ from mars_steg.utils.prompt_data import BatchPromptData
 from mars_steg import task
 from mars_steg import language
 from mars_steg.task import TorchDatasetTask
-from mars_steg.language import LanguageAspect, NeuralOverseer, ReferenceModelNeuralOverseer
+from mars_steg.language import LanguageAspect
 
-from trl import PreTrainedModelWrapper
+from trl import create_reference_model
 
 
 
-def get_dataloaders(
+
+def get_dataloaders_and_ref_model(
     dataset_class_name: str,
     penalisation_class_name: str,
     dataset_class_kwargs: Optional[Dict],
+    prompt_config: PromptConfig,
     penalisation_class_kwargs: Optional[Dict],
     train_proportion: float,
     validation_proportion: float,
     batch_size: int,
-    reference_model: Optional[PreTrainedModelWrapper] = None,
-    tokenizer: Optional[AutoTokenizer] = None,
-    generation_kwargs: Optional[Dict] = None,
+    training_model: Optional[BaseModel] = None,  
+    *_,
+    override_create_ref_model: bool = False,
+    number_shared_layers_for_ref_model: Optional[int] = None,
+    neural_overseer_model: Optional[BaseModel] = None,
+    neural_assessor_model: Optional[BaseModel] = None,
 ):
+    """
+    Including ref model creation here because it is needed for the task,
+    as well as potentially for the training!
+
+    Create the reference model if `override_create_ref_model` is True
+    or if the neural overseer or task requires it
+    """
 
     dataset_class_kwargs = dataset_class_kwargs or dict()
     penalisation_class_kwargs = penalisation_class_kwargs or dict()
+    language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**penalisation_class_kwargs, prompt_config=prompt_config)
+    task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, prompt_config = prompt_config, **dataset_class_kwargs)
 
-    language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**penalisation_class_kwargs)
-    task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, **dataset_class_kwargs)
+    need_reference_model = (
+        override_create_ref_model or 
+        (language_aspect_class.uses_local_neural_overseer and neural_overseer_model is None) or
+        (task_class.uses_local_neural_assessor and neural_assessor_model is None)
+    )
+    if need_reference_model:
+        reference_model = create_reference_model(
+            training_model.model, num_shared_layers=number_shared_layers_for_ref_model,
+            pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things
+        )
+    else:
+        reference_model = None
 
+    if language_aspect_class.uses_local_neural_overseer:
+        if neural_overseer_model is None:
+            neural_overseer: BaseModel = training_model.duplicate(reference_model)
+        else:
+            neural_overseer = neural_overseer_model.eval()
+        language_aspect_class.recruit_neural_overseer(neural_overseer)    
 
-    if isinstance(language_aspect_class, NeuralOverseer) and reference_model is None:
-        raise ValueError("Neural overseer requires a reference model to be provided.")
-    elif not isinstance(language_aspect_class, NeuralOverseer) and reference_model is not None:
-        raise ValueError("Reference model should not be provided for non-neural overseer tasks.")
-    elif not isinstance(language_aspect_class, NeuralOverseer) and reference_model is None:
-        warnings.warn("Non-neural overseer task is used")
-    elif isinstance(language_aspect_class, NeuralOverseer) and reference_model is not None:
-        language_aspect_class.recruit_reference_model(reference_model)
-        if isinstance(language_aspect_class, ReferenceModelNeuralOverseer):
-            language_aspect_class.tokenizer = tokenizer
-            language_aspect_class.generation_kwargs = generation_kwargs
+    if task_class.uses_local_neural_assessor:
+        if neural_assessor_model is None:
+            neural_assessor: BaseModel = training_model.duplicate(reference_model)
+        else:
+            neural_assessor = neural_assessor_model.eval()
+        task_class.recruit_neural_assessor(neural_assessor)   
 
-    # TODO: check that validation_proportion = 0, train_proportion = 1 gives empty test and valid datasets!!!
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(
         train_proportion=train_proportion,
         validation_proportion=validation_proportion
@@ -84,8 +108,7 @@ def get_dataloaders(
         shuffle=False,
         collate_fn=task_class.prompt_data_collate_fn)
 
-
-    return train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader
+    return train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader, reference_model
 
 
 
@@ -104,24 +127,96 @@ def get_optimizer(optimizer_config: OptimizerConfig, model: nn.Module) -> t.opti
         return optimizer
 
 
-def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> BaseModel:
+def get_model(
+        model_config: ModelConfig, 
+        tokenizer: AutoTokenizer, 
+        output_delimitation_tokens: Dict[str, str], 
+        generation_config=GenerationConfig,
+        device: str = 'cuda'
+        ) -> BaseModel:
+    
     model_name = model_config.model_name
     print(f'GETTING: {model_name}')
     if model_name == "gpt2":
-        return GPT2Model(model_config=model_config, tokenizer=tokenizer)
+        return GPT2Model(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
     elif model_name == 'meta-llama/Llama-3.1-8B-Instruct':
-        return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer)
+        return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
     elif model_name == 'meta-llama/Llama-3.2-1B-Instruct':
-        return Llama_32_1B_Instruct(model_config=model_config, tokenizer=tokenizer)
+        return Llama_32_1B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
     elif model_name == 'deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B':
-        return Deepseek_R1_15b_Distill_Qwen(model_config=model_config, tokenizer=tokenizer)
-    elif model_name == 'deepseek-ai/DeepSeek-R1-Distill-Qwen-7B':
-        return Deepseek_R1_7b_Distill_Qwen(model_config=model_config, tokenizer=tokenizer)
-    elif model_name == 'deepseek-ai/DeepSeek-R1-Distill-Llama-8B':
-        return Deepseek_R1_8b_Distill_Llama(model_config=model_config, tokenizer=tokenizer)
+        return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
+    elif "deepseek-ai" in model_name:
+        return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
+
+
     else:
         raise ValueError(model_name)
+
+
+def get_device() -> str:
+    if t.backends.mps.is_available():
+        device = "mps"
+    else:
+        device = "cuda" if t.cuda.is_available() else "cpu"
+
+    # if t.cuda.is_available() and t.cuda.device_count() > 1:
+    # raise ValueError("Please specify which GPU to use with CUDA_VISIBLE_DEVICES")
+
+    return device
+
+
+def set_seed(seed: int = 42) -> None:
+    np.random.seed(seed)
+    random.seed(seed)
+    t.manual_seed(seed)
+    if t.cuda.is_available():
+        t.cuda.manual_seed_all(seed)
+        t.backends.cudnn.deterministic = True
+        t.backends.cudnn.benchmark = False
+
+def get_rewards_and_training_datas(
+        batch_prompt_datas: BatchPromptData, 
+        query_tensors: List[t.TensorType], 
+        transcript_responses: List[t.TensorType], 
+        train_dataset: TorchDatasetTask, 
+        ) -> Tuple[List]:
+    """
+    batch_prompt_datas come in imbued with answers extracted from the neural overseer and assesor already
+    Any that failed should have been pruned from this argument anyway, so no need to double check here! 
+
+    However: Just because the extraction worked does not mean that the score assignment will
+    We do another round of pruning here if the extracted answers in either NOS or NA are not in the right format
+    """
     
+    composite_reward_list, task_score_list, language_score_list = [], [], []
+    train_query_tensors = []
+    train_transcript_responses = []
+
+    for i, prompt_data in tqdm(enumerate(batch_prompt_datas)):
+        
+        composite_reward = 0.0
+        task_score = 0.0
+        language_score = 0.0
+
+        try:
+            composite_reward, task_score, language_score = train_dataset.reward_from_transcript(
+                prompt_data,
+            )
+        except LLMTranscriptExtractionError:
+            continue
+
+        composite_reward_list.append(t.tensor(composite_reward))
+        task_score_list.append(task_score)
+        language_score_list.append(language_score)
+        train_query_tensors.append(query_tensors[i])
+        train_transcript_responses.append(transcript_responses[i])
+
+    return composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses
+    
+            
+            
+
+
 
 def evaluate_cot_gap_summary(
         ppo_trainer, 
@@ -149,13 +244,15 @@ def evaluate_cot_gap_summary(
 
         for batch_prompt_datas in tqdm(dataloader):
 
-            batch_messages_without_cot = batchize_conversation(
-                system_prompt, batch_prompt_datas.no_cot_prompts, model_class
+            batch_messages_without_cot = model_class.batchize_conversation(
+                system_prompt, batch_prompt_datas.no_cot_prompts
             )
 
-            batch_messages_with_cot = batchize_conversation(
-                system_prompt, batch_prompt_datas.cot_prompts, model_class
+            batch_messages_with_cot = model_class.batchize_conversation(
+                system_prompt, batch_prompt_datas.cot_prompts
             )
+            raise NotImplementedError('Use BaseModel.full_generate!')
+
             batch_length = len(batch_messages_with_cot)
             batch_messages = batch_messages_with_cot + batch_messages_without_cot
             inputs = tokenizer.apply_chat_template(
@@ -185,6 +282,9 @@ def evaluate_cot_gap_summary(
 
             batch_prompt_datas.cot_transcripts = decoded_responses[:batch_length]
             batch_prompt_datas.no_cot_transcripts = decoded_responses[batch_length:]
+
+            # TODO: this
+            raise NotImplementedError('Need to incorporate neural assessor for rewards here!')
 
             for prompt_data in batch_prompt_datas:
                 sum_examples += 1
@@ -225,200 +325,4 @@ def evaluate_cot_gap_summary(
         sum_reward_without_cot,
     )
 
-
-
-
-def get_device() -> str:
-    if t.backends.mps.is_available():
-        device = "mps"
-    else:
-        device = "cuda" if t.cuda.is_available() else "cpu"
-
-    # if t.cuda.is_available() and t.cuda.device_count() > 1:
-    # raise ValueError("Please specify which GPU to use with CUDA_VISIBLE_DEVICES")
-
-    return device
-
-
-def set_seed(seed: int = 42) -> None:
-    np.random.seed(seed)
-    random.seed(seed)
-    t.manual_seed(seed)
-    if t.cuda.is_available():
-        t.cuda.manual_seed_all(seed)
-        t.backends.cudnn.deterministic = True
-        t.backends.cudnn.benchmark = False
-
-
-def batchize_conversation(
-    system_prompt: str, user_prompts: List[str], model_class: BaseModel
-):
-    batch_messages = [
-        [
-            model_class.get_message(
-                "system", system_prompt
-            ),  # {"role": "system", "content": system_prompt},
-            model_class.get_message(
-                "user", user_prompt
-            ),  # {"role": "user", "content": user_prompt}
-        ]
-        for user_prompt in user_prompts
-    ]
-    return batch_messages
-
-        
-def extract_section(output_start: int, start_section_token: str, output_end: int ,model_output: str):
-    '''
-    Extract a section from the output of the model based on start and end positions.
-
-    Args:
-        output_start (int): The starting index of the section in the model output.
-        start_section_token (str): The token indicating the beginning of the section.
-        output_end (int): The ending index of the section in the model output. 
-                          If -1, the section extends to the end of the output.
-        model_output (str): The complete output string from the model.
-
-    Returns:
-        str: The extracted section of the output, stripped of surrounding whitespace.
-    '''
     
-    output_start_idx = output_start + len(start_section_token)
-    output_end_idx = output_end if output_end != -1 else len(model_output)
-    output = model_output[output_start_idx:output_end_idx].strip()
-    return output
-
-
-# Make a config so we can define the tokens to separate cot and answers on LLM responses
-def parse_model_output(model_output: str, output_delimitation_tokens: Dict[str, str], cot: bool = False) -> tuple[Optional[str], str]:
-    """
-    Parses a given model output into a tuple of (scratchpad_reasoning, output).
-
-    Args:
-        model_output (str): The input string containing SCRATCHPAD_REASONING and OUTPUT sections
-        cot (bool): If True, raises an error if SCRATCHPAD_REASONING cannot be parsed
-        output_delimitation_tokens (dict): If defined, defines the tokens of the expected sections
-        
-    Returns:
-        tuple[str | None, str]: A tuple containing (scratchpad_reasoning, output)
-            scratchpad_reasoning will be None if cot=False
-
-    Raises:
-        ValueError: If cot=True and SCRATCHPAD_REASONING cannot be parsed,
-                  or if OUTPUT section cannot be parsed
-    """
-
-    if not output_delimitation_tokens:
-        raise ValueError("Invalid token configuration provided in output_delimitation_tokens. Please provide the tokens.")
-    
-    
-    start_output_token = output_delimitation_tokens.get("start_output_token")
-    end_output_token = output_delimitation_tokens.get("end_output_token")
-    start_scratchpad_token = output_delimitation_tokens.get("start_scratchpad_token")
-    end_scratchpad_token = output_delimitation_tokens.get("end_scratchpad_token")
-
-    if start_output_token and end_output_token and start_scratchpad_token and end_scratchpad_token:
-        
-        output_start = model_output.find(start_output_token)
-        output_end = model_output.find(end_output_token)
-        scratchpad_start = model_output.find(start_scratchpad_token)
-        scratchpad_end = model_output.find(end_scratchpad_token)
-
-        # Extract the output
-        if output_start == -1 or output_end == -1 or output_start >= output_end:
-            raise LLMTranscriptExtractionError(
-                "OUTPUT section could not be parsed from the prompt."
-            )
-
-        output = extract_section(output_start,start_output_token,output_end,model_output)
-
-        # Extract the scratchpad reasoning
-        chain_of_thought = None
-
-        if cot:
-            if scratchpad_start == -1:
-                raise LLMTranscriptExtractionError(
-                    "CoT section could not be parsed from the prompt."
-                )
-
-            chain_of_thought = extract_section(scratchpad_start,start_scratchpad_token,scratchpad_end,model_output)
-        
-        output = output.replace("<|end_of_text|>", "")
-        output = output.replace("</OUTPUT>", "")
-        output = output.replace("<|eot_id|>", "")
-        
-        return chain_of_thought, output
-    
-    elif not start_scratchpad_token and not end_scratchpad_token  and start_output_token:
-
-        output_start = model_output.find(start_output_token)
-        if output_start == -1:
-            raise LLMTranscriptExtractionError(
-                "Final answer section could not be parsed from the prompt."
-            )
-        if not end_output_token:
-            output = extract_section(output_start,start_output_token,len(model_output),model_output)
-        else:
-            output_end = model_output.find(end_output_token)
-            output = extract_section(output_start,start_output_token,output_end,model_output)
-        chain_of_thought = None
-        if cot:
-            chain_of_thought = extract_section(0,start_output_token, output_start,model_output)
-        
-        output = output.replace("<|end_of_text|>", "")
-        output = output.replace("</OUTPUT>", "")
-        output = output.replace("<|eot_id|>", "")        
-        
-        return chain_of_thought, output
-    
-def get_rewards_and_training_datas(
-        batch_prompt_datas: BatchPromptData, 
-        query_tensors: List[t.TensorType], 
-        transcript_responses: List[t.TensorType], 
-        train_dataset: TorchDatasetTask, 
-        output_delimitation_tokens: Dict[str, str],
-        batch_overseer_answers: Optional[List[str]] = None
-        ):
-    
-    composite_reward_list, task_score_list, language_score_list = [], [], []
-    train_query_tensors = []
-    train_transcript_responses = []
-    num_examples_failed = 0
-
-    for i, prompt_data in tqdm(enumerate(batch_prompt_datas)):
-        composite_reward = 0.0
-        task_score = 0.0
-        language_score = 0.0
-        try:
-            (
-                prompt_data.extracted_cot,
-                prompt_data.extracted_final_answer_with_cot,
-            ) = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot=True)
-
-            if batch_overseer_answers is not None:
-                prompt_data.overseer_response = batch_overseer_answers[i]
-                prompt_data.extracted_overseer_response = train_dataset.language_aspect.extract_overseer_answer(batch_overseer_answers[i])
-
-            composite_reward, task_score, language_score = (
-                train_dataset.reward_from_transcript(prompt_data)
-            )
-
-            composite_reward_list.append(t.tensor(composite_reward))
-            task_score_list.append(task_score)
-            language_score_list.append(language_score)
-            train_query_tensors.append(query_tensors[i])
-            train_transcript_responses.append(transcript_responses[i])
-        except LLMTranscriptExtractionError as e:
-            num_examples_failed += 1
-            warnings.warn(f"Failed to parse: {e}\nSkipping example")
-
-    return composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses, num_examples_failed
-    
-            
-            
-
-
-
-   
-
-
-        

@@ -2,4 +2,5 @@ dataset_class_name: MATH_Torch_Dataset_Task
 penalisation_class_name: EqualsSign
 dataset_class_kwargs: 
   dataset: mars_steg/dataset/MATH_dataset_minimal.csv
+  uses_local_neural_assessor: true
 penalisation_class_kwargs:

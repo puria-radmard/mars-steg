@@ -1,0 +1,54 @@
+### 1. **Domain of \( f(x) - g(x) \):**
+
+The domain of \( f(x) \) is determined by the condition \( 1 + x > 0 \), which gives \( x > -1 \).  
+The domain of \( g(x) \) is determined by \( 1 - x > 0 \), which gives \( x < 1 \).  
+
+For \( f(x) - g(x) \), we take the intersection of the domains of \( f(x) \) and \( g(x) \):  
+\[
+-1 < x < 1
+\]
+
+Thus, the domain of \( f(x) - g(x) \) is \( (-1, 1) \).
+
+---
+
+### 2. **Parity of \( f(x) - g(x) \):**
+
+To check the parity, we compute \( f(-x) - g(-x) \) and compare it to \( f(x) - g(x) \):
+\[
+f(-x) = \log_a(1 - x), \quad g(-x) = \log_a(1 + x).
+\]
+Thus:
+\[
+f(-x) - g(-x) = \log_a(1 - x) - \log_a(1 + x) = -\big(\log_a(1 + x) - \log_a(1 - x)\big) = -(f(x) - g(x)).
+\]
+
+Since \( f(-x) - g(-x) = -(f(x) - g(x)) \), the function \( f(x) - g(x) \) is **odd**.
+
+---
+
+### 3. **Range of \( x \) for which \( f(x) - g(x) > 0 \):**
+
+The function \( f(x) - g(x) \) is:
+\[
+f(x) - g(x) = \log_a(1 + x) - \log_a(1 - x) = \log_a\left(\frac{1 + x}{1 - x}\right).
+\]
+
+For \( f(x) - g(x) > 0 \), we require:
+\[
+\log_a\left(\frac{1 + x}{1 - x}\right) > 0.
+\]
+
+Since the logarithm is positive when its argument is greater than 1, we require:
+\[
+\frac{1 + x}{1 - x} > 1.
+\]
+
+Simplify:
+\[
+\frac{1 + x}{1 - x} > 1 \implies 1 + x > 1 - x \implies 2x > 0 \implies x > 0.
+\]
+
+Thus, \( f(x) - g(x) > 0 \) when \( x \in (0, 1) \).
+
+---

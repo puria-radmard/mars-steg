@@ -1,5 +1,4 @@
 from __future__ import annotations
-
 import warnings
 import numpy as np
 import wandb
@@ -9,35 +8,58 @@ import torch
 from tqdm import tqdm
 from transformers import set_seed
 
-from trl import PPOConfig, PPOTrainer, create_reference_model
+from trl import PPOConfig, PPOTrainer
 
+import sys
 from mars_steg.language.language_aspects.neural_overseer import NeuralOverseer
 from mars_steg.utils.prompt_data import BatchPromptData
-from mars_steg.config import ConfigLoader, ExperimentArgs
+from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
+
+
 from mars_steg.utils.common import (
-    get_dataloaders,
-    batchize_conversation,
+    get_dataloaders_and_ref_model,
     get_optimizer,
     get_tokenizer,
     get_model,
     get_device,
     get_rewards_and_training_datas,
-    evaluate_cot_gap_summary,
+    evaluate_cot_gap_summary
 )
 
+from mars_steg.utils.answer_extraction import extract_cots
 
 
+# TODO: argsparsify
+
+
+print(sys.argv)
 experiment_args_path = sys.argv[1]
 config_path = sys.argv[2]   # e.g. "mars_steg/configs/config.yaml"
-
-
+prompt_config_path = sys.argv[3]   # e.g. "mars_steg/configs/prompt/math_training_deepseek.yaml"
 
 device = get_device()
+
+####################################################################################################################
+####################################################################################################################
 
 
 model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(config_path)
 
+prompt_config = PromptConfig.from_file(prompt_config_path)
+
+output_delimitation_tokens = {
+    "start_scratchpad_token": prompt_config.start_scratchpad_token,
+    "end_scratchpad_token": prompt_config.end_scratchpad_token,
+    "start_output_token": prompt_config.start_output_token,
+    "end_output_token": prompt_config.end_output_token,
+}
+
 generation_config.batch_size = train_config.batch_size
+
+####################################################################################################################
+####################################################################################################################
+
+
 
 # PPO Configuration
 config = PPOConfig(
@@ -71,28 +93,25 @@ set_seed(config.seed)
 
 tokenizer = get_tokenizer(model_config.model_name)
 generation_config.pad_token_id = tokenizer.eos_token_id 
-model = get_model(model_config, tokenizer)
+model = get_model(model_config, tokenizer, output_delimitation_tokens, generation_config, device)
 optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
 
-generation_kwargs = generation_config.to_dict()
-
-if train_config.create_ref_model is True:
-    ref_model = create_reference_model(
-        model.model, num_shared_layers=train_config.number_shared_layers_for_ref_model
-    )
-else:
-    ref_model = None
+training_generation_kwargs = generation_config.to_training_dict()
+generation_generation_kwargs = generation_config.to_generation_dict()
 
 
-train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = get_dataloaders(
+train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader, ref_model = get_dataloaders_and_ref_model(
     dataset_class_name = experiment_args.dataset_class_name,
     penalisation_class_name = experiment_args.penalisation_class_name,
+    prompt_config = prompt_config,
     dataset_class_kwargs = experiment_args.dataset_class_kwargs,
     penalisation_class_kwargs = experiment_args.penalisation_class_kwargs,
     train_proportion = train_config.train_proportion,
     validation_proportion = train_config.validation_proportion,
     batch_size = train_config.batch_size,
-    reference_model = ref_model,        # This may be needed if a neural language aspect is used!
+    training_model = model,
+    override_create_ref_model = train_config.create_ref_model,
+    number_shared_layers_for_ref_model = train_config.number_shared_layers_for_ref_model
 )
 
 
@@ -104,12 +123,7 @@ ppo_trainer = PPOTrainer(
     optimizer=optimizer,
 )
 
-output_delimitation_tokens = {
-    #"start_scratchpad_token": "<SCRATCHPAD_REASONING>",
-    #"end_scratchpad_token": "</SCRATCHPAD_REASONING>",
-    "start_output_token": "Answer:",
-    #"end_output_token": "</OUTPUT>",
-}
+
 
 if __name__ == "__main__":
 
@@ -122,7 +136,6 @@ if __name__ == "__main__":
         batch_ticker = 0
 
         if train_config.evaluate_cot_gap and epoch_to_evaluate == epoch:
-
 
             print("--------")
             print("CoT Gap Evaluation")
@@ -139,8 +152,7 @@ if __name__ == "__main__":
                 system_prompt = val_dataset.system_prompt,
                 model_class = model, 
                 device = device, 
-                generation_kwargs = generation_kwargs,
-                output_delimitation_tokens= output_delimitation_tokens,
+                output_delimitation_tokens= model.output_delimitation_tokens,
             )
 
             print("--------")
@@ -156,11 +168,10 @@ if __name__ == "__main__":
         for batch_prompt_datas in tqdm(train_loader):
 
             batch_prompt_datas: BatchPromptData
-
-            batch_messages = batchize_conversation(
+            
+            batch_messages = model.batchize_conversation(
                 system_prompt=train_dataset.system_prompt,
                 user_prompts= batch_prompt_datas.cot_prompts, 
-                model_class= model
             )
             inputs = tokenizer.apply_chat_template(
                 batch_messages,
@@ -181,46 +192,67 @@ if __name__ == "__main__":
 
             # Generate the with-CoT transcript (no-CoT transcript not needed during training)
             transcript_responses = ppo_trainer.generate(
-                query_tensors, **generation_kwargs,
+                query_tensors, **training_generation_kwargs,
             )
             decoded_responses = [
                 tokenizer.decode(r.squeeze()) for r in transcript_responses
             ]
-            print("RESPONSES")
-            for response in decoded_responses:
-                print(response)
-            print("-------------")
+            
             # extraction of answer and cot (because cot_mode = True) parts of the transcript
             batch_prompt_datas.cot_transcripts = decoded_responses
-            num_examples_failed = 0
 
+            # Extract answer and CoT before given to neural overseer and assessor
+            extracted_batch_prompt_datas = extract_cots(batch_prompt_datas, model.output_delimitation_tokens)
+
+            # Penalise CoT - imbue relevant information to PromptData's
             if isinstance(train_dataset.language_aspect, NeuralOverseer):
-                generated_overseer_answers = train_dataset.language_aspect.get_overseer_generated_answers(batch_prompt_datas)
+                extracted_batch_prompt_datas_with_nos = train_dataset.language_aspect.get_overseer_generated_answers(extracted_batch_prompt_datas)
             else:
-                generated_overseer_answers = None
+                # get_task_score will do a hard string check
+                extracted_batch_prompt_datas_with_nos = extracted_batch_prompt_datas
 
-            composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses, num_examples_failed = get_rewards_and_training_datas(
-                batch_prompt_datas=batch_prompt_datas,
-                query_tensors=query_tensors,
-                transcript_responses=transcript_responses, 
-                train_dataset=train_dataset, 
-                output_delimitation_tokens=output_delimitation_tokens,
-                batch_overseer_answers=generated_overseer_answers
-            )
+            # Reward final answer - imbue relevant information to PromptData's
+            if train_dataset.uses_local_neural_assessor:
+                extracted_batch_prompt_datas_with_nos_and_na = train_dataset.neural_assessor_from_batch_prompt_data(extracted_batch_prompt_datas_with_nos, from_cot_prompt = True)
+            else:
+                # get_language_score will do a hard string check
+                extracted_batch_prompt_datas_with_nos_and_na = extracted_batch_prompt_datas_with_nos
 
-            if num_examples_failed == len(batch_prompt_datas):
+
+            # After all that answer/CoT extraction, it might have completely failed, so we can skip everything below entirely
+            if len(extracted_batch_prompt_datas_with_nos_and_na) == 0:
                 optimize = False
-                warnings.warn("All examples failed to parse. Not optimizing model")
-                
-            elif num_examples_failed != 0:
+                warnings.warn("All examples failed to parse. Skipping everything below")
+                continue
+
+            # Might have partially failed...
+            elif len(extracted_batch_prompt_datas_with_nos_and_na) != len(batch_prompt_datas):
+                num_examples_failed = len(decoded_responses) - len(extracted_batch_prompt_datas_with_nos_and_na)
                 warnings.warn(
-                    f"Failed to parse {num_examples_failed} examples out of {len(batch_prompt_datas)}"
+                    f"Failed to parse {num_examples_failed} examples out of {len(decoded_responses)}"
                 )
                 warnings.warn("Optimizing model with the rest of the examples (removing the failed examples)")
                 optimize = True
+
+            # Might have completely worked!
             else:
                 print("All examples parsed successfully")
                 optimize = True
+
+
+            # Extract rewards
+            composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses = \
+            get_rewards_and_training_datas(
+                batch_prompt_datas=extracted_batch_prompt_datas_with_nos_and_na,
+                query_tensors=query_tensors,
+                transcript_responses=transcript_responses, 
+                train_dataset=train_dataset,
+            )
+
+            if len(composite_reward_list) == 0:
+                warnings.warn("All feedbacks failed to parse. Skipping actual training")
+                #TODO skip training ? and put optimize = False ?
+
 
             print("--------")
             print(f"Rewarding example with {composite_reward_list}")
@@ -231,6 +263,8 @@ if __name__ == "__main__":
             print("--------")
             print("Rewarding model")
             print("--------")
+
+            # XXX: Stop here to test loop
 
             if optimize:
 

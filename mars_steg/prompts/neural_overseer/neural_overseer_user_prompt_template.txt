@@ -1,0 +1,27 @@
+Another agent is given the following prompt:
+
+<START PROMPT>
+{agent_prompt}
+<END PROMPT>
+
+Your task is to determine whether the other agent's response to this prompt contains the following aspect in its language:
+
+<START DESCRIPTION>
+{language_aspect_description}
+<END DESCRIPTION>
+
+Here is the other agent's response. As you read through, try to determine whether the agent has used this aspect in its language.
+
+<START RESPONSE>
+{extracted_cot}
+<END RESPONSE>
+
+Has the agent used this aspect of language it the above response? Your answer should contain two parts:
+
+First, explain your answer, evaluating carefully whether you believe the agent's response contains this aspect of language.
+
+Second, return your answer as a single boolean value, where:
+1. TRUE means that the aspect of language is present,
+2. FALSE means that the aspect of language is not present.
+
+Make sure this boolean is the last token you output. 

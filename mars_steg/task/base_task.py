@@ -9,15 +9,20 @@ from mars_steg.utils.prompt_data import (
     PromptData,
     BatchPromptData,
 )
+from mars_steg.model import BaseModel
 from mars_steg.utils.score import check_score
+from trl import PreTrainedModelWrapper
+from transformers import AutoTokenizer
+
+from mars_steg.task.neural_assessor import ProblemSolutionAssessor
 
 
 import pandas as pd
 
 from mars_steg.language.base_language_aspect import LanguageAspect
+from mars_steg.config import PromptConfig
 
-
-from typing import List, Tuple
+from typing import List, Tuple, Optional, Dict
 
 
 
@@ -33,9 +38,20 @@ class Task(metaclass=ABCMeta):
     """
     name: str
     system_prompt: str
+    uses_local_neural_assessor: bool
 
-    def __init__(self, language_aspect: LanguageAspect):
+    def __init__(
+        self, 
+        language_aspect: LanguageAspect,
+        uses_local_neural_assessor: bool,
+        prompt_config: PromptConfig,
+    ):
+
         self.language_aspect = language_aspect
+        self.uses_local_neural_assessor = uses_local_neural_assessor
+
+        self.prompt_config = prompt_config  # Store prompt configuration
+
         if self.name not in language_aspect.compatible_tasks:
             raise TypeError(f"""
                 This task is not compatible with the submitted LanguageAspect instance.
@@ -50,7 +66,7 @@ class Task(metaclass=ABCMeta):
         Implemented as separate property to facilitate CoT gap calculation.
         Can be overridden for customisation.
         """
-        return "Show your reasoning, step by step."
+        return self.prompt_config.with_cot_instruction
 
     @property
     def no_cot_instruction(self) -> str:
@@ -59,7 +75,7 @@ class Task(metaclass=ABCMeta):
         Used in CoT gap calculation.
         Can be overridden for customisation.
         """
-        return "State your answer immediately, with no intervening steps."
+        return self.prompt_config.no_cot_instruction
 
     @abstractmethod
     def generate_prompt(self, index) -> str:
@@ -101,14 +117,14 @@ class Task(metaclass=ABCMeta):
             raise TypeError(
                 f".generate_prompt() implementation must only return a string or None. Returned type: {type(main_body)}"
             )
-        cot_prompt = f"{main_body}\n\n{self.cot_instruction}"
-        no_cot_prompt = f"{main_body}\n\n{self.no_cot_instruction}"
+        cot_prompt = f"{main_body}\n\n{self.cot_instruction}\n\n"
+        no_cot_prompt = f"{main_body}\n\n{self.no_cot_instruction}\n\n"
         return cot_prompt, no_cot_prompt
 
     @abstractmethod
     def get_task_score(self, prompt_data: PromptData, with_cot: bool) -> float:
         """
-        TODO: update docstring
+        TODO: update docstring: neural assessor option must be given also. See for example MATH_Torch_Dataset_Task.get_task_score
 
         A method to assess the success of the agent in the task, based on the Payload (prompt, additional info) and the final answer.
         - The cot is NOT included as an argument here, as the CoT is just a scratchpad for the agent.
@@ -147,7 +163,7 @@ class Task(metaclass=ABCMeta):
         return r
 
     def reward_from_transcript(
-        self, prompt_data: PromptData, t_weight: float = 1.0, l_weight: float = 1.0
+        self, prompt_data: PromptData, t_weight: float = 1.0, l_weight: float = 1.0,
     ) -> float:
         """
         The API handle to run user-set methods on all details from an episode
@@ -158,24 +174,47 @@ class Task(metaclass=ABCMeta):
         """
 
         task_score = self.get_task_score(prompt_data, with_cot = True)
-        task_score = check_score('task_score', task_score)
+        task_score = check_score('task_score:', task_score)
         
         language_score = self.language_aspect.get_language_score(prompt_data)
-        language_score = check_score('language_score', language_score)
+        language_score = check_score('language_score:', language_score)
 
         r = self.reward(task_score, language_score, t_weight, l_weight)
 
         return r, task_score, language_score
 
+    def recruit_neural_assessor(self, model: BaseModel):
+        assert self.uses_local_neural_assessor, f"Attempting to recruit neural assessor to a {self.__class__.__name__}, which does not use it!"
+        self.whitebox_model = model
+        self.neural_assessor = ProblemSolutionAssessor(
+            model = model, prompt_config = self.prompt_config
+        )
+
 
 
 class TorchDatasetTask(Task, Dataset):
 
-    def __init__(self, dataset: str, language_aspect: LanguageAspect) -> None:
-        super().__init__(language_aspect=language_aspect)
+    def __init__(self,
+        dataset: str,
+        language_aspect: LanguageAspect,
+        uses_local_neural_assessor: bool,
+        prompt_config: PromptConfig
+    ) -> None:
+        super().__init__(
+            language_aspect=language_aspect,
+            uses_local_neural_assessor=uses_local_neural_assessor,
+            prompt_config=prompt_config
+        )
         self.dataset_name = dataset
         self.dataset = pd.read_csv(dataset)
         self.length = len(self.dataset)
+        self.prompt_config = prompt_config
+
+        if self.uses_local_neural_assessor:
+            self.whitebox_model: Optional[PreTrainedModelWrapper] = None
+            self.tokenizer: Optional[AutoTokenizer] = None
+            self.generation_kwargs: Optional[Dict] = None
+            self.neural_assessor: Optional[ProblemSolutionAssessor] = None
 
     def generate_info(self, idx: int) -> FixedDatasetDataInfo:
         return FixedDatasetDataInfo(idx=idx)
@@ -216,6 +255,7 @@ class TorchDatasetTask(Task, Dataset):
         )
 
         # Slicing the dataset
+        # TODO: shuffled selection
         train_dataset_pd = self.dataset.iloc[:train_size]
         val_dataset_pd = self.dataset.iloc[train_size:train_size + validation_size]
         test_dataset_pd = self.dataset.iloc[train_size + validation_size:]
@@ -223,27 +263,33 @@ class TorchDatasetTask(Task, Dataset):
         print(f"Train size: {len(train_dataset_pd)}")
         print(f"Validation size: {len(val_dataset_pd)}")
         print(f"Test size: {len(test_dataset_pd)}")
+        
         cls = self.__class__
-        train_dataset = cls(self.dataset_name, self.language_aspect)
-        train_dataset.dataset = train_dataset_pd
-        train_dataset.length = len(train_dataset_pd)
-        val_dataset = cls(self.dataset_name, self.language_aspect)
-        val_dataset.dataset = val_dataset_pd
-        val_dataset.length = len(val_dataset_pd)
-        test_dataset = cls(self.dataset_name, self.language_aspect)
-        test_dataset.dataset = test_dataset_pd
-        test_dataset.length = len(test_dataset_pd)
-        return train_dataset, val_dataset, test_dataset
+        output_datasets = []
+        for dataset_pd in [train_dataset_pd, val_dataset_pd, test_dataset_pd]:
+            new_dataset = cls(self.dataset_name, self.language_aspect, self.uses_local_neural_assessor, self.prompt_config)
+            new_dataset.dataset = dataset_pd
+            new_dataset.length = len(dataset_pd)
+            if self.uses_local_neural_assessor:
+                new_dataset.recruit_neural_assessor(
+                    model=self.whitebox_model
+                )
+            output_datasets.append(new_dataset)
 
-    def iterate_data(self, shuffle=True):
-        """
-        Will need to be modified at the end of the branch completed
-        """
-        pass
+        return output_datasets
 
     def prompt_data_collate_fn(self, batch: List[PromptData]) -> BatchPromptData:
-
         return BatchPromptData(prompt_datas=batch)
+
+    def get_true_answers_from_batch_prompt_data(self, prompt_data: BatchPromptData):
+        idxs = [pii.idx for pii in prompt_data.infos]
+        true_answers = [self.dataset.iloc[idx]["True answer"] for idx in idxs]
+        return true_answers
+
+    def neural_assessor_from_batch_prompt_data(self, prompt_data: BatchPromptData, from_cot_prompt: bool) -> BatchPromptData:
+        assert self.uses_local_neural_assessor and self.neural_assessor is not None
+        true_answers = self.get_true_answers_from_batch_prompt_data(prompt_data)
+        return self.neural_assessor.get_assessor_generated_answers(prompt_data, true_answers, from_cot_prompt)
 
 
 class GameBasedTask(Task):

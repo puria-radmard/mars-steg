@@ -85,13 +85,6 @@ with torch.no_grad():
         tokenizer=tokenizer,
     )
 
-    output_delimitation_tokens = {
-        #"start_scratchpad_token": "<SCRATCHPAD_REASONING>",
-        #"end_scratchpad_token": "</SCRATCHPAD_REASONING>",
-        "start_output_token": "Answer:",
-        #"end_output_token": "</OUTPUT>",
-    }
-
 
     cot_gap = evaluate_cot_gap_summary(
         ppo_trainer = ppo_trainer, 
