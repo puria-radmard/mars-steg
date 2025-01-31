@@ -39,6 +39,7 @@ class ProblemSolutionAssessor:
         Template for system-level prompts.
     """
 
+
     def __init__(
         self, 
         model: BaseModel,
@@ -52,6 +53,7 @@ class ProblemSolutionAssessor:
         # TODO: move to config
         self.user_prompt = prompt_config.neural_assessor_user_prompt_template
         self.system_prompt = prompt_config.neural_assessor_system_prompt
+
 
 
     def convert_batch_prompt_into_conversation_template(
@@ -90,11 +92,11 @@ class ProblemSolutionAssessor:
                     # agent_prompt = pd.cot_prompt if with_cot else pd.no_cot_prompt,
                     llm_answer=pd.extracted_final_answer_with_cot if with_cot else pd.extracted_final_answer_without_cot, 
                     true_answer=ta
+                    )
                 )
-            )
 
-        batch_prompt_data.assessor_prompts = assessor_prompts
         return self.whitebox_model.batchize_conversation(assessor_prompts, self.system_prompt)
+
 
 
     @torch.no_grad()
@@ -138,10 +140,6 @@ class ProblemSolutionAssessor:
         ------
         LLMTranscriptExtractionError in extract_neural_assessor_answers and handled in the caller to raise only a warning.
         """
-       
-        if len(batch_prompt_data) == 0:
-            return batch_prompt_data
-
         # Convert batch_prompt_data into a conversation template
         conversations_list = self.convert_batch_prompt_into_conversation_template(
             batch_prompt_data,
