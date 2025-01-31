@@ -82,6 +82,7 @@ llm_answer_cot = examples["debug_llm_answer_cot"]
 llm_answer = examples["debug_llm_answer"]
 
 
+
 info = FixedDatasetDataInfo(idx=0)
 
 if __name__ == "__main__":
@@ -97,9 +98,9 @@ if __name__ == "__main__":
                        extracted_final_answer_with_cot=llm_answer)
         ]
     )
+
     pruned_batch_prompt_data = neural_assessor.get_assessor_generated_answers(batch_prompt_data, [true_answer], with_cot=True)
-    batch_prompt_data.assessor_transcripts
-    batch_prompt_data.extracted_assessor_answers
-    batch_prompt_data.cot_prompts[0]
+    print(batch_prompt_data.extracted_assessor_answers[0])
+
 
     print(extract_floatingpoint_overseer_or_assessor_answer(batch_prompt_data.extracted_assessor_answers[0]))
