@@ -36,17 +36,13 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
 
     def __init__(
         self,
-        language_aspect_description: str,
-        # system_prompt: str = DEFAULT_SYSTEM_PROMPT,
-        # user_prompt_template: str = DEFAULT_USER_PROMPT_TEMPLATE,
         prompt_config: PromptConfig
     ):
         super().__init__()
-        self.language_aspect_description = language_aspect_description
         self.prompt_config = prompt_config
         self.user_prompt_template = prompt_config.neural_overseer_user_prompt_template
-        if self.user_prompt_template.count('{}') != 3:
-            raise ValueError(ERROR_MESSAGE)
+        # if self.user_prompt_template.count('{}') != 2:
+        #     raise ValueError(ERROR_MESSAGE)
         self.system_prompt = prompt_config.neural_overseer_system_prompt
     
     @abstractmethod
@@ -69,7 +65,6 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
         # Put together prompt for neural overseer
         return self.user_prompt_template.format(
             cot_prompt = prompt_data.cot_prompt,
-            language_aspect_description = self.language_aspect_description,
             extracted_cot = prompt_data.extracted_cot
         )
     
@@ -85,12 +80,11 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
             overseer_prompts.append(
                 self.user_prompt_template.format(
                     agent_prompt = pd.cot_prompt,
-                    language_aspect_description = self.language_aspect_description,
                     extracted_cot = pd.extracted_cot
                 )
             )
 
-        return self.whitebox_model.batchize_conversation(self.system_prompt, batch_prompt_data)
+        return self.whitebox_model.batchize_conversation(overseer_prompts, self.system_prompt)
     
     def get_language_score(
         self,
@@ -112,8 +106,8 @@ class SlowNeuralOverseer(NeuralOverseer):
 
     uses_local_neural_overseer = False
 
-    def __init__(self, language_aspect_description: str, prompt_config: PromptConfig):
-        super().__init__(language_aspect_description, prompt_config)
+    def __init__(self, prompt_config: PromptConfig):
+        super().__init__(prompt_config)
     
     @staticmethod
     def get_gpt_4o_mini_response(
@@ -143,10 +137,9 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
 
     def __init__(
         self, 
-        language_aspect_description: str,
         prompt_config: PromptConfig
     ):
-        super().__init__(language_aspect_description, prompt_config)
+        super().__init__(prompt_config)
 
     @torch.no_grad()
     def get_overseer_generated_answers(
