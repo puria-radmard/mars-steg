@@ -45,6 +45,8 @@ task/
 ## 🔧 Prompt Templates
 
 ### **answer_format/**
+This is important to define the expected format of the outputs of the LLMs|
+
 | txt       | Description                          |
 |---------------|--------------------------------------|
 | `deepseek_end_scratchpad_token` | Defines the token defining end of CoT for deepseek|
