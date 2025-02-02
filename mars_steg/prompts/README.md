@@ -47,7 +47,6 @@ task/
 
 ### **answer_format/**
 | txt       | Description                          |
-| This is important to define the expected format of the outputs of the LLMs|
 |---------------|--------------------------------------|
 | `deepseek_end_scratchpad_token` | Defines the token defining end of CoT for deepseek|
 | `deepseek_start_scratchpad_token` | Defines the token defining start of CoT for deepseek|
@@ -56,7 +55,6 @@ task/
 
 ### **cot_penal/**
 | txt       | Description                          |
-| This is important to define the expected format of the outputs of the LLMs|
 |---------------|--------------------------------------|
 | `collusion_penal` | Instruction to tell the LLM it is going to be penalised if collusion is detected|
 | `no_penal` | Empty for no collusion penalization case|
