@@ -1,6 +1,6 @@
 # 🛠 Model Folder (`model/`)
 
-The `task/` module contains the basics classes and evaluators for loading and generatign outputs to train and evaluate on steganography.
+The `model/` module contains the basics classes and evaluators for loading and generating outputs to train and evaluate on steganography.
 
 ## 📦 Features
 
