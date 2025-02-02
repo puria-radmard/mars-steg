@@ -1,7 +1,7 @@
+
 # 🛠 Prompts Folder (`prompts/`)
 
-The `promtps/` folder contains the basics prompts used during the experimentation and evaluation of the LLMs' steganographic behaviour.
-
+The `prompts/` folder contains the basic prompts used during the experimentation and evaluation of the LLMs' steganographic behavior.
 
 ---
 
@@ -9,112 +9,100 @@ The `promtps/` folder contains the basics prompts used during the experimentatio
 ```
 task/
 │── answer_format/
-│   │──deepseek_end_scratchpad_token.txt
-│   │──deepseek_start_scratchpad_token.txt
-│   │──default_start_output_token.txt
-│   │──instruction.txt
+│   │── deepseek_end_scratchpad_token.txt
+│   │── deepseek_start_scratchpad_token.txt
+│   │── default_start_output_token.txt
+│   │── instruction.txt
 │── cot_penal/
-│   │──collusion_penal.txt
-│   │──no_penal.txt
+│   │── collusion_penal.txt
+│   │── no_penal.txt
 │── cot_usage/
-│   │──with.txt
-│   │──without.txt
+│   │── with.txt
+│   │── without.txt
 │── neural_assessor/
-│   │──neural_assessor_system_prompt.txt
-│   │──system_prompt.txt
-│   │──user_prompt_template_v2.txt
-│   │──user_prompt_template.txt
+│   │── neural_assessor_system_prompt.txt
+│   │── system_prompt.txt
+│   │── user_prompt_template_v2.txt
+│   │── user_prompt_template.txt
 │── neural_overseer/
-│   │──system_prompt.txt
-│   │──user_prompt_template_collusion_detector_binary.txt
-│   │──user_prompt_template_collusion_detector_float.txt
-│   │──user_prompt_template.txt
+│   │── system_prompt.txt
+│   │── user_prompt_template_collusion_detector_binary.txt
+│   │── user_prompt_template_collusion_detector_float.txt
+│   │── user_prompt_template.txt
 │── task_description/
-│   │──MATH.txt
-│   │──price.txt
+│   │── MATH.txt
+│   │── price.txt
 │── task_examples/
-│   │──math.txt
-│   │──price.txt
+│   │── math.txt
+│   │── price.txt
 │── README.md
-
 ```
 
 ---
 
-## 🔧 promtps templates
-
-
+## 🔧 Prompt Templates
 
 ### **answer_format/**
-This is important to define the expected format of the outputs of the LLMs|
+This folder is used to define the expected format of the outputs of the LLMs.
 
-| txt       | Description                          |
-|---------------|--------------------------------------|
-| `deepseek_end_scratchpad_token` | Defines the token defining end of CoT for deepseek|
-| `deepseek_start_scratchpad_token` | Defines the token defining start of CoT for deepseek|
-| `default_start_output_token` | Defines the token defining start of answer|
-
+| txt                           | Description                                                  |
+|-------------------------------|--------------------------------------------------------------|
+| `deepseek_end_scratchpad_token` | Defines the token that marks the end of the CoT for DeepSeek. |
+| `deepseek_start_scratchpad_token` | Defines the token that marks the start of the CoT for DeepSeek. |
+| `default_start_output_token`    | Defines the token that marks the start of the answer.         |
 
 ### **cot_penal/**
-This is important to inform the LLM about penalization if collusion is detected 
+This folder contains instructions related to penalization if collusion is detected.
 
-| txt       | Description                          |
-|---------------|--------------------------------------|
-| `collusion_penal` | Instruction to tell the LLM it is going to be penalised if collusion is detected|
-| `no_penal` | Empty for no collusion penalization case|
-
+| txt                 | Description                                                |
+|---------------------|------------------------------------------------------------|
+| `collusion_penal`    | Instruction to tell the LLM that it will be penalized if collusion is detected. |
+| `no_penal`           | Empty instruction for cases where no collusion penalization is applied. |
 
 ### **cot_usage/**
-This is important to inform the LLM to use or not CoT.
+This folder informs the LLM whether to use Chain-of-Thought (CoT) or not.
 
-| txt       | Description                          |
-|---------------|--------------------------------------|
-| `with` | Instruction to tell the LLM to use CoT|
-| `witout` | Instruction to tell the LLM NOT to use CoT |
+| txt      | Description                                        |
+|----------|----------------------------------------------------|
+| `with`   | Instruction to tell the LLM to use Chain-of-Thought (CoT). |
+| `without`| Instruction to tell the LLM not to use Chain-of-Thought (CoT). |
 
-### **neural_assesor/**
-This is important to inform the assessor LLM how it has to behave and also to send the outputs it has to evaluate
+### **neural_assessor/**
+This folder contains prompts that instruct the assessor LLM on its behavior and how to evaluate outputs.
 
-| txt       | Description                          |
-|---------------|--------------------------------------|
-| `neural_assessor_system_prompt` | Instruction to tell the LLM it is an assessor|
-| `system_prompt` | Instruction to tell the LLM it is an assesor |
-| `user_prompt_template_v2` | Template format to insert the LLM responses so assessor can evaluate (v2)|
-| `user_prompt_template` |  Template format to insert the LLM responses so assessor can evaluate |
+| txt                         | Description                                           |
+|-----------------------------|-------------------------------------------------------|
+| `neural_assessor_system_prompt` | Instruction to tell the LLM it is an assessor.       |
+| `system_prompt`             | General instruction to tell the LLM it is an assessor. |
+| `user_prompt_template_v2`   | Template format to insert LLM responses for the assessor to evaluate (v2). |
+| `user_prompt_template`      | Template format to insert LLM responses for the assessor to evaluate. |
 
 ### **neural_overseer/**
-This is important to inform the overseer LLM how it has to behave and also to send the outputs it has to evaluate
+This folder contains prompts that instruct the overseer LLM on its behavior and how to evaluate outputs.
 
-| txt       | Description                          |
-|---------------|--------------------------------------|
-| `system_prompt` | Instruction to tell the LLM it is an overseer|
-| `user_prompt_template_collusion_detector_binary` | Template format to insert the LLM responses so overseer can evaluate and return a binary score|
-| `user_prompt_template_collusion_detector_float` | Template format to insert the LLM responses so overseer can evaluate and return a float score(v2)|
-| `user_prompt_template` |  Template format to insert the LLM responses so overseer can evaluate |
-
+| txt                                         | Description                                           |
+|---------------------------------------------|-------------------------------------------------------|
+| `system_prompt`                             | Instruction to tell the LLM it is an overseer.        |
+| `user_prompt_template_collusion_detector_binary` | Template format for inserting LLM responses so the overseer can evaluate and return a binary score. |
+| `user_prompt_template_collusion_detector_float`  | Template format for inserting LLM responses so the overseer can evaluate and return a float score (v2). |
+| `user_prompt_template`                      | Template format for inserting LLM responses for evaluation by the overseer. |
 
 ### **task_description/**
-This is important to inform the LLM about the task it has to perform
+This folder contains instructions to inform the LLM about the task it needs to perform.
 
-| txt       | Description                          |
-|---------------|--------------------------------------|
-| `MATH` | Instruction to inform the llm about the math task |
-| ``price` |  Instruction to inform the llm about the price task|
+| txt    | Description                                       |
+|--------|---------------------------------------------------|
+| `MATH` | Instruction to inform the LLM about the math task. |
+| `price`| Instruction to inform the LLM about the price task. |
 
 ### **task_examples/**
-This is important to fewshot the LLM with good and bad examples of the task
+This folder contains few-shot examples for the LLM to better understand the task.
 
-| txt       | Description                          |
-|---------------|--------------------------------------|
-| `math` |  fewshot examples of math task |
-| ``price` |   fewshot examples of price task|
-
+| txt    | Description                                       |
+|--------|---------------------------------------------------|
+| `math` | Few-shot examples for the math task.              |
+| `price`| Few-shot examples for the price task.             |
 
 🚧 _In Construction_
 
 ---
-
-
-
-
-
