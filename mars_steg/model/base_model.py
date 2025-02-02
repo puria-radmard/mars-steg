@@ -1,3 +1,18 @@
+"""
+Module Name: base_model.py
+------------------------
+
+
+This module contains the implementation of the base classes for models in the mars-steg framework to load the models for training and evaluating an LLM for elicitng steganography.
+
+Classes:
+    - BaseModel
+
+Examples:
+    Cf. mars_steg.README.md
+
+"""
+
 from mars_steg.config import ModelConfig
 from typing import Dict, List, Optional
 from peft import LoraConfig, get_peft_model, TaskType
@@ -20,7 +35,70 @@ except ImportError:
 Conversation = List[List[Dict[str, str]]]
 
 class BaseModel(metaclass=ABCMeta):
+    """
+    A base class for a model that integrates loading and managing a transformer-based model 
+    (with support for LoRA) and handles tokenization and generation.
+
+    Attributes
+    ----------
+    model_config : ModelConfig
+        Configuration for the model, including model name and precision settings.
+    model_name : str
+        Name of the model being loaded.
+    tokenizer : AutoTokenizer
+        Tokenizer used to convert text to tokens for the model.
+    lora : bool
+        Whether the model uses LoRA (Low-Rank Adaptation).
+    precission_mode : str
+        Mode used for model precision (e.g., '4bits', '8bits').
+    model_save_path : str
+        Path to save the model.
+    output_delimitation_tokens : Dict[str, str]
+        Tokens used to delimit model outputs.
+    generation_config : GenerationConfig
+        Configuration for controlling generation behavior.
+    device : str
+        The device ('cpu' or 'cuda') where the model will run.
+    model : Optional[AutoModelForCausalLM]
+        The model object, either loaded from a checkpoint or provided.
+    
+    Methods
+    -------
+    load_model() -> AutoModelForCausalLM
+        Loads the model based on configuration (including LoRA if applicable).
+    log_loading()
+        Logs the loading process of the model.
+    duplicate(whitebox_model: Optional[AutoModelForCausalLM]) -> BaseModel
+        Creates a copy of the current model instance.
+    get_message(user_string: str, system_prompt: str) -> Dict
+        Abstract method to retrieve a message from the user/system.
+    transform_conversation(conversations_list: Conversation)
+        Abstract method to transform a list of conversations.
+    batchize_conversation(user_prompts: Conversation, system_prompt: Optional[str] = None) -> List[List[Dict]]
+        Creates a batch of messages based on the user prompts and system prompt.
+    full_generate(conversations_list: Conversation) -> List[str]
+        Generates responses for a list of conversations using the model.
+    """
     def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer, generation_config: GenerationConfig, output_delimitation_tokens: Dict[str, str], device: str, model=None):
+        """
+        Initializes the base model with the provided configurations and model.
+        
+        Parameters
+        ----------
+        model_config : ModelConfig
+            Configuration for the model.
+        tokenizer : AutoTokenizer
+            Tokenizer for the model.
+        generation_config : GenerationConfig
+            Configuration for generation behavior.
+        output_delimitation_tokens : Dict[str, str]
+            Tokens used for delimiting outputs.
+        device : str
+            Device where the model should be loaded ('cpu' or 'cuda').
+        model : Optional[AutoModelForCausalLM]
+            Pre-loaded model to use, otherwise the model will be loaded using the provided configuration.
+        """
+
         self.model_config = model_config
         self.model_name = model_config.model_name
         self.tokenizer = tokenizer
@@ -37,6 +115,18 @@ class BaseModel(metaclass=ABCMeta):
         self.model.to(device)
 
     def load_model(self):
+        """
+        Loads the model based on configuration.
+
+        This function handles precision mode and optional LoRA configuration, 
+        loads the model using either a regular or LoRA setup, and moves it to 
+        the device. 
+
+        Returns
+        -------
+        AutoModelForCausalLM
+            The loaded model.
+        """
         self.log_loading()
         quantization_config = {
             "4bits": BitsAndBytesConfig(load_in_4bit=True),
@@ -63,11 +153,29 @@ class BaseModel(metaclass=ABCMeta):
         return model
     
     def log_loading(self):
+        """
+        Logs the loading process of the model to the console.
+        """
         print("------------------")
         print(f"Model loaded in {self.precission_mode} mode")
         print("------------------")
     
     def duplicate(self, whitebox_model):
+        """
+        Creates a duplicate of the current model, sharing the same configuration 
+        but with a new model instance. The model is set to evaluation mode and 
+        gradients are disabled.
+
+        Parameters
+        ----------
+        whitebox_model : Optional[AutoModelForCausalLM]
+            A pre-loaded model to use for the duplicate instance.
+
+        Returns
+        -------
+        BaseModel
+            A new instance of the model with the same configuration.
+        """
         # Create a new instance of the same class
         new_instance = self.__class__(
             model_config=self.model_config,
@@ -86,6 +194,41 @@ class BaseModel(metaclass=ABCMeta):
 
     @abstractmethod
     def get_message(self, user_string: str, system_prompt: str) -> Dict:
+        """
+        Abstract method to retrieve a message from the user/system.
+
+        Parameters
+        ----------
+        user_string : str
+            The string input from the user.
+        system_prompt : str
+            The system prompt to guide the conversation.
+
+        Returns
+        -------
+        Dict
+            A dictionary containing the message.
+        """
+        pass
+
+    @abstractmethod
+    def transform_conversation(self, conversations_list: Conversation) :
+        """
+        Abstract method to transform a list of conversations.
+
+        Parameters
+        ----------
+        conversations_list : Conversation
+            The list of conversations to transform.
+        """
+        pass
+
+    @abstractmethod
+    def transform_conversation(self, conversations_list: Conversation, prompt_thinking_helper: Optional[str] = None) -> Conversation:
+        pass
+
+    @abstractmethod
+    def tokenize(self, conversations_list: Conversation | List[List[str]]) -> List[Dict[str, torch.TensorType]]:
         pass
 
     @abstractmethod
@@ -97,8 +240,22 @@ class BaseModel(metaclass=ABCMeta):
         pass
 
     def batchize_conversation(
-        self, user_prompts: Conversation, system_prompt: Optional[str] = None,
-    ):
+        self, user_prompts: Conversation, system_prompt: Optional[str] = None,):
+        """
+        Creates a batch of messages for multiple conversations. Optionally includes a system prompt.
+
+        Parameters
+        ----------
+        user_prompts : Conversation
+            A list of user prompts.
+        system_prompt : Optional[str]
+            A system prompt to prepend to each conversation (default is None).
+
+        Returns
+        -------
+        List[List[Dict]]
+            A list of batches, each containing dictionaries for system and user messages.
+        """
         if system_prompt is None:
             batch_messages = [
                 [
@@ -129,6 +286,20 @@ class BaseModel(metaclass=ABCMeta):
                       is_neural_overseer: bool = False, 
                       neural_assessor_thinking_helper: str = None,
                       neural_overseer_thinking_helper: str = None):
+        """
+        Generates responses for a list of conversations using the model. The inputs are tokenized 
+        and processed before generating the outputs. The responses are then decoded back to text.
+
+        Parameters
+        ----------
+        conversations_list : Conversation
+            The list of conversations to process and generate responses for.
+
+        Returns
+        -------
+        List[str]
+            A list of decoded responses from the model.
+        """
 
         if is_neural_overseer or is_neural_assessor:
             if neural_overseer_thinking_helper is None and is_neural_overseer:
