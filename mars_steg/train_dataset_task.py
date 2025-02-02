@@ -1,3 +1,30 @@
+"""
+Module Name: train_dataset_task.py
+------------------------
+
+
+Description:
+------------
+
+The core file used to train an LLM to perform steganography on a task.
+Configs are loaded to set up the training environment, and the model is given a task to perform.
+The model is trained using here PPO, and is rewarded according to his performance on the task and some language aspects tahtw e want to penalize.
+
+Logs are saved on wandb, and the model is saved every `save_frequency` batchs.
+Models are also evaluated on the CoT gap every `number_of_evaluations` epochs, to check the effectiveness of the CoT in improving the model's performance.
+
+See Also:
+---------
+
+- mars_steg.utils.common.get_dataloaders_and_ref_model
+- mars_steg.utils.common.prompt_data.BatchPromptData
+- mars_steg.task
+- mars_steg.language
+
+
+
+"""
+
 from __future__ import annotations
 import warnings
 import numpy as np

@@ -2,6 +2,8 @@
 Module Name: math_dataset_task.py
 ------------------------
 
+Description:
+------------
 
 This module contains the implementation of the class for a task for mathematical problem-solving.
 
