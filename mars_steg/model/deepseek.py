@@ -41,22 +41,7 @@ class DeepSeek_R1_1pt5B(BaseModel):
 
         return {"role": user_string, "content": f"{system_prompt}"}
     
-    @staticmethod
-    def transform_conversation(conversations_list: Conversation) -> str:
-        """
-        Transforms a list of conversation messages into a formatted string. 
-        The conversation will be formatted by roles (user or assistant).
-
-        Parameters
-        ----------
-        conversations_list : Conversation
-            A list of conversation messages where each message is a dictionary with 'role' and 'content'.
-
-        Returns
-        -------
-        str
-            A formatted string representing the entire conversation.
-        """
+    def transform_conversation(self, conversations_list: Conversation):
         conversation = ""
         for message in conversations_list:
             role = message["role"]
