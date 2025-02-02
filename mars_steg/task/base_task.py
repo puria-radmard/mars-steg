@@ -42,15 +42,34 @@ class Task(metaclass=ABCMeta):
         A system prompt specific to the task.
     uses_local_neural_assessor : bool
         Whether the task requires a local neural assessor for evaluation.
-
-    Parameters
-    ----------
     language_aspect : LanguageAspect
         The language aspect configuration specifying compatibility with tasks.
     uses_local_neural_assessor : bool
         Indicates if a local neural assessor is needed for the task.
     prompt_config : PromptConfig
         Configuration object containing prompt templates.
+
+    Methods
+    -------
+    cot_instruction() -> str
+        Returns the default instruction appended to prompts to induce Chain-of-Thought (CoT).
+    no_cot_instruction() -> str
+        Returns the default instruction appended to prompts to suppress Chain-of-Thought (CoT).
+    generate_prompt(index: int) -> Optional[str]
+        Generates the main body of the LLM prompt for the task.
+    generate_info(idx: int) -> FixedDatasetDataInfo
+        Generates additional metadata or context for a task instance.
+    generate_full_prompt(index: int) -> Optional[Tuple[str, str]]
+        Generates a new task prompt, returning both CoT and No-CoT versions.
+    get_task_score(prompt_data: PromptData, with_cot: bool) -> float
+        Evaluates task performance based on PromptData object.
+    reward(task_score: float, language_score: float, t_weight: float = 1.0, l_weight: float = 1.0) -> float
+        Computes a weighted reward score based on task success and language aspect.
+    reward_from_transcript(prompt_data: PromptData, t_weight: float = 1.0, l_weight: float = 1.0) -> Tuple[float, float, float]
+        Computes the language score, the task score and calculates the final reward from a task transcript.
+    recruit_neural_assessor(model: BaseModel)
+        Initializes a neural assessor for evaluating problem/solution task type.
+
 
     Raises
     ------
@@ -218,7 +237,7 @@ class Task(metaclass=ABCMeta):
     @abstractmethod
     def get_task_score(self, prompt_data: PromptData, with_cot: bool) -> float:
         """
-        Evaluates task performance based on PromptData object (see mars_steg.utils.prompt_data to see all the infos encapsulated in this object).
+        Evaluates task performance based on PromptData object (cf. See Also).
 
         This method assesses whether the agent successfully completed the task 
         by analyzing the generated response in relation to the correct answer. 
@@ -257,7 +276,14 @@ class Task(metaclass=ABCMeta):
         Notes
         -----
         - The method may use different evaluation strategies depending on the task type.
-        - The neural assessor option must also be considered (see `MATH_Torch_Dataset_Task.get_task_score`).
+        - The neural assessor option must also be considered (cf. See Also).
+
+        See Also
+        --------
+        mars_steg.utils.prompt_data.PromptData
+            The structure of the PromptData object used in this method.
+        MATH_Torch_Dataset_Task.get_task_score
+            An example implementation for a dataset-based math task.  
         """
         raise NotImplementedError
 
@@ -360,7 +386,7 @@ class Task(metaclass=ABCMeta):
         Parameters
         ----------
         model : BaseModel
-            The neural model to be used for solution assessment (see mars_steg.model.base_model.py).
+            The neural model to be used for solution assessment (cf. See Also).
 
         Raises
         ------
@@ -373,6 +399,14 @@ class Task(metaclass=ABCMeta):
         - This method should only be called if `uses_local_neural_assessor` is `True`.
         - The recruited model is assigned to `self.whitebox_model`.
         - Initializes a `ProblemSolutionAssessor` with the given model.
+
+        See Also
+        --------
+        mars_steg.task.neural_assessor.ProblemSolutionAssessor
+            The neural assessor class used for evaluating problem/solution tasks.
+        mars_steg.model.base_model.py
+            The base model class used for neural models.
+        
         """
         assert self.uses_local_neural_assessor, (
             f"Attempting to recruit neural assessor to a {self.__class__.__name__}, "
@@ -394,7 +428,7 @@ class TorchDatasetTask(Task, Dataset):
     tasks where prompts are derived from dataset entries. It also supports 
     neural assessment for evaluating model-generated solutions.
 
-    Parameters
+    Attributes
     ----------
     dataset : str
         Path to the dataset file (CSV format).
@@ -404,6 +438,24 @@ class TorchDatasetTask(Task, Dataset):
         Whether the task utilizes a local neural assessor for evaluation.
     prompt_config : PromptConfig
         The prompt configuration used for generating prompts.
+
+    Methods
+    -------
+    generate_info(idx: int) -> FixedDatasetDataInfo
+        Generates a fixed dataset information object for a given index.
+    test_train_split(train_proportion: float, validation_proportion: float) -> Tuple[TorchDatasetTask, TorchDatasetTask, TorchDatasetTask]
+        Splits the dataset into train, validation, and test sets.
+    prompt_data_collate_fn(batch: List[PromptData]) -> BatchPromptData
+        Aggregates a batch of `PromptData` into a `BatchPromptData` object.
+    get_true_answers_from_batch_prompt_data(prompt_data: BatchPromptData) -> List[str]
+        Extracts the ground-truth answers for a batch of prompts.
+    neural_assessor_from_batch_prompt_data(prompt_data: BatchPromptData, from_cot_prompt: bool) -> BatchPromptData
+        Generates neural assessor responses for a batch of prompts.
+
+
+    Notes
+    -----
+    This class initializes several attributes to None that can be set later using recruit_neural_assessor method.
     """
 
     def __init__(self,
@@ -573,12 +625,17 @@ class TorchDatasetTask(Task, Dataset):
         Parameters
         ----------
         prompt_data : BatchPromptData
-            A batch of PromptData (seef mars_steg.utils.prompt_data for more information).
+            A batch of PromptData (cf . See Also).
 
         Returns
         -------
         List[str]
             A list of true answers corresponding to each prompt in the batch.
+
+        See Also
+        --------
+        mars_steg.utils.prompt_data.PromptData
+            The structure of the PromptData object used in this method.
         """
 
         idxs = [pii.idx for pii in prompt_data.infos]
@@ -618,7 +675,18 @@ class TorchDatasetTask(Task, Dataset):
 
 
 class GameBasedTask(Task):
-    """Each game will need to implement its own iterate_data method"""
+    """
+    A base class for game-based tasks.
+
+    This abstract base class defines a structure for game-based tasks (cf. Task).
+
+    See Also
+    --------
+
+    Task
+        The base class for single-turn tasks.
+
+    """
 
     def __init__(self, language_aspect) -> None:
         super().__init__(language_aspect=language_aspect)
