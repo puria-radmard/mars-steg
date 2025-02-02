@@ -1,7 +1,5 @@
-
 # 🛠 Prompts Folder (`prompts/`)
 
-The `prompts/` folder contains the basic prompts used during the experimentation and evaluation of the LLMs' steganographic behavior.
 The `prompts/` folder contains the basic prompts used during the experimentation and evaluation of the LLMs' steganographic behavior.
 
 ---
@@ -14,25 +12,13 @@ task/
 │   │── deepseek_start_scratchpad_token.txt
 │   │── default_start_output_token.txt
 │   │── instruction.txt
-│   │── deepseek_end_scratchpad_token.txt
-│   │── deepseek_start_scratchpad_token.txt
-│   │── default_start_output_token.txt
-│   │── instruction.txt
 │── cot_penal/
-│   │── collusion_penal.txt
-│   │── no_penal.txt
 │   │── collusion_penal.txt
 │   │── no_penal.txt
 │── cot_usage/
 │   │── with.txt
 │   │── without.txt
-│   │── with.txt
-│   │── without.txt
 │── neural_assessor/
-│   │── neural_assessor_system_prompt.txt
-│   │── system_prompt.txt
-│   │── user_prompt_template_v2.txt
-│   │── user_prompt_template.txt
 │   │── neural_assessor_system_prompt.txt
 │   │── system_prompt.txt
 │   │── user_prompt_template_v2.txt
@@ -42,18 +28,10 @@ task/
 │   │── user_prompt_template_collusion_detector_binary.txt
 │   │── user_prompt_template_collusion_detector_float.txt
 │   │── user_prompt_template.txt
-│   │── system_prompt.txt
-│   │── user_prompt_template_collusion_detector_binary.txt
-│   │── user_prompt_template_collusion_detector_float.txt
-│   │── user_prompt_template.txt
 │── task_description/
 │   │── MATH.txt
 │   │── price.txt
-│   │── MATH.txt
-│   │── price.txt
 │── task_examples/
-│   │── math.txt
-│   │── price.txt
 │   │── math.txt
 │   │── price.txt
 │── README.md
@@ -108,14 +86,6 @@ This folder contains prompts that instruct the overseer LLM on its behavior and 
 | `user_prompt_template_collusion_detector_float`  | Template format for inserting LLM responses so the overseer can evaluate and return a float score (v2). |
 | `user_prompt_template`                      | Template format for inserting LLM responses for evaluation by the overseer. |
 
-### **task_description/**
-This folder contains instructions to inform the LLM about the task it needs to perform.
-
-| txt    | Description                                       |
-|--------|---------------------------------------------------|
-| `MATH` | Instruction to inform the LLM about the math task. |
-| `price`| Instruction to inform the LLM about the price task. |
-
 ### **task_examples/**
 This folder contains few-shot examples for the LLM to better understand the task.
 
@@ -127,3 +97,8 @@ This folder contains few-shot examples for the LLM to better understand the task
 🚧 _In Construction_
 
 ---
+
+
+
+
+
