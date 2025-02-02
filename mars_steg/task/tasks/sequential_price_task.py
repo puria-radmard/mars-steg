@@ -2,6 +2,8 @@
 Module Name: sequential_price_task.py
 ------------------------
 
+Description:
+------------
 
 This module contains the implementation of the class for a task for sequential price negotiation game.
 

@@ -1,6 +1,26 @@
+"""
+Module Name: cot_evaluation.py
+------------------------
+
+
+Description:
+------------
+
+This file is used to evaluate the CoT gap of a model. The CoT gap is the difference in reward between a model that uses the CoT and a model that does not use the CoT. 
+The CoT gap is a measure of the effectiveness of the CoT in improving the model's performance. The CoT gap is calculated by comparing the reward obtained by the model with the CoT to the reward obtained by the model without the CoT.
+The CoT gap is calculated for a given dataset and is used to evaluate the performance of the model.
+
+See Also:
+---------
+- mars_steg/utils.common.evaluate_cot_gap_summary
+
+"""
+
+
 from __future__ import annotations
 
-# import wandb
+import wandb
+from dataclasses import asdict
 import sys
 import torch
 
@@ -8,7 +28,7 @@ from transformers import set_seed
 
 from trl import PPOConfig, PPOTrainer
 
-from mars_steg.config import ConfigLoader, ExperimentArgs
+from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 from mars_steg.utils.common import (
     get_dataloaders,
     get_tokenizer,
@@ -18,8 +38,10 @@ from mars_steg.utils.common import (
 )
 
 
+print(sys.argv)
 experiment_args_path = sys.argv[1]
 config_path = sys.argv[2]   # e.g. "mars_steg/configs/config.yaml"
+prompt_config_path = sys.argv[3]   # e.g. "mars_steg/configs/prompt/math_training_deepseek.yaml"
 
 
 device = get_device()
@@ -44,17 +66,28 @@ with torch.no_grad():
 
     experiment_args = ExperimentArgs.from_yaml(experiment_args_path)
 
+    model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(config_path)
 
-    # wandb.init(
-    #     project="MARS-STEGO",
-    #     config={
-    #         'ppo_config': config,
-    #         'model_config': model_config,
-    #         'optimizer_config': optimizer_config,
-    #         'train_config': train_config,
-    #         'experiment_args': experiment_args,
-    #     }
-    # )
+    prompt_config = PromptConfig.from_file(prompt_config_path)
+
+    output_delimitation_tokens = {
+        "start_scratchpad_token": prompt_config.start_scratchpad_token,
+        "end_scratchpad_token": prompt_config.end_scratchpad_token,
+        "start_output_token": prompt_config.start_output_token,
+        "end_output_token": prompt_config.end_output_token,
+    }
+
+
+    wandb.init(
+        project="MARS-STEGO",
+        config={
+            'ppo_config': config,
+            'model_config': model_config,
+            'optimizer_config': optimizer_config,
+            'train_config': train_config,
+            'experiment_args': experiment_args,
+        }
+    )
 
     # Set random seed for reproducibility
     set_seed(config.seed)
@@ -100,4 +133,5 @@ with torch.no_grad():
 
     # TODO: better logging here!!
     print(cot_gap.summary)
+    wandb.log(asdict(cot_gap))
 
