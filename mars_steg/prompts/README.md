@@ -41,7 +41,7 @@ task/
 
 ---
 
-## 🔧 Functions & Classes
+## 🔧 promtps templates
 
 
 
