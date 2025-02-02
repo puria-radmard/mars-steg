@@ -2,6 +2,8 @@
 Module Name: base_task.py
 ------------------------
 
+Description:
+------------
 
 This module contains the implementation of the base classes for tasks in the mars-steg framework to construct a task to train and evaluate an LLM for elicitng steganography.
 

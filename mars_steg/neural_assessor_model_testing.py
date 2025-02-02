@@ -1,3 +1,20 @@
+"""
+Module Name: neural_assessor_model_testing.py
+------------------------
+
+
+Description:
+------------
+
+This file is used to test the neural assessor model. The neural assessor model is white box pretrained model that usually compares the LLM's answer with a True answer.
+The neural assessor generates then a score that is parsed to reward the trained model.
+
+See Also:
+---------
+- mars_steg/task/neural_assessor.py
+
+"""
+
 from __future__ import annotations
 import os
 import sys

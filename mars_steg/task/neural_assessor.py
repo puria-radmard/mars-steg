@@ -2,6 +2,9 @@
 Module Name: neural_assessor.py
 ------------------------
 
+Description:
+------------
+
 
 This module contains the implementation of neural assessor through a class for evaluating problem/solution tasks using an LLM.
 
