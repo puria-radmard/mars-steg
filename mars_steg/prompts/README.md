@@ -1,3 +1,4 @@
+
 # 🛠 Prompts Folder (`prompts/`)
 
 The `prompts/` folder contains the basic prompts used during the experimentation and evaluation of the LLMs' steganographic behavior.
@@ -39,13 +40,8 @@ task/
 
 ---
 
-<<<<<<< HEAD
+
 ## 🔧 Prompt Templates
-=======
-## 🔧 promtps templates
-
-
->>>>>>> 14071db (typos)
 
 ### **answer_format/**
 This folder is used to define the expected format of the outputs of the LLMs.
@@ -91,6 +87,17 @@ This folder contains prompts that instruct the overseer LLM on its behavior and 
 | `user_prompt_template_collusion_detector_binary` | Template format for inserting LLM responses so the overseer can evaluate and return a binary score. |
 | `user_prompt_template_collusion_detector_float`  | Template format for inserting LLM responses so the overseer can evaluate and return a float score (v2). |
 | `user_prompt_template`                      | Template format for inserting LLM responses for evaluation by the overseer. |
+<<<<<<< HEAD
+=======
+
+### **task_description/**
+This folder contains instructions to inform the LLM about the task it needs to perform.
+
+| txt    | Description                                       |
+|--------|---------------------------------------------------|
+| `MATH` | Instruction to inform the LLM about the math task. |
+| `price`| Instruction to inform the LLM about the price task. |
+>>>>>>> 30a04f4 (typos)
 
 ### **task_examples/**
 This folder contains few-shot examples for the LLM to better understand the task.
@@ -103,8 +110,3 @@ This folder contains few-shot examples for the LLM to better understand the task
 🚧 _In Construction_
 
 ---
-
-
-
-
-
