@@ -1,3 +1,18 @@
+"""
+Module Name: sequential_price_task.py
+------------------------
+
+
+This module contains the implementation of the class for a task for sequential price negotiation game.
+
+Classes:
+    - SequentialPriceTask
+
+Examples:
+    Cf. mars_steg.README.md
+
+"""
+
 import pandas as pd
 import torch
 from mars_steg.language.base_language_aspect import LanguageAspect

@@ -1,3 +1,20 @@
+"""
+Module Name: base_task.py
+------------------------
+
+
+This module contains the implementation of the base classes for tasks in the mars-steg framework to construct a task to train and evaluate an LLM for elicitng steganography.
+
+Classes:
+    - Task
+    - TorchDatasetTask
+    - GameBasedTask
+
+Examples:
+    Cf. mars_steg.README.md
+
+"""
+
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod

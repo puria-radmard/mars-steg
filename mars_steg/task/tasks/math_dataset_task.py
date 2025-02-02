@@ -1,3 +1,18 @@
+"""
+Module Name: math_dataset_task.py
+------------------------
+
+
+This module contains the implementation of the class for a task for mathematical problem-solving.
+
+Classes:
+    - MATH_Torch_Dataset_Task
+
+Examples:
+    Cf. mars_steg.README.md
+
+"""
+
 from __future__ import annotations
 
 import re
@@ -8,7 +23,6 @@ from mars_steg.task.base_task import TorchDatasetTask
 from mars_steg.utils.math_equivalence import is_equiv
 from mars_steg.utils.answer_extraction import extract_floatingpoint_overseer_or_assessor_answer
 from mars_steg.utils.prompt_data import PromptData
-
 
 
 
