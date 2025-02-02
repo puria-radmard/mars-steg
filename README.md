@@ -10,15 +10,55 @@ We hope that, as the chosen aspect of language disappears from the CoT due to th
 We hope to study a broad range of tasks and language aspects, to increase our chances of observing this emergent behaviour. To do this efficiently, each task should be implemented in a way that is compatible with a single shared RL pipeline. 
 
 
-### To Do
+## Table of Contents
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Contributing](#contributing)
+- [License](#license)
 
-#### Simple stuff
-* In addition to RL integration, **assessing task CoT gap** should be easy to do given a working task subclass, but this needs to be implemented
-* It would be great to format this into a package so we can have different folders for scripts and core codebase - **DONE**
-* We may want our final API to expose functions that can return a BATCH of prompts etc instead of a single example at a time - **DONE**
-* We need a reliable method of splitting the CoT (for language scoring) and the final answer (for task performance scoring) - **DONE**
+## Features
+- 🔥 Fast and lightweight
+- 🔄 Supports multiple file formats
+- 🔧 Customizable via settings
 
-#### Stuff which might need some redesigning
-* It's possible that we'll experiment with many language aspects per task. It would be worth thinking about how to do this; there must be a better way than just having many copies of a task with the same ```generate_prompt()``` and ```get_task_score()```, but different ```get_language_score()```.
-    * Simple ordinal system with if statements? - **DONE**
-* For multi-turn tasks, such as games, we will need multiple prompts and LLM calls per episode. At the moment, ```Task``` cannot support this. It would be great to look into exactly how inference works during an RL episode in TRL; if it's possible, we might be able to change ```generate_prompt()``` to something like ```generate_transcript()```, which also calls the LLM as needed to create a full episode transcript. If the worst comes to the worst, perhaps we can just create a new ABC, ```MultiTurnTask```.
+
+## Installation
+### Prerequisites
+- See [requirements.txt](requirements.txt) for dependencies.
+
+### Steps
+```sh
+git clone https://github.com/puria-radmard/mars-steg.git
+cd mars-steg
+pip install -r requirements.txt
+```
+
+## Usage
+Run the following command to run the training script:
+```sh
+run ./run_math.sh
+```
+
+
+## Contributing
+Contributions are welcome! Please follow these steps:
+1. Fork the repository.
+2. Create a new branch (`git checkout -b feature-branch`).
+3. Commit changes (`git commit -m "Add new feature"`).
+4. Push to the branch (`git push origin feature-branch`).
+5. Create a pull request.
+
+## License
+🚧 _In Construction_
+
+## Authors
+Created by :
+- [jskaf](https://github.com/jskaf34) 
+
+## Acknowledgments
+🚧 _In Construction_
+
+
+
+

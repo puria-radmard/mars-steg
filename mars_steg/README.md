@@ -4,22 +4,37 @@ The mars-steg/mars_steg folder contains the core codebase for the mars-steg proj
 
 
 ## 📦 Features
-- **Helper Functions:** Utility functions for common tasks.
-- **Decorators:** Custom Python decorators for logging and timing.
+
+- **Task Classes**: Base classes for defining new tasks, and for defining new aspects of language to penalise.
+- **Language Aspect**: Base classes for defining aspects of language to penalise.
+- **Prompt Data**: Dataclasses for storing information about prompts and responses.
+- **configs**: Configuration files for defining task and language aspect combinations.
+- **utils**: General helper functions and decorators.
+- **models**: Classes for defining models, wrapping Hugginface models, for the RL pipeline, the overseer and the neural assessor.
+-**prompts**: Folder containing prompts formats and information for each task/model.
+
 
 ---
 
 ## 📂 Folder Structure
 ```
-utils/
-│── helpers.py        # General helper functions
-│── decorators.py     # Custom decorators for functions
-│── README.md         # This documentation file
+mars_steg/
+│── configs/          # Configuration files for defining task and language aspect combinations (yaml)
+│── language/         # Base classes for defining aspects of language to penalise
+│── datasets/         # Folder containing datasets for each task. For SequencePricing game, a generator script is provided.
+│── models/           # Classes for defining models, wrapping Hugginface models, for the RL pipeline, the overseer and the neural assessor.
+│── prompts/          # Folder containing prompts formats and information for each task/model (.txt files).
+│── task/            # Base classes for defining task. Contains also task class for Math Problem solving and Sequenc ePricing game.
+│── utils/            # General helper functions and decorators.
+│── benchmark.py      🚧 _In Construction_ 
+│── config.py         # Python file containing config dataclasses
+│── cot_evaluation.py  # Script for evaluating the CoT gap
+│── neural_assessor_model_testing.py # Script for testing on a HF model in the role of the neural assessor
+│── overseer_model_testing.py 🚧 _In Construction_ 
+│── train_dataset_task.py # Script for launching an experiment on a task. Contains the RL pipeline.
+
+
 ```
-
-
-
-
 
 ---
 
@@ -27,7 +42,7 @@ utils/
 - 📜 [Main Documentation](../../docs/index.md)
 - 🏗️ [Sphinx API Docs](../../docs/source/api/utils.rst)
 
-
+---
 
 ## The recipe for each task
 
@@ -89,3 +104,18 @@ We can change this based on problems we discover as we engineer the RL pipeline,
     * Returns *two versions* of the prompt from ```generate_prompt()```, one with a piece of text at the end that elicits CoT, and the other with a piece of text that suppresses CoT. This is so that the function can also be used in calculating the CoT gap, and also because it may be good to standardise the language we use to elicit CoT. 
 2. ```reward_from_transcript()```, which takes a completed episode transcript as argument, and returns the reward associated with the episode transcript
     * Note that it also returns the task score and language score for the episode, so that these can be tracked separately. 
+
+---
+
+### To Do
+
+#### Simple stuff
+* In addition to RL integration, **assessing task CoT gap** should be easy to do given a working task subclass, but this needs to be implemented
+* It would be great to format this into a package so we can have different folders for scripts and core codebase - **DONE**
+* We may want our final API to expose functions that can return a BATCH of prompts etc instead of a single example at a time - **DONE**
+* We need a reliable method of splitting the CoT (for language scoring) and the final answer (for task performance scoring) - **DONE**
+
+#### Stuff which might need some redesigning
+* It's possible that we'll experiment with many language aspects per task. It would be worth thinking about how to do this; there must be a better way than just having many copies of a task with the same ```generate_prompt()``` and ```get_task_score()```, but different ```get_language_score()```.
+    * Simple ordinal system with if statements? - **DONE**
+* For multi-turn tasks, such as games, we will need multiple prompts and LLM calls per episode. At the moment, ```Task``` cannot support this. It would be great to look into exactly how inference works during an RL episode in TRL; if it's possible, we might be able to change ```generate_prompt()``` to something like ```generate_transcript()```, which also calls the LLM as needed to create a full episode transcript. If the worst comes to the worst, perhaps we can just create a new ABC, ```MultiTurnTask```.
