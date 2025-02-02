@@ -40,7 +40,9 @@ task/
 
 ---
 
-## 🔧 Prompt Templates
+## 🔧 Functions & Classes
+
+
 
 ### **answer_format/**
 This is important to define the expected format of the outputs of the LLMs|
