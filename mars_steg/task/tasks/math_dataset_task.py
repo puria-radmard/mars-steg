@@ -27,6 +27,22 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
     system_prompt : str
         A formatted system prompt combining task descriptions, answer instructions, 
         and example problems.
+    language_aspect : LanguageAspect
+        The language aspect settings for this task.
+    uses_local_neural_assessor : bool
+        Whether the task utilizes a local neural assessor for evaluation of LLM's answer for implementing a task score.
+    prompt_config : PromptConfig
+        The prompt configuration for generating structured prompts.
+
+    Methods
+    -------
+    generate_prompt(index: int) -> str
+        Generates a mathematical problem prompt based on the dataset index.
+    get_task_score(prompt_data: PromptData, with_cot: bool) -> float
+        Computes the task success score based on the LLM's final answer.
+    hard_string_checking(llm_answer: str, true_answers: List[str]) -> float
+        Performs strict string-based answer validation.
+
     """
 
     # By default, set the name as the class name

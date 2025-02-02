@@ -37,6 +37,15 @@ class ProblemSolutionAssessor:
         Template for user input prompts.
     system_prompt : str
         Template for system-level prompts.
+
+    Methods
+    -------
+    convert_batch_prompt_into_conversation_template(batch_prompt_data: BatchPromptData, true_answers: List[str], with_cot: bool) -> List[List[Dict[str, str]]]
+        Converts batch prompt data into a structured conversation template.
+    get_assessor_generated_answers(batch_prompt_data: BatchPromptData, true_answers: List[str], with_cot: bool) -> BatchPromptData
+        Generates assessor transcripts and assigns it to a new BatchPromptData object.
+
+
     """
 
     def __init__(
@@ -104,7 +113,7 @@ class ProblemSolutionAssessor:
         with_cot: bool
     ) -> BatchPromptData:
         """
-        Generates assessor transcripts and assigns it to a new BatchPromptData object (see notes for some important information about unsuccessful examples).
+        Generates assessor transcripts and assigns it to a new BatchPromptData object (cf. notes for some important information about unsuccessful examples).
 
         This function processes a BatchPromptData (list of PromptData objects) through the neural assessor model, 
         generating transcripts that evaluate the correctness of model-generated answers. 
