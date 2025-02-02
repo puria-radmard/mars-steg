@@ -1,4 +1,3 @@
-
 # 🛠 Prompts Folder (`prompts/`)
 
 The `prompts/` folder contains the basic prompts used during the experimentation and evaluation of the LLMs' steganographic behavior.
@@ -57,6 +56,7 @@ task/
 │   │── math.txt
 │   │── price.txt
 │── README.md
+
 ```
 
 ---
@@ -65,13 +65,13 @@ task/
 ## 🔧 Prompt Templates
 
 ### **answer_format/**
-This folder is used to define the expected format of the outputs of the LLMs.
+| txt       | Description                          |
+| This is important to define the expected format of the outputs of the LLMs|
+|---------------|--------------------------------------|
+| `deepseek_end_scratchpad_token` | Defines the token defining end of CoT for deepseek|
+| `deepseek_start_scratchpad_token` | Defines the token defining start of CoT for deepseek|
+| `default_start_output_token` | Defines the token defining start of answer|
 
-| txt                           | Description                                                  |
-|-------------------------------|--------------------------------------------------------------|
-| `deepseek_end_scratchpad_token` | Defines the token that marks the end of the CoT for DeepSeek. |
-| `deepseek_start_scratchpad_token` | Defines the token that marks the start of the CoT for DeepSeek. |
-| `default_start_output_token`    | Defines the token that marks the start of the answer.         |
 
 ### **cot_penal/**
 This folder contains instructions related to penalization if collusion is detected.
@@ -140,3 +140,8 @@ This folder contains few-shot examples for the LLM to better understand the task
 🚧 _In Construction_
 
 ---
+
+
+
+
+
