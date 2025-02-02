@@ -1,3 +1,18 @@
+"""
+Module Name: neural_assessor.py
+------------------------
+
+
+This module contains the implementation of neural assessor through a class for evaluating problem/solution tasks using an LLM.
+
+Classes:
+    - ProblemSolutionAssessor
+
+Examples:
+    Cf. mars_steg.README.md
+
+"""
+
 from __future__ import annotations
 
 
