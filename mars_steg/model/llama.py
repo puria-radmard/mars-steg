@@ -35,6 +35,7 @@ class Llama_31_8B_Instruct(BaseModel):
             A dictionary containing the 'role' and 'content' for the message.
         """
         return {"role": user_string, "content": f"{system_prompt}"}
+
     
     @staticmethod
     def transform_conversation(conversations_list, prompt_thinking_helper: str = None)-> Conversation:
