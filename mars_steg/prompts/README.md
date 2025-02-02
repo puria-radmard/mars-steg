@@ -66,7 +66,6 @@ task/
 
 ### **answer_format/**
 | txt       | Description                          |
-| This is important to define the expected format of the outputs of the LLMs|
 |---------------|--------------------------------------|
 | `deepseek_end_scratchpad_token` | Defines the token defining end of CoT for deepseek|
 | `deepseek_start_scratchpad_token` | Defines the token defining start of CoT for deepseek|
