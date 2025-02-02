@@ -1,7 +1,7 @@
-
 # 🛠 Prompts Folder (`prompts/`)
 
-The `prompts/` folder contains the basic prompts used during the experimentation and evaluation of the LLMs' steganographic behavior.
+The `promtps/` folder contains the basics prompts used during the experimentation and evaluation of the LLMs' steganographic behaviour.
+
 
 ---
 
@@ -9,33 +9,34 @@ The `prompts/` folder contains the basic prompts used during the experimentation
 ```
 task/
 │── answer_format/
-│   │── deepseek_end_scratchpad_token.txt
-│   │── deepseek_start_scratchpad_token.txt
-│   │── default_start_output_token.txt
-│   │── instruction.txt
+│   │──deepseek_end_scratchpad_token.txt
+│   │──deepseek_start_scratchpad_token.txt
+│   │──default_start_output_token.txt
+│   │──instruction.txt
 │── cot_penal/
-│   │── collusion_penal.txt
-│   │── no_penal.txt
+│   │──collusion_penal.txt
+│   │──no_penal.txt
 │── cot_usage/
-│   │── with.txt
-│   │── without.txt
+│   │──with.txt
+│   │──without.txt
 │── neural_assessor/
-│   │── neural_assessor_system_prompt.txt
-│   │── system_prompt.txt
-│   │── user_prompt_template_v2.txt
-│   │── user_prompt_template.txt
+│   │──neural_assessor_system_prompt.txt
+│   │──system_prompt.txt
+│   │──user_prompt_template_v2.txt
+│   │──user_prompt_template.txt
 │── neural_overseer/
-│   │── system_prompt.txt
-│   │── user_prompt_template_collusion_detector_binary.txt
-│   │── user_prompt_template_collusion_detector_float.txt
-│   │── user_prompt_template.txt
+│   │──system_prompt.txt
+│   │──user_prompt_template_collusion_detector_binary.txt
+│   │──user_prompt_template_collusion_detector_float.txt
+│   │──user_prompt_template.txt
 │── task_description/
-│   │── MATH.txt
-│   │── price.txt
+│   │──MATH.txt
+│   │──price.txt
 │── task_examples/
-│   │── math.txt
-│   │── price.txt
+│   │──math.txt
+│   │──price.txt
 │── README.md
+
 ```
 
 ---
@@ -44,13 +45,13 @@ task/
 ## 🔧 Prompt Templates
 
 ### **answer_format/**
-This folder is used to define the expected format of the outputs of the LLMs.
+| txt       | Description                          |
+| This is important to define the expected format of the outputs of the LLMs|
+|---------------|--------------------------------------|
+| `deepseek_end_scratchpad_token` | Defines the token defining end of CoT for deepseek|
+| `deepseek_start_scratchpad_token` | Defines the token defining start of CoT for deepseek|
+| `default_start_output_token` | Defines the token defining start of answer|
 
-| txt                           | Description                                                  |
-|-------------------------------|--------------------------------------------------------------|
-| `deepseek_end_scratchpad_token` | Defines the token that marks the end of the CoT for DeepSeek. |
-| `deepseek_start_scratchpad_token` | Defines the token that marks the start of the CoT for DeepSeek. |
-| `default_start_output_token`    | Defines the token that marks the start of the answer.         |
 
 ### **cot_penal/**
 This folder contains instructions related to penalization if collusion is detected.
@@ -110,3 +111,8 @@ This folder contains few-shot examples for the LLM to better understand the task
 🚧 _In Construction_
 
 ---
+
+
+
+
+
