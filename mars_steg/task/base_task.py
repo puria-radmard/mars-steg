@@ -276,7 +276,7 @@ class Task(metaclass=ABCMeta):
     @abstractmethod
     def get_task_score(self, prompt_data: PromptData, with_cot: bool) -> float:
         """
-        Evaluates task performance based on PromptData object (see mars_steg.utils.prompt_data to see all the infos encapsulated in this object).
+        Evaluates task performance based on PromptData object (cf. See Also).
 
         This method assesses whether the agent successfully completed the task 
         by analyzing the generated response in relation to the correct answer. 
@@ -315,7 +315,14 @@ class Task(metaclass=ABCMeta):
         Notes
         -----
         - The method may use different evaluation strategies depending on the task type.
-        - The neural assessor option must also be considered (see `MATH_Torch_Dataset_Task.get_task_score`).
+        - The neural assessor option must also be considered (cf. See Also).
+
+        See Also
+        --------
+        mars_steg.utils.prompt_data.PromptData
+            The structure of the PromptData object used in this method.
+        MATH_Torch_Dataset_Task.get_task_score
+            An example implementation for a dataset-based math task.  
         """
         raise NotImplementedError
 

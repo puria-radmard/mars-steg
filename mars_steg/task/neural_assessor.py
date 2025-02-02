@@ -132,7 +132,7 @@ class ProblemSolutionAssessor:
         neural_assessor_thinking_helper: str = None
     ) -> BatchPromptData:
         """
-        Generates assessor transcripts and assigns it to a new BatchPromptData object (see notes for some important information about unsuccessful examples).
+        Generates assessor transcripts and assigns it to a new BatchPromptData object (cf. notes for some important information about unsuccessful examples).
 
         This function processes a BatchPromptData (list of PromptData objects) through the neural assessor model, 
         generating transcripts that evaluate the correctness of model-generated answers. 
