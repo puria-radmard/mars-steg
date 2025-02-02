@@ -39,7 +39,13 @@ task/
 
 ---
 
+<<<<<<< HEAD
 ## 🔧 Prompt Templates
+=======
+## 🔧 promtps templates
+
+
+>>>>>>> 14071db (typos)
 
 ### **answer_format/**
 This folder is used to define the expected format of the outputs of the LLMs.
