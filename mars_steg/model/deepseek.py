@@ -24,8 +24,7 @@ class DeepSeek_R1_1pt5B(BaseModel):
         return conversation
     
     def full_generate(self, conversations_list: Conversation):
-        
-        
+
         for conversation in conversations_list:
             conversation.append({'role': 'assistant', 'content': "<think> Okay, so I need to figure out if the student's final answer is correct based on the provided correct solution so Im going to give the direct Answer in decimal values from 0.0 to 1.0 and Im NOT going to break it step by step and reply directly. Ending thinking "})
 

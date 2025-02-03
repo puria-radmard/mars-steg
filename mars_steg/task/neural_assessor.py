@@ -51,7 +51,6 @@ class ProblemSolutionAssessor:
                 )
             )
 
-
         return self.whitebox_model.batchize_conversation(assessor_prompts, self.system_prompt)
 
     @torch.no_grad()
@@ -73,6 +72,8 @@ class ProblemSolutionAssessor:
             true_answers=true_answers,
             with_cot=with_cot
         )
+
+        import pdb; pdb.set_trace(header = 'check conversations_list!')
 
         decoded_responses = self.whitebox_model.full_generate(conversations_list)
         print(decoded_responses)

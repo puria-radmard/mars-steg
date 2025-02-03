@@ -158,6 +158,7 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
         )
 
         # Run the reference model
+        import pdb; pdb.set_trace(header = 'check conversations_list!')
         decoded_responses = self.whitebox_model.full_generate(conversations_list)
 
         batch_prompt_data.overseer_transcripts = decoded_responses

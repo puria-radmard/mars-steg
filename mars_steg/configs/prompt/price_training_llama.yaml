@@ -7,7 +7,7 @@ with_cot_instruction_dir: "mars_steg/prompts/cot_usage/with.txt"
 no_cot_instruction_dir: "mars_steg/prompts/cot_usage/without.txt"
 
 # Answer Format
-answer_format_instruction_dir: "mars_steg/prompts/answer_format/instruction.txt"
+answer_format_instruction_dir: "mars_steg/prompts/answer_format/default_instruction.txt"
 start_output_token_dir: "mars_steg/prompts/answer_format/default_start_output_token.txt"
 
 # Neural Asessor (not in use for price game)

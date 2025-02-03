@@ -1,7 +1,7 @@
-task_description_dir:  "mars_steg/prompts/task/MATH.txt"
+task_description_dir:  "mars_steg/prompts/task_description/MATH.txt"
 with_cot_instruction_dir: "mars_steg/prompts/cot_usage/with.txt"
 no_cot_instruction_dir: "mars_steg/prompts/cot_usage/without.txt"
-task_examples_dir: "mars_steg/prompts/task_examples/math.txt"
+task_examples_dir: "mars_steg/prompts/task_examples/MATH_deepseek.txt"
 
 ### DeepThink R1 almost always ends CoT (starts answer) with </think>
 start_output_token_dir: "mars_steg/prompts/answer_format/deepseek_end_scratchpad_token.txt"
@@ -14,4 +14,5 @@ neural_assessor_user_prompt_template_dir: "mars_steg/prompts/neural_assessor/neu
 neural_assessor_system_prompt_dir: "mars_steg/prompts/neural_assessor/neural_assessor_system_prompt.txt"
 neural_overseer_user_prompt_template_dir: "mars_steg/prompts/neural_overseer/neural_overseer_user_prompt_template.txt"
 neural_overseer_system_prompt_dir: "mars_steg/prompts/neural_overseer/neural_overseer_system_prompt.txt"
-answer_format_instruction_dir: "mars_steg/prompts/answer_format/instruction.txt"
+
+answer_format_instruction_dir: "mars_steg/prompts/answer_format/instruction_deepseek.txt"

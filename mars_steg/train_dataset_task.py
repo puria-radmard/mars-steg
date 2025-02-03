@@ -129,13 +129,14 @@ if __name__ == "__main__":
 
     epochs_to_evaluate_list = np.linspace(0, train_config.num_train_epochs-1, train_config.number_of_evaluations)
     epochs_to_evaluate_list = [int(epoch) for epoch in epochs_to_evaluate_list]
-    epoch_to_evaluate = epochs_to_evaluate_list.pop(0)
 
     for epoch in range(train_config.num_train_epochs):
 
+        print(f'BEGINING EPOCH {epoch}\n\n')
+
         batch_ticker = 0
 
-        if train_config.evaluate_cot_gap and epoch_to_evaluate == epoch:
+        if train_config.evaluate_cot_gap and (epoch in epochs_to_evaluate_list):
 
             print("--------")
             print("CoT Gap Evaluation")
@@ -217,6 +218,10 @@ if __name__ == "__main__":
             else:
                 # get_language_score will do a hard string check
                 extracted_batch_prompt_datas_with_nos_and_na = extracted_batch_prompt_datas_with_nos
+
+            
+            # TODO: implement
+            batch_prompt_datas.log_to_wandb(epoch = epoch, step = batch_ticker)
 
 
             # After all that answer/CoT extraction, it might have completely failed, so we can skip everything below entirely

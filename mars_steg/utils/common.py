@@ -295,6 +295,7 @@ def evaluate_cot_gap_summary(
                     sum_extracted_with_cot += 1
                     sum_reward_with_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=True)
                 except LLMTranscriptExtractionError:
+                    raise ValueError('LLMTranscriptExtractionError should never be used outside utils functions')
                     warnings.warn(f"Failed to parse: \n\n{prompt_data.cot_transcript}\n\n (with CoT) Skipping example")
 
                 try:
@@ -302,6 +303,7 @@ def evaluate_cot_gap_summary(
                     sum_extracted_without_cot += 1
                     sum_reward_without_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=False)
                 except LLMTranscriptExtractionError:
+                    raise ValueError('LLMTranscriptExtractionError should never be used outside utils functions')
                     warnings.warn(f"Failed to parse: \n\n{prompt_data.no_cot_transcript}\n\n (without CoT) Skipping example")
 
             cot_gap = CoTGapSummary(
