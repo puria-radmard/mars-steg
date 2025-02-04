@@ -92,7 +92,7 @@ def parse_model_output(model_output: str, output_delimitation_tokens: Dict[str, 
     
     elif not (start_scratchpad_token or end_scratchpad_token) and start_output_token:
 
-        output_start = model_output.find(start_output_token)
+        output_start = model_output.rfind(start_output_token)
         if output_start == -1:
             raise LLMTranscriptExtractionError(
                 "Final answer section could not be parsed from the prompt."
