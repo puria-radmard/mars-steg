@@ -222,6 +222,7 @@ def extract_floatingpoint_overseer_or_assessor_answer(
     TODO: improvement of regex
     TODO: solve system prompt being replicated in response
     """
+    import pdb; pdb.set_trace("extract_floatingpoint_overseer_or_assessor_answer")
     response_lower = response_text.lower().rstrip('}')
     match = re.findall(float_pattern, response_lower)[-1]
     return float(match)
