@@ -73,8 +73,6 @@ class ProblemSolutionAssessor:
             with_cot=with_cot
         )
 
-        import pdb; pdb.set_trace(header = 'check conversations_list!')
-
         decoded_responses = self.whitebox_model.full_generate(conversations_list)
 
         batch_prompt_data.assessor_transcripts = decoded_responses

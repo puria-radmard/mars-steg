@@ -107,7 +107,6 @@ def parse_model_output(model_output: str, output_delimitation_tokens: Dict[str, 
             chain_of_thought = extract_section(0,start_output_token, output_start,model_output)
         else:
             chain_of_thought = None
-        import pdb; pdb.set_trace(header="check this!")
 
     elif start_scratchpad_token and end_scratchpad_token and not (start_output_token or end_output_token):
 
@@ -170,7 +169,6 @@ def extract_neural_assessor_answers(batch_prompt_datas: BatchPromptData, output_
     extracted_prompt_datas = []
     for prompt_data in tqdm(batch_prompt_datas):
         try:
-            import pdb; pdb.set_trace(header="check this!")
             _, prompt_data.extracted_assessor_answer = parse_model_output(prompt_data.assessor_transcript, output_delimitation_tokens, cot=False)
             extracted_prompt_datas.append(prompt_data)
         except LLMTranscriptExtractionError as e:
@@ -224,7 +222,6 @@ def extract_floatingpoint_overseer_or_assessor_answer(
     TODO: improvement of regex
     TODO: solve system prompt being replicated in response
     """
-    import pdb; pdb.set_trace(header="extract_floatingpoint_overseer_or_assessor_answer")
     response_lower = response_text.lower().rstrip('}')
     match = re.findall(float_pattern, response_lower)[-1]
     return float(match)
