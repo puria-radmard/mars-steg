@@ -18,3 +18,4 @@ sphinxcontrib-napoleon
 sphinx.ext.autodoc
 sphinx.ext.viewcode
 sphinx.ext.autosummary
+myst-parser
