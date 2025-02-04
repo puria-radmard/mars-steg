@@ -12,7 +12,8 @@ class DeepSeek_R1_1pt5B(BaseModel):
 
         return {"role": user_string, "content": f"{system_prompt}"}
     
-    def transform_conversation(self, conversations_list: Conversation):
+    @staticmethod
+    def transform_conversation(conversations_list: Conversation):
         conversation = ""
         for message in conversations_list:
             role = message["role"]

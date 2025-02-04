@@ -88,10 +88,6 @@ class BaseModel(metaclass=ABCMeta):
     def get_message(self, user_string: str, system_prompt: str) -> Dict:
         pass
 
-    @abstractmethod
-    def transform_conversation(self, conversations_list: Conversation) :
-        pass
-
     def batchize_conversation(
         self, user_prompts: Conversation, system_prompt: Optional[str] = None,
     ):
