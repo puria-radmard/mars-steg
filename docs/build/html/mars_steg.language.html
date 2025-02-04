@@ -1,0 +1,216 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mars_steg.language package &mdash; MARS Steg  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MARS Steg
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">mars_steg.language package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-mars_steg.language.base_language_aspect">mars_steg.language.base_language_aspect module</a><ul>
+<li><a class="reference internal" href="#mars_steg.language.base_language_aspect.EmptyLanguageAspect"><code class="docutils literal notranslate"><span class="pre">EmptyLanguageAspect</span></code></a><ul>
+<li><a class="reference internal" href="#mars_steg.language.base_language_aspect.EmptyLanguageAspect.get_language_score"><code class="docutils literal notranslate"><span class="pre">EmptyLanguageAspect.get_language_score()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.language.base_language_aspect.EmptyLanguageAspect.uses_local_neural_overseer"><code class="docutils literal notranslate"><span class="pre">EmptyLanguageAspect.uses_local_neural_overseer</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mars_steg.language.base_language_aspect.LanguageAspect"><code class="docutils literal notranslate"><span class="pre">LanguageAspect</span></code></a><ul>
+<li><a class="reference internal" href="#mars_steg.language.base_language_aspect.LanguageAspect.compatible_tasks"><code class="docutils literal notranslate"><span class="pre">LanguageAspect.compatible_tasks</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.language.base_language_aspect.LanguageAspect.get_language_score"><code class="docutils literal notranslate"><span class="pre">LanguageAspect.get_language_score()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.language.base_language_aspect.LanguageAspect.recruit_neural_overseer"><code class="docutils literal notranslate"><span class="pre">LanguageAspect.recruit_neural_overseer()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.language.base_language_aspect.LanguageAspect.uses_local_neural_overseer"><code class="docutils literal notranslate"><span class="pre">LanguageAspect.uses_local_neural_overseer</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-mars_steg.language">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MARS Steg</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">mars_steg.language package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/mars_steg.language.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="mars-steg-language-package">
+<h1>mars_steg.language package<a class="headerlink" href="#mars-steg-language-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-mars_steg.language.base_language_aspect">
+<span id="mars-steg-language-base-language-aspect-module"></span><h2>mars_steg.language.base_language_aspect module<a class="headerlink" href="#module-mars_steg.language.base_language_aspect" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="mars_steg.language.base_language_aspect.EmptyLanguageAspect">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mars_steg.language.base_language_aspect.</span></span><span class="sig-name descname"><span class="pre">EmptyLanguageAspect</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.language.base_language_aspect.EmptyLanguageAspect" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mars_steg.language.base_language_aspect.LanguageAspect" title="mars_steg.language.base_language_aspect.LanguageAspect"><code class="xref py py-class docutils literal notranslate"><span class="pre">LanguageAspect</span></code></a></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.language.base_language_aspect.EmptyLanguageAspect.get_language_score">
+<span class="sig-name descname"><span class="pre">get_language_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.PromptData" title="mars_steg.utils.prompt_data.PromptData"><span class="pre">PromptData</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#mars_steg.language.base_language_aspect.EmptyLanguageAspect.get_language_score" title="Link to this definition"></a></dt>
+<dd><p>A method to examine the CoT for examples of the language aspect we are intending to penalise.</p>
+<p>Score must be in range [0,1], and be zero if the language aspect is not detected, or higher if it is.</p>
+<p>EXAMPLES
+If the task is a maths problem, this method might:</p>
+<blockquote>
+<div><ol class="lowerroman simple">
+<li><p>Find the number of times the ‘=’ sign is used in the cot</p></li>
+<li><p>Return a score between 0 and 1 which is higher for more ‘=’ signs</p></li>
+</ol>
+</div></blockquote>
+<dl class="simple">
+<dt>Alternatively, if the task was Mustafa’s market game, this method might:</dt><dd><ol class="lowerroman simple">
+<li><p>Send the cot to an LLM overseer with a prompt asking whether the agent CoT contains a reference to P1’s prices</p></li>
+<li><p>Return 1 if it does, and 0 if it doesn’t.</p></li>
+</ol>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.language.base_language_aspect.EmptyLanguageAspect.uses_local_neural_overseer">
+<span class="sig-name descname"><span class="pre">uses_local_neural_overseer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">False</span></em><a class="headerlink" href="#mars_steg.language.base_language_aspect.EmptyLanguageAspect.uses_local_neural_overseer" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mars_steg.language.base_language_aspect.LanguageAspect">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mars_steg.language.base_language_aspect.</span></span><span class="sig-name descname"><span class="pre">LanguageAspect</span></span><a class="headerlink" href="#mars_steg.language.base_language_aspect.LanguageAspect" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A base class for language aspects to penalise.</p>
+<p>Has been separated from Task to allow us to easily plug and play multiple LanguageAspects with the same Task.</p>
+<p>Requires you to implement:
+1. compatible_tasks: a property defining the set of Task subclasses this LanguageAspect is compatible with.
+Should include the ‘name’ property of each Task subclass you intend to use this LanguageAspect with.</p>
+<ol class="arabic simple" start="2">
+<li><p>get_language_score: see the description below.</p></li>
+</ol>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.language.base_language_aspect.LanguageAspect.compatible_tasks">
+<span class="sig-name descname"><span class="pre">compatible_tasks</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">Set</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></em><a class="headerlink" href="#mars_steg.language.base_language_aspect.LanguageAspect.compatible_tasks" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.language.base_language_aspect.LanguageAspect.get_language_score">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_language_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.PromptData" title="mars_steg.utils.prompt_data.PromptData"><span class="pre">PromptData</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#mars_steg.language.base_language_aspect.LanguageAspect.get_language_score" title="Link to this definition"></a></dt>
+<dd><p>A method to examine the CoT for examples of the language aspect we are intending to penalise.</p>
+<p>Score must be in range [0,1], and be zero if the language aspect is not detected, or higher if it is.</p>
+<p>EXAMPLES
+If the task is a maths problem, this method might:</p>
+<blockquote>
+<div><ol class="lowerroman simple">
+<li><p>Find the number of times the ‘=’ sign is used in the cot</p></li>
+<li><p>Return a score between 0 and 1 which is higher for more ‘=’ signs</p></li>
+</ol>
+</div></blockquote>
+<dl class="simple">
+<dt>Alternatively, if the task was Mustafa’s market game, this method might:</dt><dd><ol class="lowerroman simple">
+<li><p>Send the cot to an LLM overseer with a prompt asking whether the agent CoT contains a reference to P1’s prices</p></li>
+<li><p>Return 1 if it does, and 0 if it doesn’t.</p></li>
+</ol>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.language.base_language_aspect.LanguageAspect.recruit_neural_overseer">
+<span class="sig-name descname"><span class="pre">recruit_neural_overseer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.model.html#mars_steg.model.base_model.BaseModel" title="mars_steg.model.base_model.BaseModel"><span class="pre">BaseModel</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.language.base_language_aspect.LanguageAspect.recruit_neural_overseer" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.language.base_language_aspect.LanguageAspect.uses_local_neural_overseer">
+<span class="sig-name descname"><span class="pre">uses_local_neural_overseer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#mars_steg.language.base_language_aspect.LanguageAspect.uses_local_neural_overseer" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-mars_steg.language">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-mars_steg.language" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, J.S.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

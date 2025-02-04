@@ -1,0 +1,635 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mars_steg.utils package &mdash; MARS Steg  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MARS Steg
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">mars_steg.utils package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-mars_steg.utils.answer_extraction">mars_steg.utils.answer_extraction module</a><ul>
+<li><a class="reference internal" href="#mars_steg.utils.answer_extraction.extract_boolean_overseer_or_assessor_answer"><code class="docutils literal notranslate"><span class="pre">extract_boolean_overseer_or_assessor_answer()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.answer_extraction.extract_cots"><code class="docutils literal notranslate"><span class="pre">extract_cots()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.answer_extraction.extract_floatingpoint_overseer_or_assessor_answer"><code class="docutils literal notranslate"><span class="pre">extract_floatingpoint_overseer_or_assessor_answer()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.answer_extraction.extract_neural_assessor_answers"><code class="docutils literal notranslate"><span class="pre">extract_neural_assessor_answers()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.answer_extraction.extract_neural_overseer_answers"><code class="docutils literal notranslate"><span class="pre">extract_neural_overseer_answers()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.answer_extraction.extract_section"><code class="docutils literal notranslate"><span class="pre">extract_section()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.answer_extraction.parse_model_output"><code class="docutils literal notranslate"><span class="pre">parse_model_output()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-mars_steg.utils.common">mars_steg.utils.common module</a><ul>
+<li><a class="reference internal" href="#mars_steg.utils.common.evaluate_cot_gap_summary"><code class="docutils literal notranslate"><span class="pre">evaluate_cot_gap_summary()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.common.get_dataloaders_and_ref_model"><code class="docutils literal notranslate"><span class="pre">get_dataloaders_and_ref_model()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.common.get_device"><code class="docutils literal notranslate"><span class="pre">get_device()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.common.get_model"><code class="docutils literal notranslate"><span class="pre">get_model()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.common.get_optimizer"><code class="docutils literal notranslate"><span class="pre">get_optimizer()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.common.get_rewards_and_training_datas"><code class="docutils literal notranslate"><span class="pre">get_rewards_and_training_datas()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.common.get_tokenizer"><code class="docutils literal notranslate"><span class="pre">get_tokenizer()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.common.set_seed"><code class="docutils literal notranslate"><span class="pre">set_seed()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-mars_steg.utils.exceptions">mars_steg.utils.exceptions module</a><ul>
+<li><a class="reference internal" href="#mars_steg.utils.exceptions.LLMTranscriptExtractionError"><code class="docutils literal notranslate"><span class="pre">LLMTranscriptExtractionError</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-mars_steg.utils.math_equivalence">mars_steg.utils.math_equivalence module</a><ul>
+<li><a class="reference internal" href="#mars_steg.utils.math_equivalence.TestNormalize"><code class="docutils literal notranslate"><span class="pre">TestNormalize</span></code></a><ul>
+<li><a class="reference internal" href="#mars_steg.utils.math_equivalence.TestNormalize.test_equiv_decimal_fraction"><code class="docutils literal notranslate"><span class="pre">TestNormalize.test_equiv_decimal_fraction()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.math_equivalence.TestNormalize.test_equiv_formats"><code class="docutils literal notranslate"><span class="pre">TestNormalize.test_equiv_formats()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.math_equivalence.TestNormalize.test_equiv_symbols"><code class="docutils literal notranslate"><span class="pre">TestNormalize.test_equiv_symbols()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_1"><code class="docutils literal notranslate"><span class="pre">TestNormalize.test_multiple_answers_1()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_2"><code class="docutils literal notranslate"><span class="pre">TestNormalize.test_multiple_answers_2()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_3"><code class="docutils literal notranslate"><span class="pre">TestNormalize.test_multiple_answers_3()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_4"><code class="docutils literal notranslate"><span class="pre">TestNormalize.test_multiple_answers_4()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_5"><code class="docutils literal notranslate"><span class="pre">TestNormalize.test_multiple_answers_5()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_6"><code class="docutils literal notranslate"><span class="pre">TestNormalize.test_multiple_answers_6()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mars_steg.utils.math_equivalence.is_equiv"><code class="docutils literal notranslate"><span class="pre">is_equiv()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-mars_steg.utils.openai_api_helpers">mars_steg.utils.openai_api_helpers module</a><ul>
+<li><a class="reference internal" href="#mars_steg.utils.openai_api_helpers.get_batch_job"><code class="docutils literal notranslate"><span class="pre">get_batch_job()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.openai_api_helpers.get_info_from_batch_element"><code class="docutils literal notranslate"><span class="pre">get_info_from_batch_element()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.openai_api_helpers.jsonl_line"><code class="docutils literal notranslate"><span class="pre">jsonl_line()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.openai_api_helpers.make_jsonl_batch_file"><code class="docutils literal notranslate"><span class="pre">make_jsonl_batch_file()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.openai_api_helpers.read_batch_output_file"><code class="docutils literal notranslate"><span class="pre">read_batch_output_file()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.openai_api_helpers.single_query"><code class="docutils literal notranslate"><span class="pre">single_query()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.openai_api_helpers.submit_batch_file"><code class="docutils literal notranslate"><span class="pre">submit_batch_file()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-mars_steg.utils.plot">mars_steg.utils.plot module</a></li>
+<li><a class="reference internal" href="#module-mars_steg.utils.prompt_data">mars_steg.utils.prompt_data module</a><ul>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.BatchPromptData"><code class="docutils literal notranslate"><span class="pre">BatchPromptData</span></code></a><ul>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.BatchPromptData.append"><code class="docutils literal notranslate"><span class="pre">BatchPromptData.append()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.BatchPromptData.index"><code class="docutils literal notranslate"><span class="pre">BatchPromptData.index()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.BatchPromptData.save"><code class="docutils literal notranslate"><span class="pre">BatchPromptData.save()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.DataInfo"><code class="docutils literal notranslate"><span class="pre">DataInfo</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.FixedDatasetDataInfo"><code class="docutils literal notranslate"><span class="pre">FixedDatasetDataInfo</span></code></a><ul>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.FixedDatasetDataInfo.idx"><code class="docutils literal notranslate"><span class="pre">FixedDatasetDataInfo.idx</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData"><code class="docutils literal notranslate"><span class="pre">PromptData</span></code></a><ul>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData.assessor_transcript"><code class="docutils literal notranslate"><span class="pre">PromptData.assessor_transcript</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData.cot_prompt"><code class="docutils literal notranslate"><span class="pre">PromptData.cot_prompt</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData.cot_transcript"><code class="docutils literal notranslate"><span class="pre">PromptData.cot_transcript</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData.extracted_assessor_answer"><code class="docutils literal notranslate"><span class="pre">PromptData.extracted_assessor_answer</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData.extracted_cot"><code class="docutils literal notranslate"><span class="pre">PromptData.extracted_cot</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData.extracted_final_answer_with_cot"><code class="docutils literal notranslate"><span class="pre">PromptData.extracted_final_answer_with_cot</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData.extracted_final_answer_without_cot"><code class="docutils literal notranslate"><span class="pre">PromptData.extracted_final_answer_without_cot</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData.extracted_overseer_answer"><code class="docutils literal notranslate"><span class="pre">PromptData.extracted_overseer_answer</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData.info"><code class="docutils literal notranslate"><span class="pre">PromptData.info</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData.no_cot_prompt"><code class="docutils literal notranslate"><span class="pre">PromptData.no_cot_prompt</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData.no_cot_transcript"><code class="docutils literal notranslate"><span class="pre">PromptData.no_cot_transcript</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData.overseer_transcript"><code class="docutils literal notranslate"><span class="pre">PromptData.overseer_transcript</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData.save"><code class="docutils literal notranslate"><span class="pre">PromptData.save()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.SequentialPriceTaskDataInfo"><code class="docutils literal notranslate"><span class="pre">SequentialPriceTaskDataInfo</span></code></a><ul>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.SequentialPriceTaskDataInfo.p1_bid"><code class="docutils literal notranslate"><span class="pre">SequentialPriceTaskDataInfo.p1_bid</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.prompt_data.SequentialPriceTaskDataInfo.p2_true_cost"><code class="docutils literal notranslate"><span class="pre">SequentialPriceTaskDataInfo.p2_true_cost</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-mars_steg.utils.score">mars_steg.utils.score module</a><ul>
+<li><a class="reference internal" href="#mars_steg.utils.score.CoTGapSummary"><code class="docutils literal notranslate"><span class="pre">CoTGapSummary</span></code></a><ul>
+<li><a class="reference internal" href="#mars_steg.utils.score.CoTGapSummary.sum_examples"><code class="docutils literal notranslate"><span class="pre">CoTGapSummary.sum_examples</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.score.CoTGapSummary.sum_extracted_with_cot"><code class="docutils literal notranslate"><span class="pre">CoTGapSummary.sum_extracted_with_cot</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.score.CoTGapSummary.sum_extracted_without_cot"><code class="docutils literal notranslate"><span class="pre">CoTGapSummary.sum_extracted_without_cot</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.score.CoTGapSummary.sum_reward_with_cot"><code class="docutils literal notranslate"><span class="pre">CoTGapSummary.sum_reward_with_cot</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.score.CoTGapSummary.sum_reward_without_cot"><code class="docutils literal notranslate"><span class="pre">CoTGapSummary.sum_reward_without_cot</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.utils.score.CoTGapSummary.summary"><code class="docutils literal notranslate"><span class="pre">CoTGapSummary.summary</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mars_steg.utils.score.check_score"><code class="docutils literal notranslate"><span class="pre">check_score()</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-mars_steg.utils">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MARS Steg</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">mars_steg.utils package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/mars_steg.utils.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="mars-steg-utils-package">
+<h1>mars_steg.utils package<a class="headerlink" href="#mars-steg-utils-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-mars_steg.utils.answer_extraction">
+<span id="mars-steg-utils-answer-extraction-module"></span><h2>mars_steg.utils.answer_extraction module<a class="headerlink" href="#module-mars_steg.utils.answer_extraction" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.answer_extraction.extract_boolean_overseer_or_assessor_answer">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.answer_extraction.</span></span><span class="sig-name descname"><span class="pre">extract_boolean_overseer_or_assessor_answer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#mars_steg.utils.answer_extraction.extract_boolean_overseer_or_assessor_answer" title="Link to this definition"></a></dt>
+<dd><p>Gets a boolean value
+TODO: generalise to a float [0,1]</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.answer_extraction.extract_cots">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.answer_extraction.</span></span><span class="sig-name descname"><span class="pre">extract_cots</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_prompt_datas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_delimitation_tokens</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></span><a class="headerlink" href="#mars_steg.utils.answer_extraction.extract_cots" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Take in full batch of prompts, and spit out batch of prompts for which the model was able to give</dt><dd><p>a well formatted answer. If output length is less than input length, this means some responses could
+not be parsed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.answer_extraction.extract_floatingpoint_overseer_or_assessor_answer">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.answer_extraction.</span></span><span class="sig-name descname"><span class="pre">extract_floatingpoint_overseer_or_assessor_answer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">response_text</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#mars_steg.utils.answer_extraction.extract_floatingpoint_overseer_or_assessor_answer" title="Link to this definition"></a></dt>
+<dd><p>Gets a float value
+TODO: check if ret &gt; 1.0
+TODO: improvement of regex
+TODO: solve system prompt being replicated in response</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.answer_extraction.extract_neural_assessor_answers">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.answer_extraction.</span></span><span class="sig-name descname"><span class="pre">extract_neural_assessor_answers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_prompt_datas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_delimitation_tokens</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.answer_extraction.extract_neural_assessor_answers" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Take in full batch of prompts, and spit out batch of prompts for which the assessor model was able to give</dt><dd><p>a well formatted answer. If output length is less than input length, this means some responses could
+not be parsed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.answer_extraction.extract_neural_overseer_answers">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.answer_extraction.</span></span><span class="sig-name descname"><span class="pre">extract_neural_overseer_answers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_prompt_datas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_delimitation_tokens</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.answer_extraction.extract_neural_overseer_answers" title="Link to this definition"></a></dt>
+<dd><dl class="simple">
+<dt>Take in full batch of prompts, and spit out batch of prompts for which the overseer model was able to give</dt><dd><p>a well formatted answer. If output length is less than input length, this means some responses could
+not be parsed</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.answer_extraction.extract_section">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.answer_extraction.</span></span><span class="sig-name descname"><span class="pre">extract_section</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_section_token</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_end</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.answer_extraction.extract_section" title="Link to this definition"></a></dt>
+<dd><p>Extract a section from the output of the model based on start and end positions.</p>
+<dl>
+<dt>Args:</dt><dd><p>output_start (int): The starting index of the section in the model output.
+start_section_token (str): The token indicating the beginning of the section.
+output_end (int): The ending index of the section in the model output.</p>
+<blockquote>
+<div><p>If -1, the section extends to the end of the output.</p>
+</div></blockquote>
+<p>model_output (str): The complete output string from the model.</p>
+</dd>
+<dt>Returns:</dt><dd><p>str: The extracted section of the output, stripped of surrounding whitespace.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.answer_extraction.parse_model_output">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.answer_extraction.</span></span><span class="sig-name descname"><span class="pre">parse_model_output</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_output</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_delimitation_tokens</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#mars_steg.utils.answer_extraction.parse_model_output" title="Link to this definition"></a></dt>
+<dd><p>Parses a given model output into a tuple of (scratchpad_reasoning, output).</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>model_output (str): The input string containing SCRATCHPAD_REASONING and OUTPUT sections
+cot (bool): If True, raises an error if SCRATCHPAD_REASONING cannot be parsed
+output_delimitation_tokens (dict): If defined, defines the tokens of the expected sections</p>
+</dd>
+<dt>Returns:</dt><dd><dl class="simple">
+<dt>tuple[str | None, str]: A tuple containing (scratchpad_reasoning, output)</dt><dd><p>scratchpad_reasoning will be None if cot=False</p>
+</dd>
+</dl>
+</dd>
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>ValueError: If cot=True and SCRATCHPAD_REASONING cannot be parsed,</dt><dd><p>or if OUTPUT section cannot be parsed</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="module-mars_steg.utils.common">
+<span id="mars-steg-utils-common-module"></span><h2>mars_steg.utils.common module<a class="headerlink" href="#module-mars_steg.utils.common" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.common.evaluate_cot_gap_summary">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.common.</span></span><span class="sig-name descname"><span class="pre">evaluate_cot_gap_summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ppo_trainer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tokenizer</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataloader</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataLoader</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_prompt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_class</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.model.html#mars_steg.model.base_model.BaseModel" title="mars_steg.model.base_model.BaseModel"><span class="pre">BaseModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">device</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generation_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_delimitation_tokens</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#mars_steg.utils.score.CoTGapSummary" title="mars_steg.utils.score.CoTGapSummary"><span class="pre">CoTGapSummary</span></a></span></span><a class="headerlink" href="#mars_steg.utils.common.evaluate_cot_gap_summary" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.common.get_dataloaders_and_ref_model">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.common.</span></span><span class="sig-name descname"><span class="pre">get_dataloaders_and_ref_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset_class_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalisation_class_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_class_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prompt_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.html#mars_steg.config.PromptConfig" title="mars_steg.config.PromptConfig"><span class="pre">PromptConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">penalisation_class_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_proportion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_proportion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">batch_size</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">training_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.model.html#mars_steg.model.base_model.BaseModel" title="mars_steg.model.base_model.BaseModel"><span class="pre">BaseModel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">_</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">override_create_ref_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">number_shared_layers_for_ref_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neural_overseer_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.model.html#mars_steg.model.base_model.BaseModel" title="mars_steg.model.base_model.BaseModel"><span class="pre">BaseModel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">neural_assessor_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.model.html#mars_steg.model.base_model.BaseModel" title="mars_steg.model.base_model.BaseModel"><span class="pre">BaseModel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.common.get_dataloaders_and_ref_model" title="Link to this definition"></a></dt>
+<dd><p>Including ref model creation here because it is needed for the task,
+as well as potentially for the training!</p>
+<p>Create the reference model if <cite>override_create_ref_model</cite> is True
+or if the neural overseer or task requires it</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.common.get_device">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.common.</span></span><span class="sig-name descname"><span class="pre">get_device</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#mars_steg.utils.common.get_device" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.common.get_model">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.common.</span></span><span class="sig-name descname"><span class="pre">get_model</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="pre">model_config:</span> <span class="pre">~mars_steg.config.ModelConfig,</span> <span class="pre">tokenizer:</span> <span class="pre">~transformers.models.auto.tokenization_auto.AutoTokenizer,</span> <span class="pre">output_delimitation_tokens:</span> <span class="pre">~typing.Dict[str,</span> <span class="pre">str],</span> <span class="pre">generation_config=&lt;class</span> <span class="pre">'mars_steg.config.GenerationConfig'&gt;,</span> <span class="pre">device:</span> <span class="pre">str</span> <span class="pre">=</span> <span class="pre">'cuda'</span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="mars_steg.model.html#mars_steg.model.base_model.BaseModel" title="mars_steg.model.base_model.BaseModel"><span class="pre">BaseModel</span></a></span></span><a class="headerlink" href="#mars_steg.utils.common.get_model" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.common.get_optimizer">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.common.</span></span><span class="sig-name descname"><span class="pre">get_optimizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">optimizer_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.html#mars_steg.config.OptimizerConfig" title="mars_steg.config.OptimizerConfig"><span class="pre">OptimizerConfig</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Module</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Optimizer</span></span></span><a class="headerlink" href="#mars_steg.utils.common.get_optimizer" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.common.get_rewards_and_training_datas">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.common.</span></span><span class="sig-name descname"><span class="pre">get_rewards_and_training_datas</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_prompt_datas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">query_tensors</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">TensorType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">transcript_responses</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">TensorType</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">train_dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.task.html#mars_steg.task.base_task.TorchDatasetTask" title="mars_steg.task.base_task.TorchDatasetTask"><span class="pre">TorchDatasetTask</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#mars_steg.utils.common.get_rewards_and_training_datas" title="Link to this definition"></a></dt>
+<dd><p>batch_prompt_datas come in imbued with answers extracted from the neural overseer and assesor already
+Any that failed should have been pruned from this argument anyway, so no need to double check here!</p>
+<p>However: Just because the extraction worked does not mean that the score assignment will
+We do another round of pruning here if the extracted answers in either NOS or NA are not in the right format</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.common.get_tokenizer">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.common.</span></span><span class="sig-name descname"><span class="pre">get_tokenizer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.common.get_tokenizer" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.common.set_seed">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.common.</span></span><span class="sig-name descname"><span class="pre">set_seed</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">42</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="headerlink" href="#mars_steg.utils.common.set_seed" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-mars_steg.utils.exceptions">
+<span id="mars-steg-utils-exceptions-module"></span><h2>mars_steg.utils.exceptions module<a class="headerlink" href="#module-mars_steg.utils.exceptions" title="Link to this heading"></a></h2>
+<dl class="py exception">
+<dt class="sig sig-object py" id="mars_steg.utils.exceptions.LLMTranscriptExtractionError">
+<em class="property"><span class="pre">exception</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mars_steg.utils.exceptions.</span></span><span class="sig-name descname"><span class="pre">LLMTranscriptExtractionError</span></span><a class="headerlink" href="#mars_steg.utils.exceptions.LLMTranscriptExtractionError" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+</section>
+<section id="module-mars_steg.utils.math_equivalence">
+<span id="mars-steg-utils-math-equivalence-module"></span><h2>mars_steg.utils.math_equivalence module<a class="headerlink" href="#module-mars_steg.utils.math_equivalence" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="mars_steg.utils.math_equivalence.TestNormalize">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mars_steg.utils.math_equivalence.</span></span><span class="sig-name descname"><span class="pre">TestNormalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.math_equivalence.TestNormalize" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TestCase</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.utils.math_equivalence.TestNormalize.test_equiv_decimal_fraction">
+<span class="sig-name descname"><span class="pre">test_equiv_decimal_fraction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.math_equivalence.TestNormalize.test_equiv_decimal_fraction" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.utils.math_equivalence.TestNormalize.test_equiv_formats">
+<span class="sig-name descname"><span class="pre">test_equiv_formats</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.math_equivalence.TestNormalize.test_equiv_formats" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.utils.math_equivalence.TestNormalize.test_equiv_symbols">
+<span class="sig-name descname"><span class="pre">test_equiv_symbols</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.math_equivalence.TestNormalize.test_equiv_symbols" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_1">
+<span class="sig-name descname"><span class="pre">test_multiple_answers_1</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_1" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_2">
+<span class="sig-name descname"><span class="pre">test_multiple_answers_2</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_2" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_3">
+<span class="sig-name descname"><span class="pre">test_multiple_answers_3</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_3" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_4">
+<span class="sig-name descname"><span class="pre">test_multiple_answers_4</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_4" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_5">
+<span class="sig-name descname"><span class="pre">test_multiple_answers_5</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_5" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_6">
+<span class="sig-name descname"><span class="pre">test_multiple_answers_6</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.math_equivalence.TestNormalize.test_multiple_answers_6" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.math_equivalence.is_equiv">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.math_equivalence.</span></span><span class="sig-name descname"><span class="pre">is_equiv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">str1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">str2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">verbose</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.math_equivalence.is_equiv" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-mars_steg.utils.openai_api_helpers">
+<span id="mars-steg-utils-openai-api-helpers-module"></span><h2>mars_steg.utils.openai_api_helpers module<a class="headerlink" href="#module-mars_steg.utils.openai_api_helpers" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.openai_api_helpers.get_batch_job">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.openai_api_helpers.</span></span><span class="sig-name descname"><span class="pre">get_batch_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">outfile</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.openai_api_helpers.get_batch_job" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.openai_api_helpers.get_info_from_batch_element">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.openai_api_helpers.</span></span><span class="sig-name descname"><span class="pre">get_info_from_batch_element</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">element</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.openai_api_helpers.get_info_from_batch_element" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.openai_api_helpers.jsonl_line">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.openai_api_helpers.</span></span><span class="sig-name descname"><span class="pre">jsonl_line</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request_id</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prompt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gpt-4o-mini-2024-07-18'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.openai_api_helpers.jsonl_line" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.openai_api_helpers.make_jsonl_batch_file">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.openai_api_helpers.</span></span><span class="sig-name descname"><span class="pre">make_jsonl_batch_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">req_ids</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prompts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">output_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gpt-4o-mini-2024-07-18'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">temperature</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.openai_api_helpers.make_jsonl_batch_file" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.openai_api_helpers.read_batch_output_file">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.openai_api_helpers.</span></span><span class="sig-name descname"><span class="pre">read_batch_output_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">savefile</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.openai_api_helpers.read_batch_output_file" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.openai_api_helpers.single_query">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.openai_api_helpers.</span></span><span class="sig-name descname"><span class="pre">single_query</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">user_prompt</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">system_prompt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'gpt-4o-mini-2024-07-18'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.openai_api_helpers.single_query" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.openai_api_helpers.submit_batch_file">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.openai_api_helpers.</span></span><span class="sig-name descname"><span class="pre">submit_batch_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">jsonl_batch_file</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.openai_api_helpers.submit_batch_file" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-mars_steg.utils.plot">
+<span id="mars-steg-utils-plot-module"></span><h2>mars_steg.utils.plot module<a class="headerlink" href="#module-mars_steg.utils.plot" title="Link to this heading"></a></h2>
+</section>
+<section id="module-mars_steg.utils.prompt_data">
+<span id="mars-steg-utils-prompt-data-module"></span><h2>mars_steg.utils.prompt_data module<a class="headerlink" href="#module-mars_steg.utils.prompt_data" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.BatchPromptData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mars_steg.utils.prompt_data.</span></span><span class="sig-name descname"><span class="pre">BatchPromptData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prompt_datas</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData" title="mars_steg.utils.prompt_data.PromptData"><span class="pre">PromptData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.prompt_data.BatchPromptData" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.BatchPromptData.append">
+<span class="sig-name descname"><span class="pre">append</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData" title="mars_steg.utils.prompt_data.PromptData"><span class="pre">PromptData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.prompt_data.BatchPromptData.append" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.BatchPromptData.index">
+<span class="sig-name descname"><span class="pre">index</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#mars_steg.utils.prompt_data.PromptData" title="mars_steg.utils.prompt_data.PromptData"><span class="pre">PromptData</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.prompt_data.BatchPromptData.index" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.BatchPromptData.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.prompt_data.BatchPromptData.save" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.DataInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mars_steg.utils.prompt_data.</span></span><span class="sig-name descname"><span class="pre">DataInfo</span></span><a class="headerlink" href="#mars_steg.utils.prompt_data.DataInfo" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ABC</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.FixedDatasetDataInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mars_steg.utils.prompt_data.</span></span><span class="sig-name descname"><span class="pre">FixedDatasetDataInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.prompt_data.FixedDatasetDataInfo" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mars_steg.utils.prompt_data.DataInfo" title="mars_steg.utils.prompt_data.DataInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataInfo</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.FixedDatasetDataInfo.idx">
+<span class="sig-name descname"><span class="pre">idx</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mars_steg.utils.prompt_data.FixedDatasetDataInfo.idx" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.PromptData">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mars_steg.utils.prompt_data.</span></span><span class="sig-name descname"><span class="pre">PromptData</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cot_prompt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_cot_prompt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">info</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#mars_steg.utils.prompt_data.DataInfo" title="mars_steg.utils.prompt_data.DataInfo"><span class="pre">mars_steg.utils.prompt_data.DataInfo</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">cot_transcript</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">no_cot_transcript</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extracted_cot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extracted_final_answer_with_cot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extracted_final_answer_without_cot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">overseer_transcript</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extracted_overseer_answer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assessor_transcript</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">extracted_assessor_answer</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.prompt_data.PromptData" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.PromptData.assessor_transcript">
+<span class="sig-name descname"><span class="pre">assessor_transcript</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#mars_steg.utils.prompt_data.PromptData.assessor_transcript" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.PromptData.cot_prompt">
+<span class="sig-name descname"><span class="pre">cot_prompt</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#mars_steg.utils.prompt_data.PromptData.cot_prompt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.PromptData.cot_transcript">
+<span class="sig-name descname"><span class="pre">cot_transcript</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#mars_steg.utils.prompt_data.PromptData.cot_transcript" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.PromptData.extracted_assessor_answer">
+<span class="sig-name descname"><span class="pre">extracted_assessor_answer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#mars_steg.utils.prompt_data.PromptData.extracted_assessor_answer" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.PromptData.extracted_cot">
+<span class="sig-name descname"><span class="pre">extracted_cot</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#mars_steg.utils.prompt_data.PromptData.extracted_cot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.PromptData.extracted_final_answer_with_cot">
+<span class="sig-name descname"><span class="pre">extracted_final_answer_with_cot</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#mars_steg.utils.prompt_data.PromptData.extracted_final_answer_with_cot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.PromptData.extracted_final_answer_without_cot">
+<span class="sig-name descname"><span class="pre">extracted_final_answer_without_cot</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#mars_steg.utils.prompt_data.PromptData.extracted_final_answer_without_cot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.PromptData.extracted_overseer_answer">
+<span class="sig-name descname"><span class="pre">extracted_overseer_answer</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#mars_steg.utils.prompt_data.PromptData.extracted_overseer_answer" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.PromptData.info">
+<span class="sig-name descname"><span class="pre">info</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#mars_steg.utils.prompt_data.DataInfo" title="mars_steg.utils.prompt_data.DataInfo"><span class="pre">DataInfo</span></a></em><a class="headerlink" href="#mars_steg.utils.prompt_data.PromptData.info" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.PromptData.no_cot_prompt">
+<span class="sig-name descname"><span class="pre">no_cot_prompt</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#mars_steg.utils.prompt_data.PromptData.no_cot_prompt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.PromptData.no_cot_transcript">
+<span class="sig-name descname"><span class="pre">no_cot_transcript</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#mars_steg.utils.prompt_data.PromptData.no_cot_transcript" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.PromptData.overseer_transcript">
+<span class="sig-name descname"><span class="pre">overseer_transcript</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#mars_steg.utils.prompt_data.PromptData.overseer_transcript" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.PromptData.save">
+<span class="sig-name descname"><span class="pre">save</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.prompt_data.PromptData.save" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.SequentialPriceTaskDataInfo">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mars_steg.utils.prompt_data.</span></span><span class="sig-name descname"><span class="pre">SequentialPriceTaskDataInfo</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p1_bid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">p2_true_cost</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.prompt_data.SequentialPriceTaskDataInfo" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mars_steg.utils.prompt_data.FixedDatasetDataInfo" title="mars_steg.utils.prompt_data.FixedDatasetDataInfo"><code class="xref py py-class docutils literal notranslate"><span class="pre">FixedDatasetDataInfo</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.SequentialPriceTaskDataInfo.p1_bid">
+<span class="sig-name descname"><span class="pre">p1_bid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#mars_steg.utils.prompt_data.SequentialPriceTaskDataInfo.p1_bid" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.prompt_data.SequentialPriceTaskDataInfo.p2_true_cost">
+<span class="sig-name descname"><span class="pre">p2_true_cost</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></em><a class="headerlink" href="#mars_steg.utils.prompt_data.SequentialPriceTaskDataInfo.p2_true_cost" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-mars_steg.utils.score">
+<span id="mars-steg-utils-score-module"></span><h2>mars_steg.utils.score module<a class="headerlink" href="#module-mars_steg.utils.score" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="mars_steg.utils.score.CoTGapSummary">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mars_steg.utils.score.</span></span><span class="sig-name descname"><span class="pre">CoTGapSummary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">sum_examples</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_extracted_with_cot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_extracted_without_cot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_with_cot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sum_reward_without_cot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.score.CoTGapSummary" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.score.CoTGapSummary.sum_examples">
+<span class="sig-name descname"><span class="pre">sum_examples</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mars_steg.utils.score.CoTGapSummary.sum_examples" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.score.CoTGapSummary.sum_extracted_with_cot">
+<span class="sig-name descname"><span class="pre">sum_extracted_with_cot</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mars_steg.utils.score.CoTGapSummary.sum_extracted_with_cot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.score.CoTGapSummary.sum_extracted_without_cot">
+<span class="sig-name descname"><span class="pre">sum_extracted_without_cot</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mars_steg.utils.score.CoTGapSummary.sum_extracted_without_cot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.score.CoTGapSummary.sum_reward_with_cot">
+<span class="sig-name descname"><span class="pre">sum_reward_with_cot</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mars_steg.utils.score.CoTGapSummary.sum_reward_with_cot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.utils.score.CoTGapSummary.sum_reward_without_cot">
+<span class="sig-name descname"><span class="pre">sum_reward_without_cot</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#mars_steg.utils.score.CoTGapSummary.sum_reward_without_cot" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="mars_steg.utils.score.CoTGapSummary.summary">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">summary</span></span><a class="headerlink" href="#mars_steg.utils.score.CoTGapSummary.summary" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="mars_steg.utils.score.check_score">
+<span class="sig-prename descclassname"><span class="pre">mars_steg.utils.score.</span></span><span class="sig-name descname"><span class="pre">check_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">score_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">score_value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.utils.score.check_score" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</section>
+<section id="module-mars_steg.utils">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-mars_steg.utils" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, J.S.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

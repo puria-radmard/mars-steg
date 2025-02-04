@@ -1,0 +1,857 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>mars_steg.task package &mdash; MARS Steg  documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=5929fcd5"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            MARS Steg
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">mars_steg.task package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-mars_steg.task.base_task">mars_steg.task.base_task module</a><ul>
+<li><a class="reference internal" href="#module-name-base-task-py">Module Name: base_task.py</a></li>
+<li><a class="reference internal" href="#description">Description:</a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.GameBasedTask"><code class="docutils literal notranslate"><span class="pre">GameBasedTask</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.Task"><code class="docutils literal notranslate"><span class="pre">Task</span></code></a><ul>
+<li><a class="reference internal" href="#mars_steg.task.base_task.Task.cot_instruction"><code class="docutils literal notranslate"><span class="pre">Task.cot_instruction()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.Task.no_cot_instruction"><code class="docutils literal notranslate"><span class="pre">Task.no_cot_instruction()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.Task.generate_prompt"><code class="docutils literal notranslate"><span class="pre">Task.generate_prompt()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.Task.generate_info"><code class="docutils literal notranslate"><span class="pre">Task.generate_info()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.Task.generate_full_prompt"><code class="docutils literal notranslate"><span class="pre">Task.generate_full_prompt()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.Task.get_task_score"><code class="docutils literal notranslate"><span class="pre">Task.get_task_score()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.Task.reward"><code class="docutils literal notranslate"><span class="pre">Task.reward()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.Task.reward_from_transcript"><code class="docutils literal notranslate"><span class="pre">Task.reward_from_transcript()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.Task.recruit_neural_assessor"><code class="docutils literal notranslate"><span class="pre">Task.recruit_neural_assessor()</span></code></a></li>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">Task.cot_instruction</span></code></a></li>
+<li><a class="reference internal" href="#id1"><code class="docutils literal notranslate"><span class="pre">Task.generate_full_prompt()</span></code></a></li>
+<li><a class="reference internal" href="#id2"><code class="docutils literal notranslate"><span class="pre">Task.generate_info()</span></code></a></li>
+<li><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">Task.generate_prompt()</span></code></a></li>
+<li><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">Task.get_task_score()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.Task.name"><code class="docutils literal notranslate"><span class="pre">Task.name</span></code></a></li>
+<li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">Task.no_cot_instruction</span></code></a></li>
+<li><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">Task.recruit_neural_assessor()</span></code></a></li>
+<li><a class="reference internal" href="#id7"><code class="docutils literal notranslate"><span class="pre">Task.reward()</span></code></a></li>
+<li><a class="reference internal" href="#id8"><code class="docutils literal notranslate"><span class="pre">Task.reward_from_transcript()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.Task.system_prompt"><code class="docutils literal notranslate"><span class="pre">Task.system_prompt</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.Task.uses_local_neural_assessor"><code class="docutils literal notranslate"><span class="pre">Task.uses_local_neural_assessor</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask"><code class="docutils literal notranslate"><span class="pre">TorchDatasetTask</span></code></a><ul>
+<li><a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask.generate_info"><code class="docutils literal notranslate"><span class="pre">TorchDatasetTask.generate_info()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask.test_train_split"><code class="docutils literal notranslate"><span class="pre">TorchDatasetTask.test_train_split()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask.prompt_data_collate_fn"><code class="docutils literal notranslate"><span class="pre">TorchDatasetTask.prompt_data_collate_fn()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask.get_true_answers_from_batch_prompt_data"><code class="docutils literal notranslate"><span class="pre">TorchDatasetTask.get_true_answers_from_batch_prompt_data()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask.neural_assessor_from_batch_prompt_data"><code class="docutils literal notranslate"><span class="pre">TorchDatasetTask.neural_assessor_from_batch_prompt_data()</span></code></a></li>
+<li><a class="reference internal" href="#id9"><code class="docutils literal notranslate"><span class="pre">TorchDatasetTask.generate_info()</span></code></a></li>
+<li><a class="reference internal" href="#id10"><code class="docutils literal notranslate"><span class="pre">TorchDatasetTask.get_true_answers_from_batch_prompt_data()</span></code></a></li>
+<li><a class="reference internal" href="#id11"><code class="docutils literal notranslate"><span class="pre">TorchDatasetTask.neural_assessor_from_batch_prompt_data()</span></code></a></li>
+<li><a class="reference internal" href="#id12"><code class="docutils literal notranslate"><span class="pre">TorchDatasetTask.prompt_data_collate_fn()</span></code></a></li>
+<li><a class="reference internal" href="#id13"><code class="docutils literal notranslate"><span class="pre">TorchDatasetTask.test_train_split()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-mars_steg.task.neural_assessor">mars_steg.task.neural_assessor module</a><ul>
+<li><a class="reference internal" href="#module-name-neural-assessor-py">Module Name: neural_assessor.py</a></li>
+<li><a class="reference internal" href="#id14">Description:</a></li>
+<li><a class="reference internal" href="#mars_steg.task.neural_assessor.ProblemSolutionAssessor"><code class="docutils literal notranslate"><span class="pre">ProblemSolutionAssessor</span></code></a><ul>
+<li><a class="reference internal" href="#mars_steg.task.neural_assessor.ProblemSolutionAssessor.convert_batch_prompt_into_conversation_template"><code class="docutils literal notranslate"><span class="pre">ProblemSolutionAssessor.convert_batch_prompt_into_conversation_template()</span></code></a></li>
+<li><a class="reference internal" href="#mars_steg.task.neural_assessor.ProblemSolutionAssessor.get_assessor_generated_answers"><code class="docutils literal notranslate"><span class="pre">ProblemSolutionAssessor.get_assessor_generated_answers()</span></code></a></li>
+<li><a class="reference internal" href="#id17"><code class="docutils literal notranslate"><span class="pre">ProblemSolutionAssessor.convert_batch_prompt_into_conversation_template()</span></code></a></li>
+<li><a class="reference internal" href="#id18"><code class="docutils literal notranslate"><span class="pre">ProblemSolutionAssessor.get_assessor_generated_answers()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-mars_steg.task">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">MARS Steg</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">mars_steg.task package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/mars_steg.task.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="mars-steg-task-package">
+<h1>mars_steg.task package<a class="headerlink" href="#mars-steg-task-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-mars_steg.task.base_task">
+<span id="mars-steg-task-base-task-module"></span><h2>mars_steg.task.base_task module<a class="headerlink" href="#module-mars_steg.task.base_task" title="Link to this heading"></a></h2>
+<section id="module-name-base-task-py">
+<h3>Module Name: base_task.py<a class="headerlink" href="#module-name-base-task-py" title="Link to this heading"></a></h3>
+</section>
+<section id="description">
+<h3>Description:<a class="headerlink" href="#description" title="Link to this heading"></a></h3>
+<p>This module contains the implementation of the base classes for tasks in the mars-steg framework to construct a task to train and evaluate an LLM for elicitng steganography.</p>
+<dl class="simple">
+<dt>Classes:</dt><dd><ul class="simple">
+<li><p>Task</p></li>
+<li><p>TorchDatasetTask</p></li>
+<li><p>GameBasedTask</p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><p>Cf. mars_steg.README.md</p>
+</dd>
+</dl>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.GameBasedTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mars_steg.task.base_task.</span></span><span class="sig-name descname"><span class="pre">GameBasedTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">language_aspect</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.task.base_task.GameBasedTask" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mars_steg.task.base_task.Task" title="mars_steg.task.base_task.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a></p>
+<p>A base class for game-based tasks.</p>
+<p>This abstract base class defines a structure for game-based tasks (cf. Task).</p>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#mars_steg.task.base_task.Task" title="mars_steg.task.base_task.Task"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Task</span></code></a></dt><dd><p>The base class for single-turn tasks.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.Task">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mars_steg.task.base_task.</span></span><span class="sig-name descname"><span class="pre">Task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">language_aspect</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.language.html#mars_steg.language.base_language_aspect.LanguageAspect" title="mars_steg.language.base_language_aspect.LanguageAspect"><span class="pre">LanguageAspect</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">uses_local_neural_assessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prompt_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.html#mars_steg.config.PromptConfig" title="mars_steg.config.PromptConfig"><span class="pre">PromptConfig</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.task.base_task.Task" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A base class for single-turn tasks.</p>
+<p>This abstract base class defines a structure for single-turn tasks that
+require language processing. Subclasses should specify a task <cite>name</cite> and
+ensure compatibility with a given <cite>LanguageAspect</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>str</em>) – The name of the task. Used to check compatibility with the <cite>LanguageAspect</cite>.</p></li>
+<li><p><strong>system_prompt</strong> (<em>str</em>) – A system prompt specific to the task.</p></li>
+<li><p><strong>uses_local_neural_assessor</strong> (<em>bool</em>) – Whether the task requires a local neural assessor for evaluation.</p></li>
+<li><p><strong>language_aspect</strong> (<a class="reference internal" href="mars_steg.language.html#mars_steg.language.base_language_aspect.LanguageAspect" title="mars_steg.language.base_language_aspect.LanguageAspect"><em>LanguageAspect</em></a>) – The language aspect configuration specifying compatibility with tasks.</p></li>
+<li><p><strong>uses_local_neural_assessor</strong> – Indicates if a local neural assessor is needed for the task.</p></li>
+<li><p><strong>prompt_config</strong> (<a class="reference internal" href="mars_steg.html#mars_steg.config.PromptConfig" title="mars_steg.config.PromptConfig"><em>PromptConfig</em></a>) – Configuration object containing prompt templates.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.Task.cot_instruction">
+<span class="sig-name descname"><span class="pre">cot_instruction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#mars_steg.task.base_task.Task.cot_instruction" title="Link to this definition"></a></dt>
+<dd><p>Returns the default instruction appended to prompts to induce Chain-of-Thought (CoT).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.Task.no_cot_instruction">
+<span class="sig-name descname"><span class="pre">no_cot_instruction</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="headerlink" href="#mars_steg.task.base_task.Task.no_cot_instruction" title="Link to this definition"></a></dt>
+<dd><p>Returns the default instruction appended to prompts to suppress Chain-of-Thought (CoT).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.Task.generate_prompt">
+<span class="sig-name descname"><span class="pre">generate_prompt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#mars_steg.task.base_task.Task.generate_prompt" title="Link to this definition"></a></dt>
+<dd><p>Generates the main body of the LLM prompt for the task.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.Task.generate_info">
+<span class="sig-name descname"><span class="pre">generate_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.FixedDatasetDataInfo" title="mars_steg.utils.prompt_data.FixedDatasetDataInfo"><span class="pre">FixedDatasetDataInfo</span></a></span></span><a class="headerlink" href="#mars_steg.task.base_task.Task.generate_info" title="Link to this definition"></a></dt>
+<dd><p>Generates additional metadata or context for a task instance.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.Task.generate_full_prompt">
+<span class="sig-name descname"><span class="pre">generate_full_prompt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#mars_steg.task.base_task.Task.generate_full_prompt" title="Link to this definition"></a></dt>
+<dd><p>Generates a new task prompt, returning both CoT and No-CoT versions.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.Task.get_task_score">
+<span class="sig-name descname"><span class="pre">get_task_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.PromptData" title="mars_steg.utils.prompt_data.PromptData"><span class="pre">PromptData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_cot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#mars_steg.task.base_task.Task.get_task_score" title="Link to this definition"></a></dt>
+<dd><p>Evaluates task performance based on PromptData object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.Task.reward">
+<span class="sig-name descname"><span class="pre">reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_score</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language_score</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#mars_steg.task.base_task.Task.reward" title="Link to this definition"></a></dt>
+<dd><p>Computes a weighted reward score based on task success and language aspect.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.Task.reward_from_transcript">
+<span class="sig-name descname"><span class="pre">reward_from_transcript</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.PromptData" title="mars_steg.utils.prompt_data.PromptData"><span class="pre">PromptData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#mars_steg.task.base_task.Task.reward_from_transcript" title="Link to this definition"></a></dt>
+<dd><p>Computes the language score, the task score and calculates the final reward from a task transcript.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.Task.recruit_neural_assessor">
+<span class="sig-name descname"><span class="pre">recruit_neural_assessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.model.html#mars_steg.model.base_model.BaseModel" title="mars_steg.model.base_model.BaseModel"><span class="pre">BaseModel</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.task.base_task.Task.recruit_neural_assessor" title="Link to this definition"></a></dt>
+<dd><p>Initializes a neural assessor for evaluating problem/solution task type.</p>
+</dd></dl>
+
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>TypeError</strong> – If the task name is not listed in <cite>language_aspect.compatible_tasks</cite>,
+    indicating an incompatibility issue.</p>
+</dd>
+</dl>
+<dl class="py property">
+<dt class="sig sig-object py" id="id0">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cot_instruction</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd><p>Returns the default instruction appended to prompts to induce Chain-of-Thought (CoT).</p>
+<p>This property provides a standard instruction to encourage CoT reasoning in model responses.
+It is implemented separately to facilitate CoT gap calculations and can be overridden for customization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The CoT-inducing instruction from the prompt configuration.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id1">
+<span class="sig-name descname"><span class="pre">generate_full_prompt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dd><p>Generates a new task prompt, returning both CoT and No-CoT versions.</p>
+<p>This method retrieves the main task prompt and appends instructions
+for inducing or suppressing Chain-of-Thought (CoT) reasoning.
+It facilitates CoT gap calculations by providing both variants.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index</strong> (<em>int</em>) – The index specifying which task prompt to generate.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing:
+- <cite>cot_prompt</cite> (str): The task prompt with CoT instruction.
+- <cite>no_cot_prompt</cite> (str): The task prompt with No-CoT instruction.
+Returns <cite>None</cite> if no more examples are available.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[Tuple[str, str]]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If <cite>generate_prompt()</cite> does not return a string or <cite>None</cite>.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>If <cite>generate_prompt()</cite> returns <cite>None</cite>, this method also returns <cite>None</cite>.</p></li>
+<li><p>This method is primarily used for CoT gap analysis; discard the No-CoT version if not needed.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id2">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">generate_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.FixedDatasetDataInfo" title="mars_steg.utils.prompt_data.FixedDatasetDataInfo"><span class="pre">FixedDatasetDataInfo</span></a></span></span><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dd><p>Generates additional metadata or context for a task instance.</p>
+<p>This method must be implemented by subclasses to return a <cite>FixedDatasetDataInfo</cite>
+object, which provides supplementary information related to the task at a given index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>idx</strong> (<em>int</em>) – The index specifying which task instance to retrieve additional information for.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An object containing metadata or extra context related to the specified task.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.FixedDatasetDataInfo" title="mars_steg.utils.prompt_data.FixedDatasetDataInfo">FixedDatasetDataInfo</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id3">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">generate_prompt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">index</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></span><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
+<dd><p>Generates the main body of the LLM prompt for the task.</p>
+<p>This method must be implemented by subclasses to create a reproducible,
+unique example of the task for a given index. If no more examples are available,
+it should return <cite>None</cite>.</p>
+<p class="rubric">Examples</p>
+<ul class="simple">
+<li><p><strong>Dataset-based task</strong>: The <cite>index</cite> corresponds to an example in a dataset.</p></li>
+</ul>
+<p>If <cite>index</cite> exceeds the number of available examples, the method returns <cite>None</cite>.
+- <strong>Game-based task</strong>: The <cite>index</cite> serves as a random seed, producing a unique
+game initialization prompt.</p>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>By default, <cite>self.cot_instruction</cite> will be appended in <cite>generate_full_prompt()</cite></p></li>
+</ul>
+<p>to induce Chain-of-Thought (CoT).
+- If the number of available prompts is limited (e.g., in dataset-based tasks),
+this method <strong>must return `None`</strong> when no more samples are available.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>index</strong> (<em>int</em>) – An index specifying which example or scenario to generate.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The generated prompt text or <cite>None</cite> if no more examples are available.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Optional[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id4">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">get_task_score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.PromptData" title="mars_steg.utils.prompt_data.PromptData"><span class="pre">PromptData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_cot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dd><p>Evaluates task performance based on PromptData object (cf. See Also).</p>
+<p>This method assesses whether the agent successfully completed the task
+by analyzing the generated response in relation to the correct answer.
+The Chain-of-Thought (CoT) reasoning process is <strong>not</strong> considered — only
+the final answer affects the score.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prompt_data</strong> (<em>PromptData</em>) – The prompt and associated task information, including model-generated responses.</p></li>
+<li><p><strong>with_cot</strong> (<em>bool</em>) – Whether the task was performed with CoT reasoning.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A score in the range [0, 1], where a higher value indicates greater task success.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>NotImplementedError</strong> – This method must be implemented by subclasses.</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<dl class="simple">
+<dt><strong>For a math problem</strong>:</dt><dd><ul class="simple">
+<li><p>Look up the correct answer from a dataset.</p></li>
+<li><p>Compare the model’s final answer to the correct one.</p></li>
+<li><p>Return <cite>1.0</cite> if correct, <cite>0.0</cite> otherwise.</p></li>
+</ul>
+</dd>
+<dt><strong>For a game-based task</strong>:</dt><dd><ul class="simple">
+<li><p>Analyze the game prompt and moves made by the agent.</p></li>
+<li><p>Compute a success metric (e.g., win rate or score normalization).</p></li>
+<li><p>Return a score between <cite>0</cite> and <cite>1</cite> reflecting performance.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The method may use different evaluation strategies depending on the task type.</p></li>
+<li><p>The neural assessor option must also be considered (cf. See Also).</p></li>
+</ul>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.PromptData" title="mars_steg.utils.prompt_data.PromptData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mars_steg.utils.prompt_data.PromptData</span></code></a></dt><dd><p>The structure of the PromptData object used in this method.</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">MATH_Torch_Dataset_Task.get_task_score</span></code></dt><dd><p>An example implementation for a dataset-based math task.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.Task.name">
+<span class="sig-name descname"><span class="pre">name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#mars_steg.task.base_task.Task.name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="id5">
+<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">no_cot_instruction</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dd><p>Returns the default instruction appended to prompts to suppress Chain-of-Thought (CoT).</p>
+<p>This property provides an instruction that explicitly prevents CoT reasoning in model responses.
+It is used for CoT gap calculations and can be overridden for customization.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The CoT-suppressing instruction from the prompt configuration.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id6">
+<span class="sig-name descname"><span class="pre">recruit_neural_assessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.model.html#mars_steg.model.base_model.BaseModel" title="mars_steg.model.base_model.BaseModel"><span class="pre">BaseModel</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#id6" title="Link to this definition"></a></dt>
+<dd><p>Initializes a neural assessor for evaluating problem/solution task type.</p>
+<p>This method assigns a neural assessment model to the task, enabling
+automated evaluation of generated solutions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>model</strong> (<em>BaseModel</em>) – The neural model to be used for solution assessment (cf. See Also).</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – If <cite>uses_local_neural_assessor</cite> is <cite>False</cite>, indicating that
+    the task does not support neural assessment.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>This method should only be called if <cite>uses_local_neural_assessor</cite> is <cite>True</cite>.</p></li>
+<li><p>The recruited model is assigned to <cite>self.whitebox_model</cite>.</p></li>
+<li><p>Initializes a <cite>ProblemSolutionAssessor</cite> with the given model.</p></li>
+</ul>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#mars_steg.task.neural_assessor.ProblemSolutionAssessor" title="mars_steg.task.neural_assessor.ProblemSolutionAssessor"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mars_steg.task.neural_assessor.ProblemSolutionAssessor</span></code></a></dt><dd><p>The neural assessor class used for evaluating problem/solution tasks.</p>
+</dd>
+<dt><code class="xref py py-obj docutils literal notranslate"><span class="pre">mars_steg.model.base_model.py</span></code></dt><dd><p>The base model class used for neural models.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id7">
+<span class="sig-name descname"><span class="pre">reward</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">task_score</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language_score</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="headerlink" href="#id7" title="Link to this definition"></a></dt>
+<dd><p>Computes a weighted reward score based on task success and language aspect.</p>
+<p>This method calculates a reward by combining the task performance score
+with a penalty based on the language aspect. The final score is normalized
+to the range [0, 1].</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>task_score</strong> (<em>float</em>) – A score in the range [0, 1] indicating task performance.</p></li>
+<li><p><strong>language_score</strong> (<em>float</em>) – A score in the range [0, 1] indicating adherence to language constraints.</p></li>
+<li><p><strong>t_weight</strong> (<em>float, optional</em>) – The weight assigned to the task score (default is 1.0).</p></li>
+<li><p><strong>l_weight</strong> (<em>float, optional</em>) – The weight assigned to the language score penalty (default is 1.0).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A normalized reward score in the range [0, 1].</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>A higher <cite>task_score</cite> increases the reward.</p></li>
+<li><p>A higher <cite>language_score</cite> decreases the reward.</p></li>
+<li><p>Custom reward functions can be implemented by overriding this method.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id8">
+<span class="sig-name descname"><span class="pre">reward_from_transcript</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.PromptData" title="mars_steg.utils.prompt_data.PromptData"><span class="pre">PromptData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">t_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">l_weight</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#id8" title="Link to this definition"></a></dt>
+<dd><p>Computes the language score, the task score and calculates the final reward from a task transcript, i.e. the LLM answer for the considered task.</p>
+<p>This method evaluates both task and language scores using the
+appropriate scoring functions, validates them, and computes
+the final reward.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prompt_data</strong> (<em>PromptData</em>) – The transcript data containing details of the episode.</p></li>
+<li><p><strong>t_weight</strong> (<em>float, optional</em>) – The weight assigned to the task score (default is 1.0).</p></li>
+<li><p><strong>l_weight</strong> (<em>float, optional</em>) – The weight assigned to the language score (default is 1.0).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><cite>reward</cite> (float): The final computed reward.</p></li>
+<li><p><cite>task_score</cite> (float): The evaluated task score.</p></li>
+<li><p><cite>language_score</cite> (float): The evaluated language aspect score.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[float, float, float]</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>Assumes that the model was <strong>prompted with Chain-of-Thought (CoT)</strong>.</p></li>
+<li><p>Calls <cite>get_task_score()</cite> to evaluate task performance.</p></li>
+<li><p>Calls <cite>get_language_score()</cite> from <cite>LanguageAspect</cite> to assess language usage.</p></li>
+<li><p>Uses <cite>check_score()</cite> to validate scores before computing reward.</p></li>
+</ul>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.Task.system_prompt">
+<span class="sig-name descname"><span class="pre">system_prompt</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#mars_steg.task.base_task.Task.system_prompt" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.Task.uses_local_neural_assessor">
+<span class="sig-name descname"><span class="pre">uses_local_neural_assessor</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#mars_steg.task.base_task.Task.uses_local_neural_assessor" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.TorchDatasetTask">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mars_steg.task.base_task.</span></span><span class="sig-name descname"><span class="pre">TorchDatasetTask</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dataset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">language_aspect</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.language.html#mars_steg.language.base_language_aspect.LanguageAspect" title="mars_steg.language.base_language_aspect.LanguageAspect"><span class="pre">LanguageAspect</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">uses_local_neural_assessor</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prompt_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.html#mars_steg.config.PromptConfig" title="mars_steg.config.PromptConfig"><span class="pre">PromptConfig</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.task.base_task.TorchDatasetTask" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="#mars_steg.task.base_task.Task" title="mars_steg.task.base_task.Task"><code class="xref py py-class docutils literal notranslate"><span class="pre">Task</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dataset</span></code></p>
+<p>A PyTorch dataset-based task that integrates with prompt-based LLM evaluations.</p>
+<p>This class extends <cite>Task</cite> and <cite>Dataset</cite>, handling structured dataset-based
+tasks where prompts are derived from dataset entries. It also supports
+neural assessment for evaluating model-generated solutions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dataset</strong> (<em>str</em>) – Path to the dataset file (CSV format).</p></li>
+<li><p><strong>language_aspect</strong> (<a class="reference internal" href="mars_steg.language.html#mars_steg.language.base_language_aspect.LanguageAspect" title="mars_steg.language.base_language_aspect.LanguageAspect"><em>LanguageAspect</em></a>) – The language aspect settings for this task.</p></li>
+<li><p><strong>uses_local_neural_assessor</strong> (<em>bool</em>) – Whether the task utilizes a local neural assessor for evaluation.</p></li>
+<li><p><strong>prompt_config</strong> (<a class="reference internal" href="mars_steg.html#mars_steg.config.PromptConfig" title="mars_steg.config.PromptConfig"><em>PromptConfig</em></a>) – The prompt configuration used for generating prompts.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.TorchDatasetTask.generate_info">
+<span class="sig-name descname"><span class="pre">generate_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.FixedDatasetDataInfo" title="mars_steg.utils.prompt_data.FixedDatasetDataInfo"><span class="pre">FixedDatasetDataInfo</span></a></span></span><a class="headerlink" href="#mars_steg.task.base_task.TorchDatasetTask.generate_info" title="Link to this definition"></a></dt>
+<dd><p>Generates a fixed dataset information object for a given index.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.TorchDatasetTask.test_train_split">
+<span class="sig-name descname"><span class="pre">test_train_split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_proportion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_proportion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask" title="mars_steg.task.base_task.TorchDatasetTask"><span class="pre">TorchDatasetTask</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask" title="mars_steg.task.base_task.TorchDatasetTask"><span class="pre">TorchDatasetTask</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask" title="mars_steg.task.base_task.TorchDatasetTask"><span class="pre">TorchDatasetTask</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#mars_steg.task.base_task.TorchDatasetTask.test_train_split" title="Link to this definition"></a></dt>
+<dd><p>Splits the dataset into train, validation, and test sets.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.TorchDatasetTask.prompt_data_collate_fn">
+<span class="sig-name descname"><span class="pre">prompt_data_collate_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.PromptData" title="mars_steg.utils.prompt_data.PromptData"><span class="pre">PromptData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></span><a class="headerlink" href="#mars_steg.task.base_task.TorchDatasetTask.prompt_data_collate_fn" title="Link to this definition"></a></dt>
+<dd><p>Aggregates a batch of <cite>PromptData</cite> into a <cite>BatchPromptData</cite> object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.TorchDatasetTask.get_true_answers_from_batch_prompt_data">
+<span class="sig-name descname"><span class="pre">get_true_answers_from_batch_prompt_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#mars_steg.task.base_task.TorchDatasetTask.get_true_answers_from_batch_prompt_data" title="Link to this definition"></a></dt>
+<dd><p>Extracts the ground-truth answers for a batch of prompts.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.base_task.TorchDatasetTask.neural_assessor_from_batch_prompt_data">
+<span class="sig-name descname"><span class="pre">neural_assessor_from_batch_prompt_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_cot_prompt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></span><a class="headerlink" href="#mars_steg.task.base_task.TorchDatasetTask.neural_assessor_from_batch_prompt_data" title="Link to this definition"></a></dt>
+<dd><p>Generates neural assessor responses for a batch of prompts.</p>
+</dd></dl>
+
+<p class="rubric">Notes</p>
+<p>This class initializes several attributes to None that can be set later using recruit_neural_assessor method.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="id9">
+<span class="sig-name descname"><span class="pre">generate_info</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">idx</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.FixedDatasetDataInfo" title="mars_steg.utils.prompt_data.FixedDatasetDataInfo"><span class="pre">FixedDatasetDataInfo</span></a></span></span><a class="headerlink" href="#id9" title="Link to this definition"></a></dt>
+<dd><p>Generates a fixed dataset information object for a given index.</p>
+<p>This method creates a <cite>FixedDatasetDataInfo</cite> object containing metadata
+or context related to the dataset at the specified index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>idx</strong> (<em>int</em>) – The index of the dataset sample.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A structured information object for the dataset sample.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.FixedDatasetDataInfo" title="mars_steg.utils.prompt_data.FixedDatasetDataInfo">FixedDatasetDataInfo</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id10">
+<span class="sig-name descname"><span class="pre">get_true_answers_from_batch_prompt_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#id10" title="Link to this definition"></a></dt>
+<dd><p>Extracts the ground-truth answers for a batch of prompts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>prompt_data</strong> (<em>BatchPromptData</em>) – A batch of PromptData (cf . See Also).</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of true answers corresponding to each prompt in the batch.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[str]</p>
+</dd>
+</dl>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.PromptData" title="mars_steg.utils.prompt_data.PromptData"><code class="xref py py-obj docutils literal notranslate"><span class="pre">mars_steg.utils.prompt_data.PromptData</span></code></a></dt><dd><p>The structure of the PromptData object used in this method.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id11">
+<span class="sig-name descname"><span class="pre">neural_assessor_from_batch_prompt_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">from_cot_prompt</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></span><a class="headerlink" href="#id11" title="Link to this definition"></a></dt>
+<dd><p>Generates neural assessor responses for a batch of prompts.</p>
+<p>This method utilizes the neural assessor to evaluate model-generated
+answers and extract structured assessment data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>prompt_data</strong> (<em>BatchPromptData</em>) – The batch of PromptData objects to assess.</p></li>
+<li><p><strong>from_cot_prompt</strong> (<em>bool</em>) – Whether to the BatchPromptData contains CoT prompts.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A copy of the initial BatchPromptData containing the generated assessor responses.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData">BatchPromptData</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – If <cite>uses_local_neural_assessor</cite> is <cite>False</cite> or <cite>neural_assessor</cite> is not initialized.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id12">
+<span class="sig-name descname"><span class="pre">prompt_data_collate_fn</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.PromptData" title="mars_steg.utils.prompt_data.PromptData"><span class="pre">PromptData</span></a><span class="p"><span class="pre">]</span></span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></span><a class="headerlink" href="#id12" title="Link to this definition"></a></dt>
+<dd><p>Aggregates a batch of <cite>PromptData</cite> into a <cite>BatchPromptData</cite> object.</p>
+<p>This method is useful for preparing batch inputs for model inference.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>batch</strong> (<em>List[PromptData]</em>) – A list of individual <cite>PromptData</cite> objects.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A batched structure containing all prompt data.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData">BatchPromptData</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id13">
+<span class="sig-name descname"><span class="pre">test_train_split</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">train_proportion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">validation_proportion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Tuple</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask" title="mars_steg.task.base_task.TorchDatasetTask"><span class="pre">TorchDatasetTask</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask" title="mars_steg.task.base_task.TorchDatasetTask"><span class="pre">TorchDatasetTask</span></a><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask" title="mars_steg.task.base_task.TorchDatasetTask"><span class="pre">TorchDatasetTask</span></a><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#id13" title="Link to this definition"></a></dt>
+<dd><p>Splits the dataset into train, validation, and test sets.</p>
+<p>The method partitions the dataset based on the specified proportions, ensuring
+that the total size does not exceed the dataset length.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>train_proportion</strong> (<em>float</em>) – The proportion of the dataset to allocate for training (0 to 1).</p></li>
+<li><p><strong>validation_proportion</strong> (<em>float</em>) – The proportion of the dataset to allocate for validation (0 to 1).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing the train, validation, and test dataset tasks.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Tuple[<a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask" title="mars_steg.task.base_task.TorchDatasetTask">TorchDatasetTask</a>, <a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask" title="mars_steg.task.base_task.TorchDatasetTask">TorchDatasetTask</a>, <a class="reference internal" href="#mars_steg.task.base_task.TorchDatasetTask" title="mars_steg.task.base_task.TorchDatasetTask">TorchDatasetTask</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>AssertionError</strong> – If proportions are out of range or exceed the dataset size.</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The test set is automatically determined as the remaining portion.</p></li>
+<li><p>The dataset is not shuffled before splitting (TODO: Implement shuffling).</p></li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-mars_steg.task.neural_assessor">
+<span id="mars-steg-task-neural-assessor-module"></span><h2>mars_steg.task.neural_assessor module<a class="headerlink" href="#module-mars_steg.task.neural_assessor" title="Link to this heading"></a></h2>
+<section id="module-name-neural-assessor-py">
+<h3>Module Name: neural_assessor.py<a class="headerlink" href="#module-name-neural-assessor-py" title="Link to this heading"></a></h3>
+</section>
+<section id="id14">
+<h3>Description:<a class="headerlink" href="#id14" title="Link to this heading"></a></h3>
+<p>This module contains the implementation of neural assessor through a class for evaluating problem/solution tasks using an LLM.</p>
+<dl class="simple">
+<dt>Classes:</dt><dd><ul class="simple">
+<li><p>ProblemSolutionAssessor</p></li>
+</ul>
+</dd>
+<dt>Examples:</dt><dd><p>Cf. mars_steg.README.md</p>
+</dd>
+</dl>
+</section>
+<dl class="py class">
+<dt class="sig sig-object py" id="mars_steg.task.neural_assessor.ProblemSolutionAssessor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">mars_steg.task.neural_assessor.</span></span><span class="sig-name descname"><span class="pre">ProblemSolutionAssessor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.model.html#mars_steg.model.base_model.BaseModel" title="mars_steg.model.base_model.BaseModel"><span class="pre">BaseModel</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">prompt_config</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.html#mars_steg.config.PromptConfig" title="mars_steg.config.PromptConfig"><span class="pre">PromptConfig</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#mars_steg.task.neural_assessor.ProblemSolutionAssessor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A neural assessor for evaluating problem/solution tasks.</p>
+<p>This class utilizes a neural model to assess the correctness and quality
+of mathematical problem solutions based on a configured prompting strategy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<em>BaseModel</em>) – A neural network model used for assessment. Check <a href="#id15"><span class="problematic" id="id16">`</span></a>mars_steg.base_model.py for more information. The model is set to evaluation mode.</p></li>
+<li><p><strong>prompt_config</strong> (<em>PromptConfig</em>) – Configuration object containing templates for user and system prompts.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Variables<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>whitebox_model</strong> (<a class="reference internal" href="mars_steg.model.html#mars_steg.model.base_model.BaseModel" title="mars_steg.model.base_model.BaseModel"><em>BaseModel</em></a>) – The neural model used for assessment.</p></li>
+<li><p><strong>prompt_config</strong> (<a class="reference internal" href="mars_steg.html#mars_steg.config.PromptConfig" title="mars_steg.config.PromptConfig"><em>PromptConfig</em></a>) – Configuration for prompts used in assessment.</p></li>
+<li><p><strong>user_prompt</strong> (<em>str</em>) – Template for user input prompts.</p></li>
+<li><p><strong>system_prompt</strong> (<em>str</em>) – Template for system-level prompts.</p></li>
+</ul>
+</dd>
+</dl>
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.neural_assessor.ProblemSolutionAssessor.convert_batch_prompt_into_conversation_template">
+<span class="sig-name descname"><span class="pre">convert_batch_prompt_into_conversation_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_answers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_cot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#mars_steg.task.neural_assessor.ProblemSolutionAssessor.convert_batch_prompt_into_conversation_template" title="Link to this definition"></a></dt>
+<dd><p>Converts batch prompt data into a structured conversation template.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="mars_steg.task.neural_assessor.ProblemSolutionAssessor.get_assessor_generated_answers">
+<span class="sig-name descname"><span class="pre">get_assessor_generated_answers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_answers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_cot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></span><a class="headerlink" href="#mars_steg.task.neural_assessor.ProblemSolutionAssessor.get_assessor_generated_answers" title="Link to this definition"></a></dt>
+<dd><p>Generates assessor transcripts and assigns it to a new BatchPromptData object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id17">
+<span class="sig-name descname"><span class="pre">convert_batch_prompt_into_conversation_template</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_answers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_cot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="headerlink" href="#id17" title="Link to this definition"></a></dt>
+<dd><p>Converts batch prompt data into a structured conversation template.</p>
+<p>This function formats a BatchPromptData object into a conversation format
+suitable for a neural model to assess solutions. It selects the appropriate
+answer format based on whether chain-of-thought (CoT) reasoning is used.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_prompt_data</strong> (<em>BatchPromptData</em>) – A batch of prompts containing a list of PromptData objects. Check <cite>mars_steg.utils.prompt_data.py</cite> for more information.</p></li>
+<li><p><strong>true_answers</strong> (<em>List[str]</em>) – A list of ground-truth answers corresponding to each prompt / problem.</p></li>
+<li><p><strong>with_cot</strong> (<em>bool</em>) – Whether to use chain-of-thought reasoning answer in the formatted conversation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A structured conversation format that can be processed by the neural assessor model.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>List[List[Dict[str, str]]]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id18">
+<span class="sig-name descname"><span class="pre">get_assessor_generated_answers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">batch_prompt_data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">true_answers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_cot</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData"><span class="pre">BatchPromptData</span></a></span></span><a class="headerlink" href="#id18" title="Link to this definition"></a></dt>
+<dd><p>Generates assessor transcripts and assigns it to a new BatchPromptData object (cf. notes for some important information about unsuccessful examples).</p>
+<p>This function processes a BatchPromptData (list of PromptData objects) through the neural assessor model,
+generating transcripts that evaluate the correctness of model-generated answers.
+The function updates <cite>batch_prompt_data</cite> in place with the generated transcripts
+but only returns prompts where an assessor answer was successfully extracted.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>batch_prompt_data</strong> (<em>BatchPromptData</em>) – A batch of prompts containing a list of <cite>PromptData</cite> objects.
+Check <cite>mars_steg.utils.prompt_data.py</cite> for more information.</p></li>
+<li><p><strong>true_answers</strong> (<em>List[str]</em>) – A list of ground-truth answers corresponding to each problem in the batch.</p></li>
+<li><p><strong>with_cot</strong> (<em>bool</em>) – Whether to use chain-of-thought reasoning when formatting the conversation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A pruned <cite>BatchPromptData</cite> object containing only instances where
+assessor-generated answers were successfully extracted.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="mars_steg.utils.html#mars_steg.utils.prompt_data.BatchPromptData" title="mars_steg.utils.prompt_data.BatchPromptData">BatchPromptData</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<ul class="simple">
+<li><p>The function modifies <cite>batch_prompt_data</cite> in place, adding <cite>assessor_transcripts</cite>.</p></li>
+<li><p>Unsuccessful extractions remain available within <cite>batch_prompt_data</cite> but are excluded</p></li>
+</ul>
+<p>from the returned object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>LLMTranscriptExtractionError in extract_neural_assessor_answers and handled in the caller to raise only a warning.</strong> – </p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-mars_steg.task">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-mars_steg.task" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, J.S.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
