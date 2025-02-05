@@ -143,4 +143,5 @@ class BaseModel(metaclass=ABCMeta):
             self.tokenizer.decode(r.squeeze()) for r in outputs
         ]
 
+
         return decoded_responses

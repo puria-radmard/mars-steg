@@ -190,7 +190,7 @@ class GenerationConfig:
 
     def to_generation_dict(self) -> Dict[str, Any]:
         return {
-            k: v for k, v in self.to_dict().items() if k not in ['return_prompt', 'generate_ref_response', 'batch_size', 'return_full_text']
+            k: v for k, v in self.to_dict().items() if k not in ['return_prompt', 'generate_ref_response','skip_special_tokens', 'batch_size', 'return_full_text']
         }
 
     def to_training_dict(self) -> Dict[str, Any]:
