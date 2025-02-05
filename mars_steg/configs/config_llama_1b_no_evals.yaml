@@ -1,5 +1,5 @@
 Model:
-  model_name: "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"  # The model name
+  model_name: "meta-llama/Llama-3.2-1B-Instruct"  # The model name
   model_save_path: "./experiments/models"  # The path to save the model
   load_precision_mode: "full" # Options: ["4bits","8bits","full"]
   lora: true # false
@@ -32,7 +32,7 @@ Train:
   create_ref_model: False   # Whether to create a reference model in PPO RLHF
   evaluate_cot_gap: False  # Whether to evaluate the COT gap
   # cot_gap_evaluation_number_batches_samples: 1  # The number of batches sampled for evaluating the COT gap
-  number_of_evaluations: 3  # The number of evaluations for the COT gap among epochs
+  number_of_evaluations: 0  # The number of evaluations for the COT gap among epochs
 
 Generation:
   min_length: 0

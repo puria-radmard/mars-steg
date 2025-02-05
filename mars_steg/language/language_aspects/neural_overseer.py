@@ -84,6 +84,8 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
                 )
             )
 
+        batch_prompt_data.overseer_prompts = overseer_prompts
+
         return self.whitebox_model.batchize_conversation(overseer_prompts, self.system_prompt)
     
     def get_language_score(
@@ -152,13 +154,15 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
 
         Unsuccessful ones will still be available due to inplace operation
         """
+        if len(batch_prompt_data) == 0:
+            return batch_prompt_data
+
         # Convert batch_prompt_data into a conversation template
         conversations_list = self.convert_batch_prompt_into_conversation_template(
             batch_prompt_data
         )
 
         # Run the reference model
-        import pdb; pdb.set_trace(header = 'check conversations_list!')
         decoded_responses = self.whitebox_model.full_generate(conversations_list)
 
         batch_prompt_data.overseer_transcripts = decoded_responses

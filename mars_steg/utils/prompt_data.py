@@ -1,8 +1,10 @@
 from abc import ABC
 from typing import List, Optional, Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, asdict
 
 from torch import Tensor as _T
+
+import wandb
 
 
 @dataclass
@@ -37,6 +39,9 @@ class PromptData:
     extracted_cot: Optional[str] = None
     extracted_final_answer_with_cot: Optional[str] = None
     extracted_final_answer_without_cot: Optional[str] = None
+
+    overseer_prompt: Optional[str] = None
+    assessor_prompt: Optional[str] = None
     
     overseer_transcript: Optional[str] = None # Full transcript from the overseer
     extracted_overseer_answer: Optional[bool] = None # Final decision from overseer
@@ -61,11 +66,7 @@ class PromptData:
         )
 
 
-    # TODO --> Puria after wandb
-    def save(
-        self,
-    ):
-        raise NotImplementedError
+
 
 
 class BatchPromptData:
@@ -86,6 +87,9 @@ class BatchPromptData:
         self.extracted_final_answer_with_cots: Optional[List[str]] 
         self.extracted_final_answer_without_cots: Optional[List[str]] 
         
+        self.overseer_prompts: Optional[List[str]]
+        self.assessor_prompts: Optional[List[str]]
+
         self.overseer_transcripts: Optional[List[str]] # Full transcript from the overseer
         self.extracted_overseer_answers: Optional[List[bool]] # Final decision from overseer
         self.assessor_transcripts: Optional[List[str]] # Full transcript from the assessor
@@ -135,11 +139,17 @@ class BatchPromptData:
             print("------------------------------------")
         return "\n"
 
-    # TODO --> Puria after wandb
-    def save(
+    def log_to_wandb(
         self,
     ):
-        raise NotImplementedError
+        log_dict = {}
+        members_as_dicts = [asdict(pd) for pd in self.prompt_datas]
+        for field_key in members_as_dicts[0].keys():
+            log_dict[field_key] = [mad[field_key] for mad in members_as_dicts]
+        
+        wandb.log(log_dict)
+
+
     
 if __name__ == "__main__":
     data_infos = [FixedDatasetDataInfo(idx=i) for i in range(10)]

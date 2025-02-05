@@ -26,8 +26,8 @@ Train:
   num_eval_episodes: 10  # The number of evaluation episodes
   save_frequency: 100  # The frequency to save the model relative to the number of training data batches
   ppo_epochs: 1  # The number of PPO epochs
-  train_proportion : 0.8  # The proportion of the training data
-  validation_proportion : 0.1  # The proportion of the validation data (out of left data after training data split)
+  train_proportion : 0.95  # The proportion of the training data
+  validation_proportion : 0.05  # The proportion of the validation data (out of left data after training data split)
   number_shared_layers_for_ref_model: 30 # The number of shared layers for the reference model in PPO RLHF
   create_ref_model: False   # Whether to create a reference model in PPO RLHF
   evaluate_cot_gap: False  # Whether to evaluate the COT gap

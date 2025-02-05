@@ -51,6 +51,8 @@ class ProblemSolutionAssessor:
                 )
             )
 
+        batch_prompt_data.assessor_prompts = assessor_prompts
+
         return self.whitebox_model.batchize_conversation(assessor_prompts, self.system_prompt)
 
     @torch.no_grad()
@@ -66,6 +68,9 @@ class ProblemSolutionAssessor:
 
         Unsuccessful ones will still be available due to inplace operation
         """
+        if len(batch_prompt_data) == 0:
+            return batch_prompt_data
+
         # Convert batch_prompt_data into a conversation template
         conversations_list = self.convert_batch_prompt_into_conversation_template(
             batch_prompt_data,

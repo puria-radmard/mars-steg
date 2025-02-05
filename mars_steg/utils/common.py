@@ -202,7 +202,7 @@ def get_rewards_and_training_datas(
             composite_reward, task_score, language_score = train_dataset.reward_from_transcript(
                 prompt_data,
             )
-        except LLMTranscriptExtractionError:
+        except (LLMTranscriptExtractionError, ValueError):
             continue
 
         composite_reward_list.append(t.tensor(composite_reward))

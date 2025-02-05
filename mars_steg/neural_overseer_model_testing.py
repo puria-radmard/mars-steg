@@ -4,7 +4,6 @@ import sys
 import sys
 import numpy as np
 from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
-from mars_steg.task.neural_overseer import ProblemSolutionOverseer
 from mars_steg.utils.prompt_data import PromptData, BatchPromptData, FixedDatasetDataInfo
 from mars_steg.utils.answer_extraction import extract_floatingpoint_overseer_or_assessor_answer
 
@@ -88,7 +87,6 @@ llm_answer = examples["debug_llm_answer"]
 info = FixedDatasetDataInfo(idx=0)
 
 if __name__ == "__main__":
-    neural_overseer = ProblemSolutionOverseer(model=model, prompt_config=prompt_config)
 
     batch_prompt_data = BatchPromptData(
         [
@@ -103,7 +101,7 @@ if __name__ == "__main__":
     )
 
     pruned_batch_prompt_data = neural_overseer.get_overseer_generated_answers(batch_prompt_data, [true_answer], with_cot=True)
-    exit()
+
     print(pruned_batch_prompt_data.extracted_overseer_answers[0])
 
-    print(extract_floatingpoint_overseer_or_assessor_answer(pruned_batch_prompt_data.extracted_assessor_answers[0]))
+    print(extract_floatingpoint_overseer_or_assessor_answer(pruned_batch_prompt_data.extracted_overseer_answers[0]))

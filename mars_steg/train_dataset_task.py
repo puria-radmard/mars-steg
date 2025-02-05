@@ -222,8 +222,7 @@ if __name__ == "__main__":
                 extracted_batch_prompt_datas_with_nos_and_na = extracted_batch_prompt_datas_with_nos
 
             
-            # TODO: implement
-            batch_prompt_datas.log_to_wandb(epoch = epoch, step = batch_ticker)
+            batch_prompt_datas.log_to_wandb()
 
 
             # After all that answer/CoT extraction, it might have completely failed, so we can skip everything below entirely
@@ -257,7 +256,7 @@ if __name__ == "__main__":
 
             if len(composite_reward_list) == 0:
                 warnings.warn("All feedbacks failed to parse. Skipping actual training")
-                #TODO skip training ? and put optimize = False ?
+                optimize = False
 
 
             print("--------")
@@ -280,6 +279,7 @@ if __name__ == "__main__":
 
                 if len(composite_reward_list) < ppo_trainer.config.batch_size:
                     ppo_trainer.config.batch_size = len(composite_reward_list)
+                
                 stats = ppo_trainer.step(
                     train_query_tensors, train_transcript_responses, composite_reward_list, 
                 )
