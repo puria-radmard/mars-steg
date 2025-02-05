@@ -134,6 +134,7 @@ class BaseModel(metaclass=ABCMeta):
         {k: v for k, v in self.generation_config.to_dict().items() if k not in ['return_prompt', 'generate_ref_response', 'batch_size']}
 
         # Run the reference model
+        #TODO add special token to parse better 
         outputs = self.model.generate(**inputs, **generation_kwargs)
 
         # These always work, so can diretly set

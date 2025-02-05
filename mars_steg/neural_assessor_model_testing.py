@@ -59,7 +59,8 @@ experiment_args = ExperimentArgs.from_yaml(experiment_args_path)
 
 tokenizer = get_tokenizer(model_config.model_name)
 generation_config.pad_token_id= tokenizer.eos_token_id 
-generation_config.eos_token_id = tokenizer.eos_token_id 
+#TODO Resolve the problem of the model looping on final answer
+# generation_config.eos_token_id = tokenizer.eos_token_id 
 model = get_model(model_config, tokenizer, output_delimitation_tokens, generation_config, device)
 optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
 
