@@ -103,7 +103,7 @@ if __name__ == "__main__":
     )
 
     pruned_batch_prompt_data = neural_overseer.get_overseer_generated_answers(batch_prompt_data, [true_answer], with_cot=True)
-    exit()
+
     print(pruned_batch_prompt_data.extracted_overseer_answers[0])
 
     print(extract_floatingpoint_overseer_or_assessor_answer(pruned_batch_prompt_data.extracted_assessor_answers[0]))
