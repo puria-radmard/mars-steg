@@ -17,6 +17,13 @@ def check_score(
     """
     Checks that a given score can be cast to a float in the range [0, 1], and returns that float if so. 
 
+    Parameters
+    ----------
+    score_name : str
+        A name for the score. Only for display; helps specify where error message has come from if triggered
+    score_value : str
+        The value to be checked
+
     Returns
     -------
     float
@@ -44,6 +51,18 @@ class CoTGapSummary:
     """
     A dataclass to hold a summary of task performance with and without use of a CoT.
 
+    Attributes
+    ----------
+    sum_examples : int
+        An integer
+    sum_extracted_with_cot : int
+        An integer.
+    sum_extracted_without_cot : int
+        An integer.
+    sum_reward_with_cot : int
+        An integer.
+    sum_reward_without_cot : int
+        An integer.
     """
 
     sum_examples: int
