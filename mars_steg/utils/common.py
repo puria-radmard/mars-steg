@@ -421,23 +421,23 @@ def evaluate_cot_gap_summary(
     model_class : BaseModel
         The torch model wrapper being used; this function needs to access the 'batchize_conversation' method. 
     device : str
-        tring representation of device being used, e.g 'cuda:0'
+        torch string representation of device being used, e.g 'cuda:0'
     generation_kwargs : Dict
-
+        The additional args submitted to ppo_trainer.generate() when generating
     output_delimitation_tokens : Dict[str, str]
-
+        A dict containing which will be used to delineate parts of the model's responses. 
+        For the main model being trained, which emits a scratchpad and final output, the keys should be:
+        - "start_output_token"
+        - "end_output_token"
+        - "start_scratchpad_token"
+        - "end_scratchpad_token"
+        And the values should be an appropriately chosen token, e.g <SCRATCHPAD>, </SCRATCHPAD> etc.
 
     Returns
     -------
     CoTGapSummary
-        An object that stores information about the CoT gap. 
+        An object storing summary statistics about the CoT gap. 
 
-    Raises
-    ------
-    NotImplementedError
-        _description_
-    NotImplementedError
-        _description_
     """
 
 
