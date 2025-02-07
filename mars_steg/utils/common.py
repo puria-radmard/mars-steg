@@ -283,9 +283,9 @@ def evaluate_cot_gap_summary(
             batch_prompt_datas.cot_transcripts = decoded_responses[:batch_length]
             batch_prompt_datas.no_cot_transcripts = decoded_responses[batch_length:]
             extracted_batch_prompt_datas_with_na_with_cot = dataloader.dataset.neural_assessor_from_batch_prompt_data(batch_prompt_datas, from_cot_prompt = True)
-            results_with_cot = [extract_floatingpoint_overseer_or_assessor_answer(prompt_data.extracted_assessor_answers) for prompt_data in extracted_batch_prompt_datas_with_na_with_cot]
+            results_with_cot = [extract_floatingpoint_overseer_or_assessor_answer(prompt_data.extracted_assessor_answer) for prompt_data in extracted_batch_prompt_datas_with_na_with_cot]
             extracted_batch_prompt_datas_with_na_without_cot = dataloader.dataset.neural_assessor_from_batch_prompt_data(batch_prompt_datas, from_cot_prompt = False)
-            results_without_cot = [extract_floatingpoint_overseer_or_assessor_answer(prompt_data.extracted_assessor_answers) for prompt_data in extracted_batch_prompt_datas_with_na_without_cot]
+            results_without_cot = [extract_floatingpoint_overseer_or_assessor_answer(prompt_data.extracted_assessor_answer) for prompt_data in extracted_batch_prompt_datas_with_na_without_cot]
 
             cot_gap = CoTGapSummary(
                 sum_examples = len(batch_prompt_datas),
