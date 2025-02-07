@@ -74,6 +74,16 @@ class CoTGapSummary:
     @property
     def summary(self):
 
+        """
+        Returns a summary of the CoT gap statistics, formatted as a string. 
+        
+        Returns
+        -------
+
+        str
+            Summary of the CoT gap statistics, formatted as a string
+        """
+
         # TODO: needs a bit of reworking to incorporate extraction hitrate!!
 
         cot_gap = (self.sum_reward_with_cot - self.sum_reward_without_cot)
