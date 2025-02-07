@@ -1,6 +1,5 @@
 #!/bin/bash
 apt-get update && apt-get install -y tmux
-apt-get install -y tmux
 tmux new -s mysession
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
