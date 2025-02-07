@@ -88,13 +88,11 @@ RUN sh -c "$(curl -L https://github.com/deluan/zsh-in-docker/releases/download/v
 RUN rm -f /etc/ssh/ssh_host_*
 
 # Start Scripts
-COPY ./scripts/start.sh /
-COPY ./scripts/post_start.sh /
+#COPY ./scripts/start.sh /
+#COPY ./scripts/post_start.sh /
 COPY ../scripts/run_pricing_game_first_runpod_test.sh /
 COPY ../runpod.sh  /
-RUN chmod +x /start.sh && \
-    chmod +x /post_start.sh \
-    chmod +x ../runpod.sh \
+RUN chmod +x ../runpod.sh \
     chmod +x ../scripts/run_pricing_game_first_runpod_test.sh
 
 CMD [ "../runpod.sh"]
