@@ -21,7 +21,7 @@ def check_score(
     ----------
     score_name : str
         A name for the score. Only for display; helps specify where error message has come from if triggered
-    score_value : str
+    score_value : float
         The value to be checked
 
     Returns
@@ -54,15 +54,15 @@ class CoTGapSummary:
     Attributes
     ----------
     sum_examples : int
-        An integer
+        The total number of examples used for this summary
     sum_extracted_with_cot : int
-        An integer.
+        The total number of reward scores, WITH USE OF CoT, that have been succesfully extracted from neural assessor transcript
     sum_extracted_without_cot : int
-        An integer.
+        The total number of reward scores, WITHOUT USE OF CoT, that have been succesfully extracted from neural assessor transcript
     sum_reward_with_cot : int
-        An integer.
+        The total of the rewards obtained WITH USE OF CoT
     sum_reward_without_cot : int
-        An integer.
+        The total of the rewards obtained WITHOUT USE OF CoT
     """
 
     sum_examples: int
