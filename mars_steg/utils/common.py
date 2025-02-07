@@ -83,19 +83,19 @@ def get_dataloaders_and_ref_model(
     Returns
     -------
     TorchDatasetTask
-        train_dataset 
+        A TorchDatasetTask instance that can be used to iterate through a training dataset 
     TorchDatasetTask
-        val_dataset
+        Likewise, validation set
     TorchDatasetTask
-        test_dataset
+        Likewise, test set
     torch.utils.data.DataLoader
-        train_loader
+        The actual torch dataloader for the training set
     torch.utils.data.DataLoader
-        val_loader
+        Likewise, validation set 
     torch.utils.data.DataLoader
-        test_loader
-    torch.utils.data.DataLoader
-        reference_model
+        Likewise, test set
+    trl.PreTrainedModelWrapper
+        The reference model
 
     Notes
     -----

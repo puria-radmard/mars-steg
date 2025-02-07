@@ -20,6 +20,11 @@ class FixedDatasetDataInfo(DataInfo):
 
     """
     DataInfo subclass suitable for dataset-based tasks
+
+    Attributes
+    ----------
+    idx : int
+        The integer index of this sample within the dataset
     """
 
     idx: int
@@ -30,6 +35,13 @@ class SequentialPriceTaskDataInfo(FixedDatasetDataInfo):
 
     """
     DataInfo subclass suitable for the sequential price task
+
+    Attributes
+    ----------
+    p1_bid : float
+        The actual bid of player P1
+    p2_true_cost : float
+        The true production cost of the product to player P2
     """
 
     p1_bid: float
@@ -45,6 +57,29 @@ class PromptData:
     It starts with just cot_prompt, no_cot_prompt and a customisable 'info' attribute which can carry additional task-specific information.
 
     As an iteration of the training loop progresses, more data is added to the optional attributes until this object contains all data associated with a single episode. 
+
+    Attributes
+    ----------
+    cot_prompt : str
+        The prompt submitted to the model; version instructing it to USE chain of thought. 
+    no_cot_prompt : str
+        As above, but the version instructing the model NOT TO USE chain of thought. 
+    info : DataInfo
+        Customisable 'info' attribute which can carry additional task-specific information; should be a subclass of DataInfo. 
+    cot_transcript : Optional[str]
+        Stores the full transcript produced by the current version of the model being trained, when it uses a chain of thought. Starts as None. 
+    no_cot_transcript : Optional[str] = None
+        As for cot_transcript, but with no use of chain of thought. Starts as None. 
+    extracted_final_answer_with_cot : Optional[str]
+        The part of cot_transcript (i.e version USING CoT) which corresponds to the FINAL ANSWER provided by the model, after this has been extracted. Starts as None. 
+    extracted_final_answer_without_cot: Optional[str] = None
+        As above, but the final answer extracted from no_cot_transcript (i.e final answer WITHOUT USE of CoT). Starts as None
+    overseer_transcript: Optional[str] = None # Full transcript from the overseer
+        
+    extracted_overseer_answer: Optional[bool] = None # Final decision from overseer
+    assessor_transcript: Optional[str] = None # Full transcript from the assessor
+    extracted_assessor_answer: Optional[bool] = None # Final decision from overseer
+
     """
 
     # Ab initio data
@@ -67,6 +102,15 @@ class PromptData:
     extracted_assessor_answer: Optional[bool] = None # Final decision from overseer
 
     def __str__(self) -> str:
+
+        """Return the data on this episode as a string. Useful for watching behaviour during training etc. String may be very long. 
+
+        Returns
+        -------
+        str
+            Summary of data on this episode
+        """
+
         return (
             f"cot_prompt: {self.cot_prompt}\n"
             f"no_cot_prompt: {self.no_cot_prompt}\n"
@@ -94,7 +138,7 @@ class PromptData:
 class BatchPromptData:
 
     """
-    BatchPromptData contains and manages a list of PromptData objects; see PromptData.
+    BatchPromptData contains and manages a list of PromptData objects; see PromptData for attributes etc. 
     """
 
     def __init__(self, prompt_datas: List[PromptData]):
