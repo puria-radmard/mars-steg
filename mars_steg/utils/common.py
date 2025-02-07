@@ -24,7 +24,7 @@ from mars_steg import language
 from mars_steg.task import TorchDatasetTask
 from mars_steg.language import LanguageAspect
 
-from trl import create_reference_model
+from trl import create_reference_model, PPOTrainer
 
 
 
@@ -46,12 +46,68 @@ def get_dataloaders_and_ref_model(
     neural_assessor_model: Optional[BaseModel] = None,
 ):
     """
+
+    A getter for the Task subclasses to be used here; handles splitting into train, val, test. 
+    Also returns torch dataloaders for all three. 
+
+    Parameters
+    ----------
+    dataset_class_name : str
+        The name of the Task subclass used here (defined name, NOT name attribute)
+    penalisation_class_name : str
+        The name of the LanguageAspect subclass used here
+    dataset_class_kwargs : Optional[Dict]
+        Kwargs to configure the dataset class being used; these should NOT include (i) language_aspect, or (ii) prompt_config, which will be set by other args.  
+    prompt_config : PromptConfig
+        PromptConfig to configure the prompt generation in the task subclass. May also be used to configure prompts in LanguageAspect, e.g if this is a NeuralOverseer. 
+    penalisation_class_kwargs : Optional[Dict]
+        Kwargs to configure the dataset class being used; these should NOT include prompt_config, which will be set automatically. 
+    train_proportion : float
+        Proportion of dataset to use for train (float in range [0-1])
+    validation_proportion : float
+        Proportion of dataset to use for validation (float in range [0-1])
+    batch_size : int
+        Batch size for torch dataloaders
+    training_model : Optional[BaseModel], optional
+        By default None. Need to pass this if if `override_create_ref_model` is True or if the neural overseer or task requires it
+    override_create_ref_model : bool, optional
+        By default False. If True, forces creation of a reference model. 
+    number_shared_layers_for_ref_model : Optional[int], optional
+        Required if reference model created, by default None
+    neural_overseer_model : Optional[BaseModel], optional
+        If model for neural overseer has already been created, pass here.
+    neural_assessor_model : Optional[BaseModel], optional
+        If model for neural assessor has already been created, pass here.
+
+
+    Returns
+    -------
+    TorchDatasetTask
+        A TorchDatasetTask instance that can be used to iterate through a training dataset 
+    TorchDatasetTask
+        Likewise, validation set
+    TorchDatasetTask
+        Likewise, test set
+    torch.utils.data.DataLoader
+        The actual torch dataloader for the training set
+    torch.utils.data.DataLoader
+        Likewise, validation set 
+    torch.utils.data.DataLoader
+        Likewise, test set
+    trl.PreTrainedModelWrapper
+        The reference model
+
+    Notes
+    -----
     Including ref model creation here because it is needed for the task,
     as well as potentially for the training!
 
     Create the reference model if `override_create_ref_model` is True
     or if the neural overseer or task requires it
+
+
     """
+
 
     dataset_class_kwargs = dataset_class_kwargs or dict()
     penalisation_class_kwargs = penalisation_class_kwargs or dict()
@@ -112,13 +168,49 @@ def get_dataloaders_and_ref_model(
 
 
 
-def get_tokenizer(model_name: str):
+def get_tokenizer(
+    model_name: str
+):
+
+    """
+    Get tokenizer and set pad token to be same as end-of-sequence token
+
+    Parameters
+    ----------
+    model_name : str
+        The model name - get string from huggingface
+
+    Returns
+    -------
+    AutoTokenizer
+        Configured tokenizer
+    """
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     tokenizer.pad_token = tokenizer.eos_token
     return tokenizer
 
 
-def get_optimizer(optimizer_config: OptimizerConfig, model: nn.Module) -> t.optim.Optimizer:
+def get_optimizer(
+    optimizer_config: OptimizerConfig,
+    model: nn.Module
+) -> t.optim.Optimizer:
+    
+    """
+    Returns an instance of torch.optim.Adam configured to work with submitted model/with settings from optimizer_config
+
+    Parameters
+    ----------
+    optimizer_config : OptimizerConfig
+        Optimisation config
+    model : nn.Module
+        torch model that the optimizer will be used with
+
+    Returns
+    -------
+    torch.optim.Adam
+        Configured optimizer
+    """
+
     if optimizer_config.optimizer_name == "adam":
         optimizer = Adam(
             filter(lambda p: p.requires_grad, model.parameters()),
@@ -128,13 +220,48 @@ def get_optimizer(optimizer_config: OptimizerConfig, model: nn.Module) -> t.opti
 
 
 def get_model(
-        model_config: ModelConfig, 
-        tokenizer: AutoTokenizer, 
-        output_delimitation_tokens: Dict[str, str], 
-        generation_config=GenerationConfig,
-        device: str = 'cuda'
-        ) -> BaseModel:
+    model_config: ModelConfig, 
+    tokenizer: AutoTokenizer, 
+    output_delimitation_tokens: Dict[str, str], 
+    generation_config=GenerationConfig,
+    device: str = 'cuda'
+) -> BaseModel:
     
+    """
+    The getter for instances of our own model class, which wraps pretrained models. 
+
+    Parameters
+    ----------
+    model_config : ModelConfig
+        An instance of ModelConfig, which carries configuration details for the model
+    tokenizer : AutoTokenizer
+        tokenizer, use get_tokenizer() to load
+    output_delimitation_tokens : Dict[str, str]
+        A dict containing the tokens which will be used to delineate parts of the model's responses. 
+        For the main model being trained, which emits a scratchpad and final output, the keys should be:
+        - "start_output_token"
+        - "end_output_token"
+        - "start_scratchpad_token"
+        - "end_scratchpad_token"
+        And the values should be an appropriately chosen token, e.g <SCRATCHPAD>, </SCRATCHPAD> etc.
+    generation_config : GenerationConfig
+        Contains the keyword arguments that will be fed to self.model.generate() internally (some edits are made on the fly)
+    device: str = 'cuda'
+        The device for the model to sit on (use torch keywords, eg 'cuda', 'cuda:0')
+    
+    
+    Returns
+    -------
+    BaseModel
+        An instance of a subclass of BaseModel (our wrapper for pretrained models)
+
+    Raises
+    ------
+    ValueError
+        Throws an error if no-one has defined a wrapper for your model, or they've forgotten to add it to this function
+    """
+
+
     model_name = model_config.model_name
     print(f'GETTING: {model_name}')
     if model_name == "gpt2":
@@ -154,6 +281,17 @@ def get_model(
 
 
 def get_device() -> str:
+
+    """
+    Getter for device (torch keyword)
+
+    Returns
+    -------
+    str
+        Appropriate torch device keyword e.g 'cuda'
+    """
+
+
     if t.backends.mps.is_available():
         device = "mps"
     else:
@@ -166,6 +304,16 @@ def get_device() -> str:
 
 
 def set_seed(seed: int = 42) -> None:
+
+    """
+    Sets random seeds for all libraries using RNG: numpy, random, torch
+
+    Parameters
+    ----------
+    seed : int
+        Integer seed
+    """
+
     np.random.seed(seed)
     random.seed(seed)
     t.manual_seed(seed)
@@ -180,13 +328,43 @@ def get_rewards_and_training_datas(
         transcript_responses: List[t.TensorType], 
         train_dataset: TorchDatasetTask, 
         ) -> Tuple[List]:
+    
     """
-    batch_prompt_datas come in imbued with answers extracted from the neural overseer and assesor already
+    Used after the model being trained in RL has produced a response, to mark this response using Task.reward_from_transcript(). 
+
+    batch_prompt_datas come in imbued with answers extracted from the neural overseer and assessor already
     Any that failed should have been pruned from this argument anyway, so no need to double check here! 
 
     However: Just because the extraction worked does not mean that the score assignment will
     We do another round of pruning here if the extracted answers in either NOS or NA are not in the right format
+
+    Parameters
+    ----------
+    batch_prompt_datas : BatchPromptData
+        An object containing a list of PromptData objects; each PromptData contains all data associated with an individual training example
+    query_tensors : List[t.TensorType]
+        The original list of tensors used to generate the trained model's responses
+    transcript_responses : List[t.TensorType]
+        The original list of tensors generated in response to the inputs
+    train_dataset : TorchDatasetTask
+        The Task subclass describing the task the model is solving; in this case specifically that for the train dataset. 
+
+
+    Returns
+    -------
+    List[t.TensorType]
+        composite_reward_list - a list of the rewards from the overall reward function, already converted into torch tensors.
+    List[float]
+        task_score_list - a list of the task element of the reward (emitted for tracking purposes)
+    List[float]
+        language_score_list  - a list of the language element of the reward (emitted for tracking purposes)
+    List[t.TensorType]
+        train_query_tensors - Same as input param query_tensors, but with any that didn't work in .reward_from_transcript() dropped
+    List[t.TensorType]
+        train_transcript_responses - Same as input param transcript_responses, but with any that didn't work in .reward_from_transcript() dropped
+
     """
+
     
     composite_reward_list, task_score_list, language_score_list = [], [], []
     train_query_tensors = []
@@ -219,16 +397,52 @@ def get_rewards_and_training_datas(
 
 
 def evaluate_cot_gap_summary(
-        ppo_trainer, 
-        tokenizer, 
+        ppo_trainer : PPOTrainer, 
+        tokenizer : AutoTokenizer, 
         dataloader: DataLoader,
         system_prompt: str,
         model_class: BaseModel, 
-        device, 
+        device: str, 
         generation_kwargs: Dict,
         output_delimitation_tokens: Dict[str, str],
     ) -> CoTGapSummary:
     
+    """
+    A function for evaluating the current CoT gap on the task; i.e, the diffence in task success with and without use of a Chain of Thought. 
+
+    Parameters
+    ----------
+    ppo_trainer : PPOTrainer
+        An already-initialised instance of trl's PPOTrainer, which will be used to generate responses, with and without CoT, for the whole dataset of task examples in the submitted dataloader. 
+    tokenizer : AutoTokenizer
+        transformers AutoTokenizer instance, used to encode and task prompts and decode responses
+    dataloader : DataLoader
+        torch dataloader, which yields BatchPromptDatas of task examples
+    system_prompt : str
+        System prompt used to generate responses from ppo_trainer 
+    model_class : BaseModel
+        The torch model wrapper being used; this function needs to access the 'batchize_conversation' method. 
+    device : str
+        torch string representation of device being used, e.g 'cuda:0'
+    generation_kwargs : Dict
+        The additional args submitted to ppo_trainer.generate() when generating
+    output_delimitation_tokens : Dict[str, str]
+        A dict containing the tokens which will be used to delineate parts of the model's responses. 
+        For the main model being trained, which emits a scratchpad and final output, the keys should be:
+        - "start_output_token"
+        - "end_output_token"
+        - "start_scratchpad_token"
+        - "end_scratchpad_token"
+        And the values should be an appropriately chosen token, e.g <SCRATCHPAD>, </SCRATCHPAD> etc.
+
+    Returns
+    -------
+    CoTGapSummary
+        An object storing summary statistics about the CoT gap. 
+
+    """
+
+
     # Total examples provided:
     sum_examples = 0
 
@@ -327,4 +541,4 @@ def evaluate_cot_gap_summary(
         sum_reward_without_cot,
     )
 
-    
+ 
