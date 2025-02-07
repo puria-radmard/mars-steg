@@ -68,18 +68,20 @@ class PromptData:
         Customisable 'info' attribute which can carry additional task-specific information; should be a subclass of DataInfo. 
     cot_transcript : Optional[str]
         Stores the full transcript produced by the current version of the model being trained, when it uses a chain of thought. Starts as None. 
-    no_cot_transcript : Optional[str] = None
+    no_cot_transcript : Optional[str]
         As for cot_transcript, but with no use of chain of thought. Starts as None. 
     extracted_final_answer_with_cot : Optional[str]
         The part of cot_transcript (i.e version USING CoT) which corresponds to the FINAL ANSWER provided by the model, after this has been extracted. Starts as None. 
-    extracted_final_answer_without_cot: Optional[str] = None
-        As above, but the final answer extracted from no_cot_transcript (i.e final answer WITHOUT USE of CoT). Starts as None
-    overseer_transcript: Optional[str] = None # Full transcript from the overseer
-        
-    extracted_overseer_answer: Optional[bool] = None # Final decision from overseer
-    assessor_transcript: Optional[str] = None # Full transcript from the assessor
-    extracted_assessor_answer: Optional[bool] = None # Final decision from overseer
-
+    extracted_final_answer_without_cot : Optional[str]
+        As above, but the final answer extracted from no_cot_transcript (i.e final answer WITHOUT USE of CoT). Starts as None.
+    overseer_transcript : Optional[str]
+        Full transcript from the neural OVERSEER, i.e the LLM providing feedback on whether the chosen aspect of language has been used in the CoT.  Starts as None.
+    extracted_overseer_answer : Optional[bool]
+        The overseer's [0-1] score for use of the aspect of language, once extracted from the overseer_transcript.  Starts as None.
+    assessor_transcript : Optional[str]
+        Full transcript from the neural ASSESSOR, i.e the LLM providing feedback on task success or failure.  Starts as None.
+    extracted_assessor_answer : Optional[bool]
+        The assessor's [0-1] score for task success or failure, once extracted from the assessor_transcript.  Starts as None.
     """
 
     # Ab initio data

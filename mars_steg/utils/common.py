@@ -232,7 +232,6 @@ def get_model(
 
     Parameters
     ----------
-
     model_config : ModelConfig
         An instance of ModelConfig, which carries configuration details for the model
     tokenizer : AutoTokenizer
@@ -409,7 +408,6 @@ def evaluate_cot_gap_summary(
 
     Parameters
     ----------
-
     ppo_trainer : PPOTrainer
         An already-initialised instance of trl's PPOTrainer, which will be used to generate responses, with and without CoT, for the whole dataset of task examples in the submitted dataloader. 
     tokenizer : AutoTokenizer
