@@ -91,7 +91,7 @@ RUN rm -f /etc/ssh/ssh_host_*
 COPY scripts/start.sh /
 COPY scripts/post_start.sh /
 COPY ../scripts/run_pricing_game_first_runpod_test.sh /
-COPY ../runpod.sh 
+COPY ../runpod.sh  /
 RUN chmod +x /start.sh && \
     chmod +x /post_start.sh \
     chmod +x ../runpod.sh \
