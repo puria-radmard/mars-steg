@@ -8,9 +8,9 @@ from transformers import set_seed
 
 from trl import PPOConfig, PPOTrainer
 
-from mars_steg.config import ConfigLoader, ExperimentArgs
+from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 from mars_steg.utils.common import (
-    get_dataloaders,
+    get_dataloaders_and_ref_model,
     get_tokenizer,
     get_model,
     get_device,
@@ -20,6 +20,7 @@ from mars_steg.utils.common import (
 
 experiment_args_path = sys.argv[1]
 config_path = sys.argv[2]   # e.g. "mars_steg/configs/config.yaml"
+prompt_config_path = sys.argv[3] 
 
 
 device = get_device()
@@ -27,6 +28,15 @@ device = get_device()
 with torch.no_grad():
 
     model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(config_path)
+
+    prompt_config = PromptConfig.from_file(prompt_config_path)
+
+    output_delimitation_tokens = {
+    "start_scratchpad_token": prompt_config.start_scratchpad_token,
+    "end_scratchpad_token": prompt_config.end_scratchpad_token,
+    "start_output_token": prompt_config.start_output_token,
+    "end_output_token": prompt_config.end_output_token,
+}
 
     generation_config.batch_size = train_config.batch_size
 
@@ -62,21 +72,28 @@ with torch.no_grad():
 
     tokenizer = get_tokenizer(model_config.model_name)
     generation_config.pad_token_id = tokenizer.eos_token_id 
-    model = get_model(model_config, tokenizer)
+    model = get_model(
+        model_config, 
+        tokenizer, 
+        output_delimitation_tokens=output_delimitation_tokens, 
+        generation_config=generation_config,
+        device=device)
 
     generation_kwargs = generation_config.to_dict()
 
-    train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader = get_dataloaders(
+    train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader, ref_model = get_dataloaders_and_ref_model(
         dataset_class_name = experiment_args.dataset_class_name,
         penalisation_class_name = experiment_args.penalisation_class_name,
+        prompt_config = prompt_config,
         dataset_class_kwargs = experiment_args.dataset_class_kwargs,
         penalisation_class_kwargs = experiment_args.penalisation_class_kwargs,
-        train_proportion = 1,
-        validation_proportion = 0,
+        train_proportion = train_config.train_proportion,
+        validation_proportion = train_config.validation_proportion,
         batch_size = train_config.batch_size,
-        reference_model = None, # 
+        training_model = model,
+        override_create_ref_model = train_config.create_ref_model,
+        number_shared_layers_for_ref_model = train_config.number_shared_layers_for_ref_model
     )
-
 
     ppo_trainer = PPOTrainer(
         config,
@@ -96,8 +113,5 @@ with torch.no_grad():
         generation_kwargs = generation_kwargs,
         output_delimitation_tokens= output_delimitation_tokens,
     )
-
-
-    # TODO: better logging here!!
     print(cot_gap.summary)
 
