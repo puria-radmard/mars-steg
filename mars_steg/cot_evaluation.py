@@ -11,6 +11,7 @@ from trl import PPOConfig, PPOTrainer
 from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 from mars_steg.utils.common import (
     get_dataloaders_and_ref_model,
+    get_optimizer,
     get_tokenizer,
     get_model,
     get_device,
@@ -78,6 +79,7 @@ with torch.no_grad():
         output_delimitation_tokens=output_delimitation_tokens, 
         generation_config=generation_config,
         device=device)
+    optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
 
     generation_kwargs = generation_config.to_dict()
 
@@ -98,8 +100,9 @@ with torch.no_grad():
     ppo_trainer = PPOTrainer(
         config,
         model.model,
-        ref_model=None,
+        ref_model=ref_model if train_config.create_ref_model else None,
         tokenizer=tokenizer,
+        optimizer=optimizer,
     )
 
 
