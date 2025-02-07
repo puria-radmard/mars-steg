@@ -11,7 +11,7 @@ from typing import List, Tuple
 from tqdm import tqdm
 from transformers import AutoTokenizer
 from mars_steg.config import ModelConfig, OptimizerConfig, PromptConfig, GenerationConfig
-from mars_steg.utils.answer_extraction import extract_floatingpoint_overseer_or_assessor_answer
+from mars_steg.utils.answer_extraction import extract_cots, extracts_no_cots, extract_floatingpoint_overseer_or_assessor_answer
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.utils.score import CoTGapSummary
 from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct, Llama_32_1B_Instruct, DeepSeek_R1_1pt5B
@@ -282,7 +282,9 @@ def evaluate_cot_gap_summary(
 
             batch_prompt_datas.cot_transcripts = decoded_responses[:batch_length]
             batch_prompt_datas.no_cot_transcripts = decoded_responses[batch_length:]
-            extracted_batch_prompt_datas_with_na_with_cot = dataloader.dataset.neural_assessor_from_batch_prompt_data(batch_prompt_datas, from_cot_prompt = True)
+            extracted_batch_prompt_datas_with_cot = extract_cots(batch_prompt_datas, output_delimitation_tokens)
+            extracted_batch_prompt_datas_with_cot_and_without_cot = extracts_no_cots(extracted_batch_prompt_datas_with_cot, output_delimitation_tokens)
+            extracted_batch_prompt_datas_with_na_with_cot = dataloader.dataset.neural_assessor_from_batch_prompt_data(extracted_batch_prompt_datas_with_cot_and_without_cot, from_cot_prompt = True)
             results_with_cot = [extract_floatingpoint_overseer_or_assessor_answer(prompt_data.extracted_assessor_answer) for prompt_data in extracted_batch_prompt_datas_with_na_with_cot]
             extracted_batch_prompt_datas_with_na_without_cot = dataloader.dataset.neural_assessor_from_batch_prompt_data(batch_prompt_datas, from_cot_prompt = False)
             results_without_cot = [extract_floatingpoint_overseer_or_assessor_answer(prompt_data.extracted_assessor_answer) for prompt_data in extracted_batch_prompt_datas_with_na_without_cot]

@@ -193,6 +193,24 @@ def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens
             warnings.warn(f"Failed to parse: \n\n{prompt_data.cot_transcript}\n\n Skipping example")
     return BatchPromptData(extracted_prompt_datas)
 
+def extracts_no_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens: Dict[str, str]) -> BatchPromptData:
+    """
+    Take in full batch of prompts, and spit out batch of prompts for which the model was able to give
+        a well formatted answer for no COT answers. If output length is less than input length, this means some responses could
+        not be parsed
+    """
+    extracted_prompt_datas = []
+    for prompt_data in tqdm(batch_prompt_datas):
+        try:
+            (
+                _,
+                prompt_data.extracted_final_answer_without_cot,
+            ) = parse_model_output(prompt_data.no_cot_transcript, output_delimitation_tokens, cot=False)
+            extracted_prompt_datas.append(prompt_data)
+        except LLMTranscriptExtractionError as e:
+            warnings.warn(f"Failed to parse: \n\n{prompt_data.no_cot_transcript}\n\n Skipping example")
+    return BatchPromptData(extracted_prompt_datas)
+
 
 
 def extract_boolean_overseer_or_assessor_answer(
