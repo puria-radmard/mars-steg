@@ -237,7 +237,7 @@ def get_model(
     tokenizer : AutoTokenizer
         tokenizer, use get_tokenizer() to load
     output_delimitation_tokens : Dict[str, str]
-        A dict containing which will be used to delineate parts of the model's responses. 
+        A dict containing the tokens which will be used to delineate parts of the model's responses. 
         For the main model being trained, which emits a scratchpad and final output, the keys should be:
         - "start_output_token"
         - "end_output_token"
@@ -423,7 +423,7 @@ def evaluate_cot_gap_summary(
     generation_kwargs : Dict
         The additional args submitted to ppo_trainer.generate() when generating
     output_delimitation_tokens : Dict[str, str]
-        A dict containing which will be used to delineate parts of the model's responses. 
+        A dict containing the tokens which will be used to delineate parts of the model's responses. 
         For the main model being trained, which emits a scratchpad and final output, the keys should be:
         - "start_output_token"
         - "end_output_token"
