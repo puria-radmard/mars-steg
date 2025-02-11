@@ -77,7 +77,8 @@ experiment_args = ExperimentArgs.from_yaml(experiment_args_path)
 
 
 wandb.init(
-    project="luisoso/MARS-STEGO",
+    project="MARS-STEGO",
+    entity="luisoso",
     config={
         'ppo_config': config,
         'model_config': model_config,
