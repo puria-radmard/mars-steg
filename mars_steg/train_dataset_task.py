@@ -228,7 +228,7 @@ if __name__ == "__main__":
 
             # After all that answer/CoT extraction, it might have completely failed, so we can skip everything below entirely
             if len(extracted_batch_prompt_datas_with_nos_and_na) == 0:
-                optimize = False
+                optimize = True                                                                 # XXX: 20250212 - always optimise
                 warnings.warn("All examples failed to parse. Skipping everything below")
                 continue
 
@@ -249,7 +249,8 @@ if __name__ == "__main__":
             # Extract rewards
             composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses = \
             get_rewards_and_training_datas(
-                batch_prompt_datas=extracted_batch_prompt_datas_with_nos_and_na,
+                # batch_prompt_datas=extracted_batch_prompt_datas_with_nos_and_na,
+                batch_prompt_datas=batch_prompt_datas,                           # XXX: 20250212 - passing unpruned batch 
                 query_tensors=query_tensors,
                 transcript_responses=transcript_responses, 
                 train_dataset=train_dataset,
@@ -296,6 +297,13 @@ if __name__ == "__main__":
 
                 ppo_trainer.config.batch_size = train_config.batch_size
                 wandb.log(stats)
+
+            wandb.log(
+                {
+                    'task_score': sum(task_score_list) / len(composite_reward_list),
+                    'language_score': sum(language_score_list) / len(language_score_list),
+                }
+            )
 
             torch.cuda.empty_cache() 
             # Save model every 100 batchs
