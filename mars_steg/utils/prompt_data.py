@@ -146,6 +146,8 @@ class BatchPromptData:
         members_as_dicts = [asdict(pd) for pd in self.prompt_datas]
         for field_key in members_as_dicts[0].keys():
             log_dict[field_key] = [mad[field_key] for mad in members_as_dicts]
+
+        raise Exception(header = 'Woooooooo!!! need to put these into a WandB table')
         
         wandb.log(log_dict)
 

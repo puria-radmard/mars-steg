@@ -249,7 +249,7 @@ if __name__ == "__main__":
             # Extract rewards
             composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses = \
             get_rewards_and_training_datas(
-                # batch_prompt_datas=extracted_batch_prompt_datas_with_nos_and_na,
+                # batch_prompt_datas = extracted_batch_prompt_datas_with_nos_and_na,
                 batch_prompt_datas=batch_prompt_datas,                           # XXX: 20250212 - passing unpruned batch 
                 query_tensors=query_tensors,
                 transcript_responses=transcript_responses, 
