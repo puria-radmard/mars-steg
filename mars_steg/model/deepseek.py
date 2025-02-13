@@ -49,7 +49,6 @@ class DeepSeek_R1_1pt5B(BaseModel):
                     )
 
         transformed_conversations = [self.transform_conversation(conversation) for conversation in conversations_list]
-        print(transformed_conversations)
         inputs = self.tokenizer(transformed_conversations, return_tensors="pt").to(self.device)
         inputs = {key: tensor.to(self.device) for key, tensor in inputs.items()}
 

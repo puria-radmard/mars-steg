@@ -45,3 +45,4 @@ Generation:
   max_new_tokens: 512
   return_prompt: False
   generate_ref_response: False
+  use_cache: True 

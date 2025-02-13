@@ -60,7 +60,7 @@ experiment_args = ExperimentArgs.from_yaml(experiment_args_path)
 tokenizer = get_tokenizer(model_config.model_name)
 generation_config.pad_token_id= tokenizer.eos_token_id 
 #TODO Resolve the problem of the model looping on final answer
-# generation_config.eos_token_id = tokenizer.eos_token_id 
+generation_config.eos_token_id = tokenizer.eos_token_id 
 model = get_model(model_config, tokenizer, output_delimitation_tokens, generation_config, device)
 optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
 
@@ -112,11 +112,12 @@ if __name__ == "__main__":
                        extracted_cot=agent_prompt,
                        extracted_final_answer_without_cot=llm_answer,
                        extracted_final_answer_with_cot=llm_answer)
-        ]
+        ] * 2
     )
 
     pruned_batch_prompt_data =  train_dataset.language_aspect.get_overseer_generated_answers(
                     batch_prompt_data, 
+
                     neural_overseer_thinking_helper = prompt_config.neural_overseer_thinking_helper)
     
     print(pruned_batch_prompt_data)

@@ -109,22 +109,11 @@ def parse_model_output(model_output: str, output_delimitation_tokens: Dict[str, 
             chain_of_thought = None
 
     elif start_scratchpad_token and end_scratchpad_token and not (start_output_token or end_output_token):
-
-        raise NotImplementedError('This needs to be debugged!')
+        print("Hello")
 
         scratchpad_start = model_output.find(start_scratchpad_token)
         scratchpad_end = model_output.find(end_scratchpad_token)
-
-        # Extract the output
-        if output_start == -1 or output_end == -1 or output_start >= output_end:
-            raise LLMTranscriptExtractionError(
-                "OUTPUT section could not be parsed from the prompt."
-            )
-        
-        if scratchpad_end == -1:
-            output = extract_section(output_start,0,len(model_output),model_output)
-        else:
-            output = extract_section(output_start,scratchpad_end,len(model_output),model_output)
+        output = extract_section(scratchpad_end,end_scratchpad_token, len(model_output), model_output)
 
         # Extract the scratchpad reasoning
         chain_of_thought = None
@@ -135,6 +124,14 @@ def parse_model_output(model_output: str, output_delimitation_tokens: Dict[str, 
                     "CoT section could not be parsed from the prompt."
                 )
             chain_of_thought = extract_section(scratchpad_start,start_scratchpad_token,scratchpad_end,model_output)
+
+    else:
+        raise NotImplementedError("""
+                The output delimitation tokens defined are not falling into one of the above:
+                Cases that are implemented : 
+                    - start_output_token and end_output_token and start_scratchpad_token and end_scratchpad_token
+                    - not (start_scratchpad_token or end_scratchpad_token) and start_output_token
+                    - start_scratchpad_token and end_scratchpad_token and not (start_output_token or end_output_token)""")
         
     for et in END_TOKENS:
         output = output.replace(et, "")

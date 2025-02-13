@@ -182,6 +182,7 @@ class GenerationConfig:
     pad_token_id: Optional[int] = None
     bos_token_id: Optional[int] = None
     eos_token_id: Optional[int] = None
+    use_cache: Optional[bool] = None
     
     # return_full_text: bool = False
 
