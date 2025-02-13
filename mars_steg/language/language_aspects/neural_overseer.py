@@ -147,6 +147,7 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
     def get_overseer_generated_answers(
         self,
         batch_prompt_data: BatchPromptData,
+        neural_overseer_thinking_helper: str = None
     ) -> BatchPromptData:
         """
         Imbue all members of batch_prompt_data with overseer_transcripts in place,
@@ -163,7 +164,10 @@ class ReferenceModelNeuralOverseer(NeuralOverseer):
         )
 
         # Run the reference model
-        decoded_responses = self.whitebox_model.full_generate(conversations_list)
+        decoded_responses = self.whitebox_model.full_generate(
+            conversations_list,
+            is_neural_overseer = True,
+            neural_overseer_thinking_helper = neural_overseer_thinking_helper)
 
         batch_prompt_data.overseer_transcripts = decoded_responses
 

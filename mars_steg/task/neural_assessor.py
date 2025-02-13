@@ -60,7 +60,8 @@ class ProblemSolutionAssessor:
         self,
         batch_prompt_data: BatchPromptData,
         true_answers: List[str],
-        with_cot: bool
+        with_cot: bool,
+        neural_assessor_thinking_helper: str = None
     ) -> BatchPromptData:
         """
         Imbue all members of batch_prompt_data with assessor_transcripts in place,
@@ -78,7 +79,10 @@ class ProblemSolutionAssessor:
             with_cot=with_cot
         )
 
-        decoded_responses = self.whitebox_model.full_generate(conversations_list)
+        decoded_responses = self.whitebox_model.full_generate(
+            conversations_list, 
+            is_neural_assessor = True, 
+            neural_assessor_thinking_helper = neural_assessor_thinking_helper)
 
         batch_prompt_data.assessor_transcripts = decoded_responses
 

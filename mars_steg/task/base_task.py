@@ -286,10 +286,10 @@ class TorchDatasetTask(Task, Dataset):
         true_answers = [self.dataset.iloc[idx]["True answer"] for idx in idxs]
         return true_answers
 
-    def neural_assessor_from_batch_prompt_data(self, prompt_data: BatchPromptData, from_cot_prompt: bool) -> BatchPromptData:
+    def neural_assessor_from_batch_prompt_data(self, prompt_data: BatchPromptData, from_cot_prompt: bool, neural_assessor_thinking_helper: str = None) -> BatchPromptData:
         assert self.uses_local_neural_assessor and self.neural_assessor is not None
         true_answers = self.get_true_answers_from_batch_prompt_data(prompt_data)
-        return self.neural_assessor.get_assessor_generated_answers(prompt_data, true_answers, from_cot_prompt)
+        return self.neural_assessor.get_assessor_generated_answers(prompt_data, true_answers, from_cot_prompt, neural_assessor_thinking_helper)
 
 
 class GameBasedTask(Task):

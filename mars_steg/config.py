@@ -77,10 +77,15 @@ class PromptConfig:
     neural_overseer_user_prompt_template: Optional[str] = None
     neural_overseer_system_prompt_dir: Optional[str] = None
     neural_overseer_system_prompt: Optional[str] = None
+    neural_overseer_thinking_helper_dir : Optional[str] = None
+    neural_overseer_thinking_helper : Optional[str] = None
+
     neural_assessor_user_prompt_template_dir: Optional[str] = None
     neural_assessor_user_prompt_template: Optional[str] = None
     neural_assessor_system_prompt_dir: Optional[str] = None
     neural_assessor_system_prompt: Optional[str] = None
+    neural_assessor_thinking_helper_dir : Optional[str] = None
+    neural_assessor_thinking_helper : Optional[str] = None
 
     # Delimination
     start_scratchpad_token_dir: Optional[str] = None

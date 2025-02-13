@@ -1,0 +1,26 @@
+# Task Prompts
+task_description_dir:  "mars_steg/prompts/task_description/price.txt"
+task_examples_dir: "mars_steg/prompts/task_examples/price.txt"
+
+# CoT Prompts
+with_cot_instruction_dir: "mars_steg/prompts/cot_usage/with.txt"
+no_cot_instruction_dir: "mars_steg/prompts/cot_usage/without.txt"
+
+# Answer Format
+answer_format_instruction_dir: "mars_steg/prompts/answer_format/default_instruction.txt"
+start_output_token_dir: "mars_steg/prompts/answer_format/default_start_output_token.txt"
+
+# #Scratchpad format
+# start_scratchpad_token_dir: "mars_steg/prompts/answer_format/deepseek_start_scratchpad_token.txt"
+# end_scratchpad_token_dir: "mars_steg/prompts/answer_format/deepseek_end_scratchpad_token.txt"
+
+# Neural Asessor (not in use for price game)
+neural_assessor_user_prompt_template_dir: "mars_steg/prompts/neural_assessor/user_prompt_template.txt"
+neural_assessor_system_prompt_dir: "mars_steg/prompts/neural_assessor/neural_assessor_system_prompt.txt"
+neural_assessor_thinking_helper_dir: "mars_steg/prompts/neural_assessor/neural_assessor_price_thinking_helper.txt"
+
+# Neural Overseer
+neural_overseer_system_prompt_dir: "mars_steg/prompts/neural_overseer/system_prompt.txt"
+neural_overseer_user_prompt_template_dir: "mars_steg/prompts/neural_overseer/user_prompt_template_collusion_detector_float.txt"
+neural_overseer_thinking_helper_dir: "mars_steg/prompts/neural_overseer/neural_overseer_price_thinking_helper.txt"
+

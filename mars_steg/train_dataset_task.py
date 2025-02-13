@@ -210,14 +210,18 @@ if __name__ == "__main__":
 
             # Penalise CoT - imbue relevant information to PromptData's
             if isinstance(train_dataset.language_aspect, NeuralOverseer):
-                extracted_batch_prompt_datas_with_nos = train_dataset.language_aspect.get_overseer_generated_answers(extracted_batch_prompt_datas)
+                extracted_batch_prompt_datas_with_nos = train_dataset.language_aspect.get_overseer_generated_answers(
+                    extracted_batch_prompt_datas, 
+                    neural_overseer_thinking_helper = prompt_config.neural_overseer_thinking_helper)
             else:
                 # get_task_score will do a hard string check
                 extracted_batch_prompt_datas_with_nos = extracted_batch_prompt_datas
 
             # Reward final answer - imbue relevant information to PromptData's
             if train_dataset.uses_local_neural_assessor:
-                extracted_batch_prompt_datas_with_nos_and_na = train_dataset.neural_assessor_from_batch_prompt_data(extracted_batch_prompt_datas_with_nos, from_cot_prompt = True)
+                extracted_batch_prompt_datas_with_nos_and_na = train_dataset.neural_assessor_from_batch_prompt_data(
+                    extracted_batch_prompt_datas_with_nos, from_cot_prompt = True, 
+                    neural_assesor_thinking_helper = prompt_config.neural_assessor_thinking_helper)
             else:
                 # get_language_score will do a hard string check
                 extracted_batch_prompt_datas_with_nos_and_na = extracted_batch_prompt_datas_with_nos

@@ -101,7 +101,14 @@ if __name__ == "__main__":
         ]
     )
 
-    pruned_batch_prompt_data = neural_assessor.get_assessor_generated_answers(batch_prompt_data, [true_answer], with_cot=True)
+    pruned_batch_prompt_data = neural_assessor.get_assessor_generated_answers(
+        batch_prompt_data, 
+        [true_answer], 
+        with_cot=True,
+        neural_assessor_thinking_helper=prompt_config.neural_assessor_thinking_helper)
+    
+    print(pruned_batch_prompt_data)
+
     print(pruned_batch_prompt_data.extracted_assessor_answers[0])
 
     print(extract_floatingpoint_overseer_or_assessor_answer(pruned_batch_prompt_data.extracted_assessor_answers[0]))

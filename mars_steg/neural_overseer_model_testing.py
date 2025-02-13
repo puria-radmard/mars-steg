@@ -9,6 +9,7 @@ from mars_steg.utils.answer_extraction import extract_floatingpoint_overseer_or_
 
 
 from mars_steg.utils.common import (
+    get_dataloaders_and_ref_model,
     get_optimizer,
     get_tokenizer,
     get_model,
@@ -63,6 +64,20 @@ generation_config.pad_token_id= tokenizer.eos_token_id
 model = get_model(model_config, tokenizer, output_delimitation_tokens, generation_config, device)
 optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
 
+train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader, ref_model = get_dataloaders_and_ref_model(
+    dataset_class_name = experiment_args.dataset_class_name,
+    penalisation_class_name = experiment_args.penalisation_class_name,
+    prompt_config = prompt_config,
+    dataset_class_kwargs = experiment_args.dataset_class_kwargs,
+    penalisation_class_kwargs = experiment_args.penalisation_class_kwargs,
+    train_proportion = train_config.train_proportion,
+    validation_proportion = train_config.validation_proportion,
+    batch_size = train_config.batch_size,
+    training_model = model,
+    override_create_ref_model = train_config.create_ref_model,
+    number_shared_layers_for_ref_model = train_config.number_shared_layers_for_ref_model
+)
+
 generation_kwargs = generation_config.to_dict()
 
 #random number generator
@@ -100,7 +115,11 @@ if __name__ == "__main__":
         ]
     )
 
-    pruned_batch_prompt_data = neural_overseer.get_overseer_generated_answers(batch_prompt_data, [true_answer], with_cot=True)
+    pruned_batch_prompt_data =  train_dataset.language_aspect.get_overseer_generated_answers(
+                    batch_prompt_data, 
+                    neural_overseer_thinking_helper = prompt_config.neural_overseer_thinking_helper)
+    
+    print(pruned_batch_prompt_data)
 
     print(pruned_batch_prompt_data.extracted_overseer_answers[0])
 
