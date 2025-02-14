@@ -47,4 +47,4 @@ Generation:
   max_new_tokens: 8096
   return_prompt: False
   generate_ref_response: False
-  use_cache: False
+  use_cache: True

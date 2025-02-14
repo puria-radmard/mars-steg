@@ -172,6 +172,7 @@ if __name__ == "__main__":
         for batch_prompt_datas in tqdm(train_loader):
 
             batch_prompt_datas: BatchPromptData
+            print(batch_prompt_datas)
             
             batch_messages = model.batchize_conversation(
                 user_prompts= batch_prompt_datas.cot_prompts, 
