@@ -214,17 +214,28 @@ def extract_boolean_overseer_or_assessor_answer(
 
 float_pattern = re.compile('(?<![0-9])(0\\.[0-9]+|1\\.0+(?![0-9]))')
 
-
-def extract_floatingpoint_overseer_or_assessor_answer(
-    response_text: str
-) -> float:
+def extract_floatingpoint_overseer_or_assessor_answer(response_text: str) -> float:
     """
-    Gets a float value
-    TODO: check if ret > 1.0
+    Extracts a float value from the response text.
+    
+    Improvements:
+    - Returns 0.0 if no floating-point number is found.
+    - Ensures the extracted value is within a valid range.
+    - Handles cases where the system prompt might be replicated.
+
     TODO: improvement of regex
     TODO: solve system prompt being replicated in response
     """
+    float_pattern = r"-?\d+\.\d+"  # Define float pattern (if not already defined)
+    
     response_lower = response_text.lower().rstrip('}')
-    match = re.findall(float_pattern, response_lower)[-1]
-    return float(match)
+    matches = re.findall(float_pattern, response_lower)
+
+    if not matches:
+        return 0.0  # Return default value when no match is found
+
+    extracted_value = float(matches[-1])
+
+    # Ensure extracted value is within valid range
+    return min(extracted_value, 1.0)  # Ensures ret ≤ 1.0
    

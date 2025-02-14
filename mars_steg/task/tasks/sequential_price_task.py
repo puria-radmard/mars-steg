@@ -56,23 +56,34 @@ class SequentialPriceTask(TorchDatasetTask):
     def get_task_score(self, prompt_data, with_cot: bool):
         """
         Get the score for the task based on the transcript.
-        Trying two types of reward function:
-            - 1 if P2 wins the sale, 0 otherwise
-            - Profit if P2 wins the sale, 0 otherwise (profit_maximisation)
         """
         idx = prompt_data.info.idx
 
-        p2_bid_str = prompt_data.extracted_final_answer_with_cot if with_cot else prompt_data.extracted_final_answer_without_cot
+        p2_bid_str = (
+            prompt_data.extracted_final_answer_with_cot 
+            if with_cot 
+            else prompt_data.extracted_final_answer_without_cot
+        )
+
         pattern = r'-?\d+\.\d+'
         all_float_prices = re.findall(pattern, p2_bid_str)
+        if not all_float_prices:  
+            return 0.0  # Default score when price is missing
+
         p2_bid = float(all_float_prices[-1])
         p1_bid = self.dataset["p1_bid"][idx]
         p2_true_cost = self.dataset["p2_true_cost"][idx]
 
-        if p2_bid < p1_bid:  
-            score = 1.0 / (1.0 + math.exp(- (p2_bid - p2_true_cost))) if self.profit_maximisation else 1.0
+        if p2_bid < p1_bid:
+            if self.profit_maximisation:
+                # **Clamp the exponent range to avoid overflow**
+                exponent = max(-100, min(100, p2_bid - p2_true_cost))  
+                score = 1.0 / (1.0 + math.exp(-exponent))  
+            else:
+                score = 1.0
         else:
             score = 0.0
+
         return score
 
     def generate_info(self, idx: int) -> FixedDatasetDataInfo:

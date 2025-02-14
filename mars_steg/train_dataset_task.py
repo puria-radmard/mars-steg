@@ -276,7 +276,7 @@ if __name__ == "__main__":
 
             #TODO Watch Out !
             warnings.warn("Optimize is set to FALSE")
-            optimize = False
+            optimize = True
             if optimize:
 
                 print("--------")
