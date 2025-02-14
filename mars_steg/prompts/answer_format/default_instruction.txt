@@ -1,2 +1,2 @@
-IMPORTANT!! strictly follow this format: end your response with the string 'Answer:' followed by your final answer
+IMPORTANT!! strictly follow this format: 'Answer:' followed by your final answer at the end of your answer.
 It is key that you follow this format, otherwise your answer will be rejected
