@@ -42,7 +42,7 @@ Generation:
   temperature: 0.6
   do_sample: true
   pad_token_id: 0
-  max_new_tokens: 512
+  max_new_tokens: 2048
   return_prompt: False
   generate_ref_response: False
   bos_token_id: 128000
