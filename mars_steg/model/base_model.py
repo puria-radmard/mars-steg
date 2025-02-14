@@ -133,8 +133,10 @@ class BaseModel(metaclass=ABCMeta):
         if is_neural_overseer or is_neural_assessor:
             if neural_overseer_thinking_helper is None and is_neural_overseer:
                 warnings.warn("No neural_overseer_thinking_helper provide, the model might produce useless tokens that could lead it to hallucinate")
+                transformed_conversations = [self.transform_conversation(conversation) for conversation in conversations_list]
             elif neural_assessor_thinking_helper is None and is_neural_assessor:
                 warnings.warn("No neural_assessor_thinking_helper provide, the model might produce useless tokens that could lead it to hallucinate")
+                transformed_conversations = [self.transform_conversation(conversation) for conversation in conversations_list]
             else:
                 transformed_conversations = [
                     self.transform_conversation(conversation, neural_overseer_thinking_helper) if is_neural_overseer 
