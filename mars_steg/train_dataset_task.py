@@ -273,6 +273,9 @@ if __name__ == "__main__":
             print("--------")
 
             # XXX: Stop here to test loop
+
+            #TODO Watch Out !
+            warnings.warn("Optimize is set to FALSE")
             optimize = False
             if optimize:
 
