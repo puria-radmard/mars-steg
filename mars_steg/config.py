@@ -124,7 +124,8 @@ class PromptConfig:
     def __getattribute__(self, __name: str):
 
         ret = super().__getattribute__(__name)
-        if (ret == None) and ('token' not in __name):
+        #TODO Check if it's right to have added the last bool condition -> returns None if we haven't set up a directory to the token, otherwise it raises an error
+        if (ret == None) and ('token' not in __name) and (super().__getattribute__(__name + "_dir") is not None):
             raise ValueError(f'PromptConfig not given a {__name} field')
 
         return ret

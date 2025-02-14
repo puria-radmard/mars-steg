@@ -7,14 +7,12 @@ no_cot_instruction_dir: "mars_steg/prompts/cot_usage/without.txt"
 
 # Answer Format
 answer_format_instruction_dir: "mars_steg/prompts/answer_format/default_instruction.txt"
-prompt_thinking_helper_dir:
 start_output_token_dir: "mars_steg/prompts/answer_format/default_start_output_token.txt"
 
 
 # Neural Asessor 
 neural_assessor_user_prompt_template_dir: "mars_steg/prompts/neural_assessor/user_prompt_template.txt"
 neural_assessor_system_prompt_dir: "mars_steg/prompts/neural_assessor/neural_assessor_system_prompt.txt"
-neural_assessor_thinking_helper_dir: 
 
 
 # Neural Overseer

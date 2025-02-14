@@ -217,8 +217,9 @@ if __name__ == "__main__":
             # Reward final answer - imbue relevant information to PromptData's
             if train_dataset.uses_local_neural_assessor:
                 extracted_batch_prompt_datas_with_nos_and_na = train_dataset.neural_assessor_from_batch_prompt_data(
-                    extracted_batch_prompt_datas_with_nos, from_cot_prompt = True, 
-                    neural_assesor_thinking_helper = prompt_config.neural_assessor_thinking_helper)
+                    extracted_batch_prompt_datas_with_nos, 
+                    from_cot_prompt = True, 
+                    neural_assessor_thinking_helper = prompt_config.neural_assessor_thinking_helper)
             else:
                 # get_language_score will do a hard string check
                 extracted_batch_prompt_datas_with_nos_and_na = extracted_batch_prompt_datas_with_nos
