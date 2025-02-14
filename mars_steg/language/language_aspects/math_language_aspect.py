@@ -22,6 +22,6 @@ class EqualsSign(LanguageAspect):
         # We want to drive down the number of equals signs
         # We will punish based on use up to a maximum number of times
         n_equals_signs = min(n_equals_signs, self.max_freq)
-        language_score = float(n_equals_signs / self.max_freq)
-        return language_score
+        language_penality = float(n_equals_signs / self.max_freq)
+        return  1 - language_penality
 

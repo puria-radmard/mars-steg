@@ -72,6 +72,9 @@ class PromptConfig:
     # TODO: Absorb the answer format instructions in system_prompt in mars_steg/task/tasks/math_dataset_task.py
     answer_format_instruction_dir: Optional[str] = None
     answer_format_instruction: Optional[str] = None
+    prompt_thinking_helper_dir: Optional[str] = None
+    prompt_thinking_helper: Optional[str] = None
+
 
     neural_overseer_user_prompt_template_dir: Optional[str] = None
     neural_overseer_user_prompt_template: Optional[str] = None

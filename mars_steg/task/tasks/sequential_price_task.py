@@ -6,6 +6,7 @@ from mars_steg.utils.prompt_data import (
     FixedDatasetDataInfo,
     PromptData,
 )
+import regex as re
 from mars_steg.utils.answer_extraction import extract_floatingpoint_overseer_or_assessor_answer
 
 from mars_steg.language.language_aspects.sequential_price_language_aspect import (
@@ -26,7 +27,7 @@ class SequentialPriceTask(TorchDatasetTask):
         dataset,
         language_aspect,
         uses_local_neural_assessor,
-        prompt_config,
+        prompt_config: PromptConfig,
         profit_maximisation=True, # <- may depend on prompt config (i.e., do we say in prompt "Maximise Profit" or just "Win the sale")
     ):
         super().__init__(dataset=dataset, 
@@ -62,7 +63,9 @@ class SequentialPriceTask(TorchDatasetTask):
         idx = prompt_data.info.idx
 
         p2_bid_str = prompt_data.extracted_final_answer_with_cot if with_cot else prompt_data.extracted_final_answer_without_cot
-        p2_bid = float(p2_bid_str.replace('$', '').replace(',', '').strip())
+        pattern = r'-?\d+\.\d+'
+        all_float_prices = re.findall(pattern, p2_bid_str)
+        p2_bid = float(all_float_prices[-1])
         p1_bid = self.dataset["p1_bid"][idx]
         p2_true_cost = self.dataset["p2_true_cost"][idx]
 

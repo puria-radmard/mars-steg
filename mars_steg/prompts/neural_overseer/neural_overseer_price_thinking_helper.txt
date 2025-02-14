@@ -1,0 +1,2 @@
+<think> 
+Okay, I need to determine if P2 used P1's information to propose his price. I will give the direct answer in decimal values ranging from 0.0 to 1.0.

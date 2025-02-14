@@ -155,7 +155,7 @@ class Task(metaclass=ABCMeta):
         """
 
         # Reward for task success; penalise for use of language aspect
-        r = t_weight * task_score + l_weight * (1 - language_score)
+        r = t_weight * task_score + l_weight * language_score
 
         # Weighted score normalised to range [0,1]
         r /= t_weight + l_weight

@@ -19,7 +19,7 @@ Optimizer:
 Train:
   log_with: null  # Use 'wandb' to log with wandb
   mini_batch_size: 1  # The PPO minibatch size
-  batch_size: 4 # The batch size
+  batch_size: 2 # The batch size
   gradient_accumulation_steps: 1  # The number of gradient accumulation steps
   seed: 42  # The seed for reproducibility
   num_train_epochs: 10  # The number of training epochs
@@ -37,11 +37,17 @@ Train:
 Generation:
   min_length: 0
   # top_k: 0.0
-  # top_p: 0.0
+  top_p: 0.9
   num_beams: 2
-  # temperature: 0.3
-  do_sample: false
+  temperature: 0.6
+  do_sample: true
   pad_token_id: 0
   max_new_tokens: 512
   return_prompt: False
   generate_ref_response: False
+  bos_token_id: 128000
+  eos_token_id:
+    - 128001
+    - 128008
+    - 128009
+  use_cache : False

@@ -177,14 +177,10 @@ if __name__ == "__main__":
                 user_prompts= batch_prompt_datas.cot_prompts, 
                 system_prompt=train_dataset.system_prompt,
             )
-            inputs = tokenizer.apply_chat_template(
-                batch_messages,
-                return_tensors="pt",
-                add_generation_prompt=True,
-                return_dict=True,
-                padding=True,
-                truncation=True,
-            )
+
+            transformed_batch_conversation = [model.transform_conversation(conversation, prompt_config.prompt_thinking_helper) for conversation in batch_messages]
+
+            inputs = model.tokenize(transformed_batch_conversation)
 
             # Move the tokenized inputs to the same device the model is on (GPU/CPU)
             inputs = {key: tensor.to(device) for key, tensor in inputs.items()}
@@ -276,7 +272,7 @@ if __name__ == "__main__":
             print("--------")
 
             # XXX: Stop here to test loop
-
+            optimize = False
             if optimize:
 
                 print("--------")
@@ -293,6 +289,11 @@ if __name__ == "__main__":
                 print("--------")
                 print("Logging stats")
                 print("--------")
+                
+                #IMPORTANT OR THE LOG_STATS FAILS
+                inputs["query"] = batch_prompt_datas.cot_prompts
+                inputs["response"] = batch_prompt_datas.cot_transcripts
+
                 ppo_trainer.log_stats(
                     stats,
                     inputs,

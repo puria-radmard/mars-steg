@@ -88,6 +88,14 @@ class BaseModel(metaclass=ABCMeta):
     def get_message(self, user_string: str, system_prompt: str) -> Dict:
         pass
 
+    @abstractmethod
+    def transform_conversation(self, conversations_list: Conversation, prompt_thinking_helper: Optional[str] = None) -> Conversation:
+        pass
+
+    @abstractmethod
+    def tokenize(self, conversations_list: Conversation | List[List[str]]) -> List[Dict[str, torch.TensorType]]:
+        pass
+
     def batchize_conversation(
         self, user_prompts: Conversation, system_prompt: Optional[str] = None,
     ):
@@ -115,21 +123,29 @@ class BaseModel(metaclass=ABCMeta):
             ]
         return batch_messages
 
-    def full_generate(self, conversations_list: Conversation):
+    def full_generate(self, 
+                      conversations_list: Conversation | List[List[str]], 
+                      is_neural_assessor: bool = False, 
+                      is_neural_overseer: bool = False, 
+                      neural_assessor_thinking_helper: str = None,
+                      neural_overseer_thinking_helper: str = None):
 
-        # import pdb; pdb.set_trace(header = 'Check every possible prompt - make sure it has all the nec. components!')
-
-        inputs = self.tokenizer.apply_chat_template(
-            conversations_list,
-            return_tensors="pt",
-            add_generation_prompt=True,
-            return_dict=True,
-            padding=True,
-            truncation=True,
-        )
+        if is_neural_overseer or is_neural_assessor:
+            if neural_overseer_thinking_helper is None and is_neural_overseer:
+                warnings.warn("No neural_overseer_thinking_helper provide, the model might produce useless tokens that could lead it to hallucinate")
+            elif neural_assessor_thinking_helper is None and is_neural_assessor:
+                warnings.warn("No neural_assessor_thinking_helper provide, the model might produce useless tokens that could lead it to hallucinate")
+            else:
+                transformed_conversations = [
+                    self.transform_conversation(conversation, neural_overseer_thinking_helper) if is_neural_overseer 
+                    else self.transform_conversation(conversation,neural_assessor_thinking_helper)  
+                    for conversation in conversations_list
+                    ]
+        else:
+            transformed_conversations = [self.transform_conversation(conversation) for conversation in conversations_list]
+        inputs = self.tokenize(conversations_list=transformed_conversations)
         inputs = {key: tensor.to(self.device) for key, tensor in inputs.items()}
 
-        # create a new dict without ['return_prompt', 'generate_ref_response', 'batch_size'] keys
         generation_kwargs = self.generation_config.to_generation_dict()
         {k: v for k, v in self.generation_config.to_dict().items() if k not in ['return_prompt', 'generate_ref_response', 'batch_size']}
 
@@ -141,6 +157,4 @@ class BaseModel(metaclass=ABCMeta):
             # TODO: self.tokenizer.decode(r.squeeze()[prompt_length:]) for prompt_length, r in zip(prompt_lengths, outputs)
             self.tokenizer.decode(r.squeeze()) for r in outputs
         ]
-
-
         return decoded_responses

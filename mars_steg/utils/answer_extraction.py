@@ -109,11 +109,16 @@ def parse_model_output(model_output: str, output_delimitation_tokens: Dict[str, 
             chain_of_thought = None
 
     elif start_scratchpad_token and end_scratchpad_token and not (start_output_token or end_output_token):
-        print("Hello")
 
         scratchpad_start = model_output.find(start_scratchpad_token)
         scratchpad_end = model_output.find(end_scratchpad_token)
         output = extract_section(scratchpad_end,end_scratchpad_token, len(model_output), model_output)
+
+        if scratchpad_start == -1:
+            warnings.warn(f"{start_scratchpad_token} not found in the decoded answer, might be in thinking helper. If not, stop the training process RIGHT NOW")
+            scratchpad_start = 0
+            start_scratchpad_token = ""
+            
 
         # Extract the scratchpad reasoning
         chain_of_thought = None

@@ -8,6 +8,7 @@ no_cot_instruction_dir: "mars_steg/prompts/cot_usage/without.txt"
 
 # Answer Format
 answer_format_instruction_dir: "mars_steg/prompts/answer_format/default_instruction.txt"
+prompt_thinking_helper_dir: "mars_steg/prompts/answer_format/thinking_helper_price_llama.txt"
 start_output_token_dir: "mars_steg/prompts/answer_format/default_start_output_token.txt"
 
 # Neural Asessor (not in use for price game)
@@ -17,5 +18,6 @@ neural_assessor_system_prompt_dir: "mars_steg/prompts/neural_assessor/neural_ass
 # Neural Overseer
 neural_overseer_system_prompt_dir: "mars_steg/prompts/neural_overseer/system_prompt.txt"
 neural_overseer_user_prompt_template_dir: "mars_steg/prompts/neural_overseer/user_prompt_template_collusion_detector_float.txt"
+neural_overseer_thinking_helper_dir: "mars_steg/prompts/neural_overseer/neural_overseer_price_thinking_helper_llama.txt"
 
 

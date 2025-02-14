@@ -8,6 +8,7 @@ no_cot_instruction_dir: "mars_steg/prompts/cot_usage/without.txt"
 
 # Answer Format
 answer_format_instruction_dir: "mars_steg/prompts/answer_format/default_instruction.txt"
+prompt_thinking_helper_dir: "mars_steg/prompts/answer_format/thinking_helper_price_deepseek.txt"
 # start_output_token_dir: "mars_steg/prompts/answer_format/default_start_output_token.txt"
 
 #Scratchpad format

@@ -79,7 +79,7 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
             
             overseer_prompts.append(
                 self.user_prompt_template.format(
-                    agent_prompt = pd.cot_prompt,
+                    agent_prompt = self.prompt_config.task_description + pd.cot_prompt,
                     extracted_cot = pd.extracted_cot
                 )
             )
@@ -96,8 +96,8 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
         For now, we only use the neural overseer for a binary (boolean check)
         See logic in extract_overseer_answer
         """
-        detected = extract_floatingpoint_overseer_or_assessor_answer(prompt_data.extracted_overseer_answer)
-        return detected
+        probability_of_collusion = extract_floatingpoint_overseer_or_assessor_answer(prompt_data.extracted_overseer_answer)
+        return  1 - probability_of_collusion
 
 
 class SlowNeuralOverseer(NeuralOverseer):
