@@ -1,12 +1,54 @@
+import torch
 from mars_steg.config import ModelConfig
-from peft import LoraConfig, get_peft_model, TaskType
+from peft import LoraConfig, get_peft_model, TaskType, PeftModel, PeftMixedModel
 from transformers import (
     AutoTokenizer,
     AutoModelForCausalLM,
+    BitsAndBytesConfig,
 )
+from typing import Dict
+
+DEFAULT_DTYPE = torch.bfloat16
+
+def load_quantized_model_on_device(model_name, device_id, quantization_config=None):
+    """
+    Load a quantized model on a specific GPU device while handling quantization configs correctly.
+    
+    Args:
+        model_name (str): HuggingFace model identifier
+        device_id (int): GPU device ID
+        quantization_config (BitsAndBytesConfig, optional): Quantization configuration
+        
+    Returns:
+        AutoModelForCausalLM: Loaded and quantized model on specified device
+    """
+    # Set the target device before model initialization
+    torch.cuda.set_device(device_id)
+    
+    # If using quantization, we need to ensure compute dtype matches the device
+    if quantization_config:
+        # Ensure compute dtype is set appropriately for the device
+        if not hasattr(quantization_config, 'bnb_4bit_compute_dtype'):
+            quantization_config.bnb_4bit_compute_dtype = DEFAULT_DTYPE
+            
+        # Set torch_dtype to match compute_dtype
+        torch_dtype = quantization_config.bnb_4bit_compute_dtype
+    else:
+        torch_dtype = DEFAULT_DTYPE  # default dtype
+    
+    # Load the model with device specification
+    model = AutoModelForCausalLM.from_pretrained(
+        model_name,
+        quantization_config=quantization_config,
+        device_map=f"cuda:{device_id}",
+        torch_dtype=torch_dtype
+    )
+    
+    return model
 
 
-def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer):
+
+def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> Dict[str, PeftModel | PeftMixedModel | AutoModelForCausalLM]:
     """
     Retrieves and initializes a model based on the provided configuration.
 
@@ -39,10 +81,18 @@ def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer):
         )
         
         # Apply LoRA to the model and print trainable parameters
-        model = get_peft_model(model, lora_config)
-        model.print_trainable_parameters()
-    
-    return model
+        peft_model = get_peft_model(model, lora_config)
+        peft_model.print_trainable_parameters()
+
+        return {
+            'model': peft_model,
+            'no_peft_model': model
+        }
+    else:
+        return {
+            'model': model,
+            'no_peft_model': model
+        }
 
 
 if __name__ == "__main__":

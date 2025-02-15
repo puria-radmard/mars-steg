@@ -20,9 +20,6 @@ See Also:
 - mars_steg.utils.common.prompt_data.BatchPromptData
 - mars_steg.task
 - mars_steg.language
-
-
-
 """
 
 from __future__ import annotations

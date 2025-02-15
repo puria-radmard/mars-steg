@@ -60,13 +60,13 @@ class DeepSeek_R1_1pt5B(BaseModel):
         return {"role": user_string, "content": f"{system_prompt}"}
     
     def tokenize(self, conversations_list: List[List[str]]) -> List[Dict[str, torch.TensorType]]:
-            return self.tokenizer(
-                conversations_list,
-                return_tensors="pt",
-                padding=True,
-                truncation=True,
-            ).to(self.device)
-    
+        return self.tokenizer(
+            conversations_list,
+            return_tensors="pt",
+            padding=True,
+            truncation=True,
+        ).to(self.device)
+
     @staticmethod
     def transform_conversation(conversations_list: Conversation, prompt_thinking_helper: Optional[str] = None):
         """
