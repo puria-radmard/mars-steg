@@ -384,7 +384,7 @@ def get_rewards_and_training_datas(
             composite_reward, task_score, language_score = train_dataset.reward_from_transcript(
                 prompt_data, skipping_failed_parsing_examples
             )
-        except (LLMTranscriptExtractionError, ValueError):      # XXX: 20250212 - new error type?
+        except (LLMTranscriptExtractionError, ValueError):
             if not skipping_failed_parsing_examples:
                 composite_reward = -1.0
                 task_score = 0.0

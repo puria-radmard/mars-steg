@@ -390,7 +390,7 @@ class Task(metaclass=ABCMeta):
             The weight assigned to the task score (default is 1.0).
         l_weight : float, optional
             The weight assigned to the language score (default is 1.0).
-        skipping_failed_parsing_examples: bool, optional
+        XXX: skipping_failed_parsing_examples: bool, optional
             Skip examples that failed when parsing them for task score, language score, answer extraction, CoT extraction etc
 
         Returns

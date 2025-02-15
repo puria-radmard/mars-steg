@@ -426,7 +426,6 @@ def extract_boolean_overseer_or_assessor_answer(
     rfind_false = response_lower.rfind('false')
     if rfind_true == rfind_false:
         raise LLMTranscriptExtractionError(f'Neural overseer did not return a TRUE or FALSE token at the end of its response: \n\n{response_text}')
-        raise LLMTranscriptExtractionError(f'Neural overseer did not return a TRUE or FALSE token at the end of its response: \n\n{response_text}')
     return 1.0 if bool(rfind_true > rfind_false) else 0.0
 
 
@@ -434,7 +433,6 @@ float_pattern = re.compile('(?<![0-9])(0\\.[0-9]*|1\\.0*(?![0-9])|1(?![0-9]|\\.)
 
 def extract_floatingpoint_overseer_or_assessor_answer(
     response_text: str,
-    
 ) -> float:
     """
     For cases where the answer given by a model is given as a float in range [0,1]. 
