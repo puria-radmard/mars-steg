@@ -256,11 +256,9 @@ if __name__ == "__main__":
             
             batch_prompt_datas.log_to_wandb()
 
-
             # After all that answer/CoT extraction, it might have completely failed, so we can skip everything below entirely
             if len(extracted_batch_prompt_datas_with_nos_and_na) == 0:
-                optimize = True                                                                 # XXX: 20250212 - always optimise
-                warnings.warn("All examples failed to parse. Skipping everything below")
+                warnings.warn("All examples failed to parse. Penalised for all examples below")
                 continue
 
             # Might have partially failed...
@@ -270,12 +268,10 @@ if __name__ == "__main__":
                     f"Failed to parse {num_examples_failed} examples out of {len(decoded_responses)}"
                 )
                 warnings.warn("Optimizing model with the rest of the examples (removing the failed examples)")
-                optimize = True
 
             # Might have completely worked!
             else:
                 print("All examples parsed successfully")
-                optimize = True
 
             # Extract rewards
             composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses = \
@@ -289,7 +285,6 @@ if __name__ == "__main__":
 
             if len(composite_reward_list) == 0:
                 warnings.warn("All feedbacks failed to parse. Skipping actual training")
-                optimize = False
 
 
             print("--------")
