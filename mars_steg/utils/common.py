@@ -11,6 +11,7 @@ from typing import List, Tuple
 from tqdm import tqdm
 from transformers import AutoTokenizer
 from mars_steg.config import ModelConfig, OptimizerConfig, PromptConfig, GenerationConfig
+from mars_steg.utils.answer_extraction import extract_cots, extracts_no_cots, extract_floatingpoint_overseer_or_assessor_answer
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.utils.score import CoTGapSummary
 from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct, Llama_32_1B_Instruct, DeepSeek_R1_1pt5B
@@ -473,7 +474,6 @@ def evaluate_cot_gap_summary(
             batch_messages_with_cot = model_class.batchize_conversation(
                 system_prompt, batch_prompt_datas.cot_prompts
             )
-            raise NotImplementedError('Use BaseModel.full_generate!')
 
             batch_length = len(batch_messages_with_cot)
             batch_messages = batch_messages_with_cot + batch_messages_without_cot
@@ -504,34 +504,19 @@ def evaluate_cot_gap_summary(
 
             batch_prompt_datas.cot_transcripts = decoded_responses[:batch_length]
             batch_prompt_datas.no_cot_transcripts = decoded_responses[batch_length:]
-
-            # TODO: this
-            raise NotImplementedError('Need to incorporate neural assessor for rewards here!')
-
-            for prompt_data in batch_prompt_datas:
-                sum_examples += 1
-
-                try:
-                    # We don't actually need the CoT prompt
-                    _, prompt_data.extracted_final_answer_with_cot = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot = True)
-                    sum_extracted_with_cot += 1
-                    sum_reward_with_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=True)
-                except LLMTranscriptExtractionError:
-                    warnings.warn(f"Failed to parse: \n\n{prompt_data.cot_transcript}\n\n (with CoT) Skipping example")
-
-                try:
-                    _, prompt_data.extracted_final_answer_without_cot = parse_model_output(prompt_data.no_cot_transcript, output_delimitation_tokens, cot = False)
-                    sum_extracted_without_cot += 1
-                    sum_reward_without_cot += dataloader.dataset.get_task_score(prompt_data, with_cot=False)
-                except LLMTranscriptExtractionError:
-                    warnings.warn(f"Failed to parse: \n\n{prompt_data.no_cot_transcript}\n\n (without CoT) Skipping example")
+            extracted_batch_prompt_datas_with_cot = extract_cots(batch_prompt_datas, output_delimitation_tokens)
+            extracted_batch_prompt_datas_with_cot_and_without_cot = extracts_no_cots(extracted_batch_prompt_datas_with_cot, output_delimitation_tokens)
+            extracted_batch_prompt_datas_with_na_with_cot = dataloader.dataset.neural_assessor_from_batch_prompt_data(extracted_batch_prompt_datas_with_cot_and_without_cot, from_cot_prompt = True)
+            results_with_cot = [extract_floatingpoint_overseer_or_assessor_answer(prompt_data.extracted_assessor_answer) for prompt_data in extracted_batch_prompt_datas_with_na_with_cot]
+            extracted_batch_prompt_datas_with_na_without_cot = dataloader.dataset.neural_assessor_from_batch_prompt_data(batch_prompt_datas, from_cot_prompt = False)
+            results_without_cot = [extract_floatingpoint_overseer_or_assessor_answer(prompt_data.extracted_assessor_answer) for prompt_data in extracted_batch_prompt_datas_with_na_without_cot]
 
             cot_gap = CoTGapSummary(
-                sum_examples,
-                sum_extracted_with_cot,
-                sum_extracted_without_cot,
-                sum_reward_with_cot,
-                sum_reward_without_cot,
+                sum_examples = len(batch_prompt_datas),
+                sum_extracted_with_cot = len(results_with_cot) ,
+                sum_extracted_without_cot = len(results_without_cot),
+                sum_reward_with_cot = sum(results_with_cot),
+                sum_reward_without_cot = sum(results_without_cot),
             )
 
             print(cot_gap.summary)
