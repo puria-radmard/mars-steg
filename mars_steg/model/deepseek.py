@@ -23,6 +23,20 @@ class DeepSeek_R1_1pt5B(BaseModel):
         Generates responses for a list of conversations using the model.
     """
     
+    """
+    A subclass of BaseModel that implements specific methods for handling 
+    conversation data and generating responses using a model.
+
+    Methods
+    -------
+    get_message(user_string: str, system_prompt: str) -> Dict
+        Formats a message based on the user string and system prompt.
+    transform_conversation(conversations_list: Conversation) -> str
+        Transforms a list of conversations into a single formatted string.
+    full_generate(conversations_list: Conversation) -> List[str]
+        Generates responses for a list of conversations using the model.
+    """
+    
     def get_message(self, user_string: str, system_prompt: str) -> Dict:
         """
         Generates a message dictionary based on the user string and system prompt. 
