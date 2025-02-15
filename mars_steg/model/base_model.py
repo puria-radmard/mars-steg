@@ -185,14 +185,13 @@ class BaseModel(metaclass=ABCMeta):
         self.model_save_path = model_config.model_save_path
         self.output_delimitation_tokens = output_delimitation_tokens
         self.generation_config = generation_config
+        self.device = device
         if model is not None:
             self.model = model
         else:
-            self.model = self.load_model()
-        self.device = device
-        self.model.to(device)
+            self.model = self.load_model(device)
 
-    def load_model(self):
+    def load_model(self, device):
         """
         Loads the model based on configuration.
 
@@ -233,12 +232,14 @@ class BaseModel(metaclass=ABCMeta):
                 peft_config=lora_config,
                 torch_dtype=torch.bfloat16,
                 quantization_config=quantization_config,
+                device_map=device,
             )
         else:
             model = AutoModelForCausalLM.from_pretrained(
                 self.model_name,
                 torch_dtype=torch.bfloat16,
                 quantization_config=quantization_config,
+                device_map=device,
             )
         return model
     
@@ -253,7 +254,7 @@ class BaseModel(metaclass=ABCMeta):
         print(f"Model loaded in {self.precission_mode} mode")
         print("------------------")
     
-    def duplicate(self, whitebox_model, device):
+    def duplicate(self, whitebox_model: Optional[AutoModelForCausalLM], device):
         """
         Creates a duplicate of the current model, sharing the same configuration 
         but with a new model instance. The model is set to evaluation mode and 
@@ -290,7 +291,7 @@ class BaseModel(metaclass=ABCMeta):
             tokenizer=self.tokenizer,
             output_delimitation_tokens = self.output_delimitation_tokens,
             generation_config = self.generation_config,
-            model=whitebox_model if whitebox_model is not None else None,
+            model = whitebox_model,
             device = device
         )
 

@@ -131,14 +131,21 @@ def get_dataloaders_and_ref_model(
 
     if language_aspect_class.uses_local_neural_overseer:
         if neural_overseer_model is None:
-            neural_overseer: BaseModel = training_model.duplicate(reference_model, device_map["overseer"])
+            # XXX: 2025.02.15 FIND A WAY TO MOVE QUANTISED MODELS (WHICH MAY OR MAY NOT BE IN PEFT) OVER TO ANOTHER DEVICE // 
+            # neural_overseer: BaseModel = training_model.duplicate(reference_model, device_map["overseer"])
+            neural_overseer: BaseModel = training_model.duplicate(None, device_map["overseer"])
         else:
             neural_overseer = neural_overseer_model.eval()
         language_aspect_class.recruit_neural_overseer(neural_overseer)    
 
     if task_class.uses_local_neural_assessor:
         if neural_assessor_model is None:
-            neural_assessor: BaseModel = training_model.duplicate(reference_model, device_map["assessor"])
+            # XXX: 2025.02.15 FIND A WAY TO MOVE QUANTISED MODELS (WHICH MAY OR MAY NOT BE IN PEFT) OVER TO ANOTHER DEVICE // 
+            # neural_assessor: BaseModel = training_model.duplicate(reference_model, device_map["assessor"])
+            neural_assessor: BaseModel = training_model.duplicate(
+                neural_overseer if language_aspect_class.uses_local_neural_overseer else None,
+                device_map["assessor"]
+            )
         else:
             neural_assessor = neural_assessor_model.eval()
         task_class.recruit_neural_assessor(neural_assessor)   
@@ -328,7 +335,7 @@ def get_device_map() -> Dict[str, str]:
         # Everything goes on the same GPU
         device_map.update({
             'ref_model': 'cuda:0',
-            'overseer': 'cuda:0',
+            'overseer': 'cuda:0',   # These two should always be on the same device!
             'assessor': 'cuda:0'
         })
     
