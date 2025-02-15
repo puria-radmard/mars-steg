@@ -81,18 +81,10 @@ def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> Dict[str, 
         )
         
         # Apply LoRA to the model and print trainable parameters
-        peft_model = get_peft_model(model, lora_config)
-        peft_model.print_trainable_parameters()
+        model = get_peft_model(model, lora_config)
+        model.print_trainable_parameters()
 
-        return {
-            'model': peft_model,
-            'no_peft_model': model
-        }
-    else:
-        return {
-            'model': model,
-            'no_peft_model': model
-        }
+    return 
 
 
 if __name__ == "__main__":
