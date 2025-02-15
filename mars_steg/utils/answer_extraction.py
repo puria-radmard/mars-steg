@@ -415,7 +415,8 @@ def extract_boolean_overseer_or_assessor_answer(
 float_pattern = re.compile('(?<![0-9])(0\\.[0-9]*|1\\.0*(?![0-9])|1(?![0-9]|\\.)|0(?![0-9]))')
 
 def extract_floatingpoint_overseer_or_assessor_answer(
-    response_text: str
+    response_text: str,
+    
 ) -> float:
     """
     For cases where the answer given by a model is given as a float in range [0,1]. 
@@ -430,33 +431,6 @@ def extract_floatingpoint_overseer_or_assessor_answer(
 
     TODO: check if ret > 1.0
     TODO: solve system prompt being replicated in response
-
-    Parameters
-    ----------
-    response_text : str
-        The response text from a model, which should contain a float in range [0-1].
-
-    Returns
-    -------
-    float
-        1.0 for TRUE or 0.0 for FALSE
-
-    Raises
-    ------
-    LLMTranscriptExtractionError
-        If no example of a float in range [0-1] is found in the string
-
-    Notes
-    -----
-    Relies on the float pattern above. 
-    This captures:
-    1) Any number with a '0', then a '.', and then zero or more digits, matching as many as possible. 
-    2) Any number with a '1', then a '.', and then zero or more '0's, matching as many as possible, but refusing if any digits follow which are not 0 (hence score > 1). 
-    3) A single solitary '0', refusing if it is followed by any further digits.
-    4) A single solitary '1', refusing if it is followed by any further digits, or a '.' (which would be covered by case 2) 
-
-    All cases 1-4 are also refused if they are PRECEDED by any other digits (i.e score > 10 when should be < 1)
-
 
     Parameters
     ----------

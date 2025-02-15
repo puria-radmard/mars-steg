@@ -386,6 +386,9 @@ class TrainConfig:
         Whether to evaluate the CoT gap.
     number_of_evaluations : int
         The number of evaluations.
+    skipping_failed_parsing_examples : bool
+        Skip examples that failed when parsing them for task score, language score, answer extraction, CoT extrcation etc
+
 
     Notes
     -----
@@ -410,7 +413,8 @@ class TrainConfig:
     number_shared_layers_for_ref_model: int
     create_ref_model: bool
     evaluate_cot_gap: bool
-    number_of_evaluations: int  
+    number_of_evaluations: int
+    skipping_failed_parsing_examples : bool  
 
 @dataclass
 class GenerationConfig:

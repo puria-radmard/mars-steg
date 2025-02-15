@@ -326,7 +326,8 @@ def get_rewards_and_training_datas(
         batch_prompt_datas: BatchPromptData, 
         query_tensors: List[t.TensorType], 
         transcript_responses: List[t.TensorType], 
-        train_dataset: TorchDatasetTask, 
+        train_dataset: TorchDatasetTask,
+        skipping_failed_parsing_examples: Optional[bool] = True,
         ) -> Tuple[List]:
     
     """
@@ -348,6 +349,8 @@ def get_rewards_and_training_datas(
         The original list of tensors generated in response to the inputs
     train_dataset : TorchDatasetTask
         The Task subclass describing the task the model is solving; in this case specifically that for the train dataset. 
+    skipping_failed_parsing_examples: bool
+        Skip examples that failed when parsing them for task score, language score, answer extraction, CoT extraction etc
 
 
     Returns
@@ -378,12 +381,15 @@ def get_rewards_and_training_datas(
 
         try:
             composite_reward, task_score, language_score = train_dataset.reward_from_transcript(
-                prompt_data,
+                prompt_data, skipping_failed_parsing_examples
             )
         except (LLMTranscriptExtractionError, ValueError):      # XXX: 20250212 - new error type?
-            composite_reward = -1.0
-            task_score = 0.0
-            language_score = 0.0
+            if not skipping_failed_parsing_examples:
+                composite_reward = -1.0
+                task_score = 0.0
+                language_score = 0.0
+            else:
+                continue
 
         composite_reward_list.append(t.tensor(composite_reward))
         task_score_list.append(task_score)

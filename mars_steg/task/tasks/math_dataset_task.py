@@ -135,7 +135,7 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
 
         return problem
 
-    def get_task_score(self, prompt_data: PromptData, with_cot: bool) -> float:
+    def get_task_score(self, prompt_data: PromptData, with_cot: bool, skipping_failed_parsing_examples: bool = True) -> float:
         """
         Computes the task success score based on the LLM's final answer.
 
@@ -145,6 +145,8 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
             The structured prompt data containing the model's responses.
         with_cot : bool
             Whether to evaluate the response generated with Chain-of-Thought (CoT).
+        skipping_failed_parsing_examples: bool
+            Skip examples that failed when parsing them for task score, language score, answer extraction, CoT extrcation etc
 
         Returns
         -------
