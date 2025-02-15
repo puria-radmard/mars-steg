@@ -48,7 +48,7 @@ def load_quantized_model_on_device(model_name, device_id, quantization_config=No
 
 
 
-def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> Dict[str, PeftModel | PeftMixedModel | AutoModelForCausalLM]:
+def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> PeftModel | PeftMixedModel | AutoModelForCausalLM:
     """
     Retrieves and initializes a model based on the provided configuration.
 
@@ -84,7 +84,7 @@ def get_model(model_config: ModelConfig, tokenizer: AutoTokenizer) -> Dict[str, 
         model = get_peft_model(model, lora_config)
         model.print_trainable_parameters()
 
-    return 
+    return model
 
 
 if __name__ == "__main__":
