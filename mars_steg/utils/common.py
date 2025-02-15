@@ -45,6 +45,7 @@ def get_dataloaders_and_ref_model(
     number_shared_layers_for_ref_model: Optional[int] = None,
     neural_overseer_model: Optional[BaseModel] = None,
     neural_assessor_model: Optional[BaseModel] = None,
+    device_map: Dict,
 ):
     """
 
@@ -130,14 +131,14 @@ def get_dataloaders_and_ref_model(
 
     if language_aspect_class.uses_local_neural_overseer:
         if neural_overseer_model is None:
-            neural_overseer: BaseModel = training_model.duplicate(reference_model)
+            neural_overseer: BaseModel = training_model.duplicate(reference_model, device_map["overseer"])
         else:
             neural_overseer = neural_overseer_model.eval()
         language_aspect_class.recruit_neural_overseer(neural_overseer)    
 
     if task_class.uses_local_neural_assessor:
         if neural_assessor_model is None:
-            neural_assessor: BaseModel = training_model.duplicate(reference_model)
+            neural_assessor: BaseModel = training_model.duplicate(reference_model, device_map["assessor"])
         else:
             neural_assessor = neural_assessor_model.eval()
         task_class.recruit_neural_assessor(neural_assessor)   
