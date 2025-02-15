@@ -541,8 +541,4 @@ def evaluate_cot_gap_summary(
         sum_reward_without_cot,
     )
 
-<<<<<<< HEAD
-
-=======
->>>>>>> a49c17b (started on score.py)
  

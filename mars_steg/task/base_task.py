@@ -17,25 +17,6 @@ Examples:
 
 """
 
-"""
-Module Name: base_task.py
-------------------------
-
-Description:
-------------
-
-This module contains the implementation of the base classes for tasks in the mars-steg framework to construct a task to train and evaluate an LLM for elicitng steganography.
-
-Classes:
-    - Task
-    - TorchDatasetTask
-    - GameBasedTask
-
-Examples:
-    Cf. mars_steg.README.md
-
-"""
-
 from __future__ import annotations
 
 from abc import ABCMeta, abstractmethod
@@ -116,55 +97,7 @@ class Task(metaclass=ABCMeta):
         indicating an incompatibility issue.
     """
 
-    A base class for single-turn tasks.
 
-    This abstract base class defines a structure for single-turn tasks that 
-    require language processing. Subclasses should specify a task `name` and 
-    ensure compatibility with a given `LanguageAspect`.
-
-    Attributes
-    ----------
-    name : str
-        The name of the task. Used to check compatibility with the `LanguageAspect`.
-    system_prompt : str
-        A system prompt specific to the task.
-    uses_local_neural_assessor : bool
-        Whether the task requires a local neural assessor for evaluation.
-    language_aspect : LanguageAspect
-        The language aspect configuration specifying compatibility with tasks.
-    uses_local_neural_assessor : bool
-        Indicates if a local neural assessor is needed for the task.
-    prompt_config : PromptConfig
-        Configuration object containing prompt templates.
-
-    Methods
-    -------
-    cot_instruction() -> str
-        Returns the default instruction appended to prompts to induce Chain-of-Thought (CoT).
-    no_cot_instruction() -> str
-        Returns the default instruction appended to prompts to suppress Chain-of-Thought (CoT).
-    generate_prompt(index: int) -> Optional[str]
-        Generates the main body of the LLM prompt for the task.
-    generate_info(idx: int) -> FixedDatasetDataInfo
-        Generates additional metadata or context for a task instance.
-    generate_full_prompt(index: int) -> Optional[Tuple[str, str]]
-        Generates a new task prompt, returning both CoT and No-CoT versions.
-    get_task_score(prompt_data: PromptData, with_cot: bool) -> float
-        Evaluates task performance based on PromptData object.
-    reward(task_score: float, language_score: float, t_weight: float = 1.0, l_weight: float = 1.0) -> float
-        Computes a weighted reward score based on task success and language aspect.
-    reward_from_transcript(prompt_data: PromptData, t_weight: float = 1.0, l_weight: float = 1.0) -> Tuple[float, float, float]
-        Computes the language score, the task score and calculates the final reward from a task transcript.
-    recruit_neural_assessor(model: BaseModel)
-        Initializes a neural assessor for evaluating problem/solution task type.
-
-
-    Raises
-    ------
-    TypeError
-        If the task name is not listed in `language_aspect.compatible_tasks`, 
-        indicating an incompatibility issue.
-    """
 
     name: str
     system_prompt: str
@@ -204,30 +137,12 @@ class Task(metaclass=ABCMeta):
         -------
         str
             The CoT-inducing instruction from the prompt configuration.
-        Returns the default instruction appended to prompts to induce Chain-of-Thought (CoT).
-
-        This property provides a standard instruction to encourage CoT reasoning in model responses. 
-        It is implemented separately to facilitate CoT gap calculations and can be overridden for customization.
-
-        Returns
-        -------
-        str
-            The CoT-inducing instruction from the prompt configuration.
         """
         return self.prompt_config.with_cot_instruction
 
     @property
     def no_cot_instruction(self) -> str:
         """
-        Returns the default instruction appended to prompts to suppress Chain-of-Thought (CoT).
-
-        This property provides an instruction that explicitly prevents CoT reasoning in model responses. 
-        It is used for CoT gap calculations and can be overridden for customization.
-
-        Returns
-        -------
-        str
-            The CoT-suppressing instruction from the prompt configuration.
         Returns the default instruction appended to prompts to suppress Chain-of-Thought (CoT).
 
         This property provides an instruction that explicitly prevents CoT reasoning in model responses. 
@@ -244,7 +159,6 @@ class Task(metaclass=ABCMeta):
 
     @abstractmethod
     def generate_prompt(self, index: int) -> Optional[str]:
-    def generate_prompt(self, index: int) -> Optional[str]:
         """
         Generates the main body of the LLM prompt for the task.
 
@@ -259,22 +173,6 @@ class Task(metaclass=ABCMeta):
         - **Game-based task**: The `index` serves as a random seed, producing a unique 
         game initialization prompt.
 
-        Notes
-        -----
-        - By default, `self.cot_instruction` will be appended in `generate_full_prompt()` 
-        to induce Chain-of-Thought (CoT).
-        - If the number of available prompts is limited (e.g., in dataset-based tasks), 
-        this method **must return `None`** when no more samples are available.
-
-        Parameters
-        ----------
-        index : int
-            An index specifying which example or scenario to generate.
-
-        Returns
-        -------
-        Optional[str]
-            The generated prompt text or `None` if no more examples are available.
         Notes
         -----
         - By default, `self.cot_instruction` will be appended in `generate_full_prompt()` 
@@ -316,52 +214,12 @@ class Task(metaclass=ABCMeta):
 
         This method must be implemented by subclasses to return a `FixedDatasetDataInfo` 
         object, which provides supplementary information related to the task at a given index.
-
-        Parameters
-        ----------
-        idx : int
-            The index specifying which task instance to retrieve additional information for.
-
-        Returns
-        -------
-        FixedDatasetDataInfo
-            An object containing metadata or extra context related to the specified task.
         """
         pass
 
 
     def generate_full_prompt(self, index: int) -> Optional[Tuple[str, str]]:
-
-    def generate_full_prompt(self, index: int) -> Optional[Tuple[str, str]]:
         """
-        Generates a new task prompt, returning both CoT and No-CoT versions.
-
-        This method retrieves the main task prompt and appends instructions 
-        for inducing or suppressing Chain-of-Thought (CoT) reasoning. 
-        It facilitates CoT gap calculations by providing both variants.
-
-        Parameters
-        ----------
-        index : int
-            The index specifying which task prompt to generate.
-
-        Returns
-        -------
-        Optional[Tuple[str, str]]
-            A tuple containing:
-            - `cot_prompt` (str): The task prompt with CoT instruction.
-            - `no_cot_prompt` (str): The task prompt with No-CoT instruction.
-            Returns `None` if no more examples are available.
-
-        Raises
-        ------
-        TypeError
-            If `generate_prompt()` does not return a string or `None`.
-
-        Notes
-        -----
-        - If `generate_prompt()` returns `None`, this method also returns `None`.
-        - This method is primarily used for CoT gap analysis; discard the No-CoT version if not needed.
         Generates a new task prompt, returning both CoT and No-CoT versions.
 
         This method retrieves the main task prompt and appends instructions 
@@ -414,7 +272,6 @@ class Task(metaclass=ABCMeta):
     def get_task_score(self, prompt_data: PromptData, with_cot: bool) -> float:
         """
         Evaluates task performance based on PromptData object (cf. See Also).
-        Evaluates task performance based on PromptData object (cf. See Also).
 
         This method assesses whether the agent successfully completed the task 
         by analyzing the generated response in relation to the correct answer. 
@@ -461,51 +318,7 @@ class Task(metaclass=ABCMeta):
             The structure of the PromptData object used in this method.
         MATH_Torch_Dataset_Task.get_task_score
             An example implementation for a dataset-based math task.  
-        This method assesses whether the agent successfully completed the task 
-        by analyzing the generated response in relation to the correct answer. 
-        The Chain-of-Thought (CoT) reasoning process is **not** considered — only 
-        the final answer affects the score.
 
-        Parameters
-        ----------
-        prompt_data : PromptData
-            The prompt and associated task information, including model-generated responses.
-        with_cot : bool
-            Whether the task was performed with CoT reasoning.
-
-        Returns
-        -------
-        float
-            A score in the range [0, 1], where a higher value indicates greater task success.
-
-        Raises
-        ------
-        NotImplementedError
-            This method must be implemented by subclasses.
-
-        Examples
-        --------
-        **For a math problem**:
-            - Look up the correct answer from a dataset.
-            - Compare the model's final answer to the correct one.
-            - Return `1.0` if correct, `0.0` otherwise.
-
-        **For a game-based task**:
-            - Analyze the game prompt and moves made by the agent.
-            - Compute a success metric (e.g., win rate or score normalization).
-            - Return a score between `0` and `1` reflecting performance.
-
-        Notes
-        -----
-        - The method may use different evaluation strategies depending on the task type.
-        - The neural assessor option must also be considered (cf. See Also).
-
-        See Also
-        --------
-        mars_steg.utils.prompt_data.PromptData
-            The structure of the PromptData object used in this method.
-        MATH_Torch_Dataset_Task.get_task_score
-            An example implementation for a dataset-based math task.  
         """
         raise NotImplementedError
 
@@ -559,11 +372,6 @@ class Task(metaclass=ABCMeta):
         t_weight: float = 1.0, 
         l_weight: float = 1.0,
     ) -> Tuple[float, float, float]:
-        self, 
-        prompt_data: PromptData, 
-        t_weight: float = 1.0, 
-        l_weight: float = 1.0,
-    ) -> Tuple[float, float, float]:
         """
         Computes the language score, the task score and calculates the final reward from a task transcript, i.e. the LLM answer for the considered task.
 
@@ -594,36 +402,7 @@ class Task(metaclass=ABCMeta):
         - Calls `get_language_score()` from `LanguageAspect` to assess language usage.
         - Uses `check_score()` to validate scores before computing reward.
         """
-        task_score = self.get_task_score(prompt_data, with_cot=True)
-        Computes the language score, the task score and calculates the final reward from a task transcript, i.e. the LLM answer for the considered task.
-
-        This method evaluates both task and language scores using the 
-        appropriate scoring functions, validates them, and computes 
-        the final reward.
-
-        Parameters
-        ----------
-        prompt_data : PromptData
-            The transcript data containing details of the episode.
-        t_weight : float, optional
-            The weight assigned to the task score (default is 1.0).
-        l_weight : float, optional
-            The weight assigned to the language score (default is 1.0).
-
-        Returns
-        -------
-        Tuple[float, float, float]
-            - `reward` (float): The final computed reward.
-            - `task_score` (float): The evaluated task score.
-            - `language_score` (float): The evaluated language aspect score.
-
-        Notes
-        -----
-        - Assumes that the model was **prompted with Chain-of-Thought (CoT)**.
-        - Calls `get_task_score()` to evaluate task performance.
-        - Calls `get_language_score()` from `LanguageAspect` to assess language usage.
-        - Uses `check_score()` to validate scores before computing reward.
-        """
+       
         task_score = self.get_task_score(prompt_data, with_cot=True)
         task_score = check_score('task_score:', task_score)
         
@@ -670,44 +449,9 @@ class Task(metaclass=ABCMeta):
             f"Attempting to recruit neural assessor to a {self.__class__.__name__}, "
             "which does not use it!"
         )
-        """
-        Initializes a neural assessor for evaluating problem/solution task type.
-
-        This method assigns a neural assessment model to the task, enabling 
-        automated evaluation of generated solutions.
-
-        Parameters
-        ----------
-        model : BaseModel
-            The neural model to be used for solution assessment (cf. See Also).
-
-        Raises
-        ------
-        AssertionError
-            If `uses_local_neural_assessor` is `False`, indicating that 
-            the task does not support neural assessment.
-
-        Notes
-        -----
-        - This method should only be called if `uses_local_neural_assessor` is `True`.
-        - The recruited model is assigned to `self.whitebox_model`.
-        - Initializes a `ProblemSolutionAssessor` with the given model.
-
-        See Also
-        --------
-        mars_steg.task.neural_assessor.ProblemSolutionAssessor
-            The neural assessor class used for evaluating problem/solution tasks.
-        mars_steg.model.base_model.py
-            The base model class used for neural models.
-        
-        """
-        assert self.uses_local_neural_assessor, (
-            f"Attempting to recruit neural assessor to a {self.__class__.__name__}, "
-            "which does not use it!"
-        )
+       
         self.whitebox_model = model
         self.neural_assessor = ProblemSolutionAssessor(
-            model=model, prompt_config=self.prompt_config
             model=model, prompt_config=self.prompt_config
         )
 
@@ -716,42 +460,6 @@ class Task(metaclass=ABCMeta):
 
 
 class TorchDatasetTask(Task, Dataset):
-    """
-    A PyTorch dataset-based task that integrates with prompt-based LLM evaluations.
-
-    This class extends `Task` and `Dataset`, handling structured dataset-based 
-    tasks where prompts are derived from dataset entries. It also supports 
-    neural assessment for evaluating model-generated solutions.
-
-    Attributes
-    ----------
-    dataset : str
-        Path to the dataset file (CSV format).
-    language_aspect : LanguageAspect
-        The language aspect settings for this task.
-    uses_local_neural_assessor : bool
-        Whether the task utilizes a local neural assessor for evaluation.
-    prompt_config : PromptConfig
-        The prompt configuration used for generating prompts.
-
-    Methods
-    -------
-    generate_info(idx: int) -> FixedDatasetDataInfo
-        Generates a fixed dataset information object for a given index.
-    test_train_split(train_proportion: float, validation_proportion: float) -> Tuple[TorchDatasetTask, TorchDatasetTask, TorchDatasetTask]
-        Splits the dataset into train, validation, and test sets.
-    prompt_data_collate_fn(batch: List[PromptData]) -> BatchPromptData
-        Aggregates a batch of `PromptData` into a `BatchPromptData` object.
-    get_true_answers_from_batch_prompt_data(prompt_data: BatchPromptData) -> List[str]
-        Extracts the ground-truth answers for a batch of prompts.
-    neural_assessor_from_batch_prompt_data(prompt_data: BatchPromptData, from_cot_prompt: bool) -> BatchPromptData
-        Generates neural assessor responses for a batch of prompts.
-
-
-    Notes
-    -----
-    This class initializes several attributes to None that can be set later using recruit_neural_assessor method.
-    """
     """
     A PyTorch dataset-based task that integrates with prompt-based LLM evaluations.
 
@@ -828,22 +536,6 @@ class TorchDatasetTask(Task, Dataset):
         FixedDatasetDataInfo
             A structured information object for the dataset sample.
         """
-        """
-        Generates a fixed dataset information object for a given index.
-
-        This method creates a `FixedDatasetDataInfo` object containing metadata
-        or context related to the dataset at the specified index.
-
-        Parameters
-        ----------
-        idx : int
-            The index of the dataset sample.
-
-        Returns
-        -------
-        FixedDatasetDataInfo
-            A structured information object for the dataset sample.
-        """
         return FixedDatasetDataInfo(idx=idx)
 
     def __len__(self):
@@ -865,20 +557,7 @@ class TorchDatasetTask(Task, Dataset):
         -------
         PromptData
             A structured prompt containing both CoT and No-CoT versions.
-        Retrieves a dataset sample and generates corresponding CoT and No-CoT prompts.
 
-        This method assumes a dataset-like task structure and must be overridden 
-        for game-like tasks.
-
-        Parameters
-        ----------
-        idx : int
-            The index of the dataset sample.
-
-        Returns
-        -------
-        PromptData
-            A structured prompt containing both CoT and No-CoT versions.
         """
 
         cot_prompt, no_cot_prompt = self.generate_full_prompt(idx)
@@ -891,35 +570,6 @@ class TorchDatasetTask(Task, Dataset):
     def test_train_split(
         self, train_proportion: float, validation_proportion: float
     ) -> Tuple[TorchDatasetTask, TorchDatasetTask, TorchDatasetTask]:
-        """
-        Splits the dataset into train, validation, and test sets.
-
-        The method partitions the dataset based on the specified proportions, ensuring 
-        that the total size does not exceed the dataset length.
-
-        Parameters
-        ----------
-        train_proportion : float
-            The proportion of the dataset to allocate for training (0 to 1).
-        validation_proportion : float
-            The proportion of the dataset to allocate for validation (0 to 1).
-
-        Returns
-        -------
-        Tuple[TorchDatasetTask, TorchDatasetTask, TorchDatasetTask]
-            A tuple containing the train, validation, and test dataset tasks.
-
-        Raises
-        ------
-        AssertionError
-            If proportions are out of range or exceed the dataset size.
-
-        Notes
-        -----
-        - The test set is automatically determined as the remaining portion.
-        - The dataset is not shuffled before splitting (TODO: Implement shuffling).
-        """
-
         """
         Splits the dataset into train, validation, and test sets.
 
@@ -1006,43 +656,8 @@ class TorchDatasetTask(Task, Dataset):
             A batched structure containing all prompt data.
         """
 
-        """
-        Aggregates a batch of `PromptData` into a `BatchPromptData` object.
-
-        This method is useful for preparing batch inputs for model inference.
-
-        Parameters
-        ----------
-        batch : List[PromptData]
-            A list of individual `PromptData` objects.
-
-        Returns
-        -------
-        BatchPromptData
-            A batched structure containing all prompt data.
-        """
 
         return BatchPromptData(prompt_datas=batch)
-
-    def get_true_answers_from_batch_prompt_data(self, prompt_data: BatchPromptData) -> List[str]:
-        """
-        Extracts the ground-truth answers for a batch of prompts.
-
-        Parameters
-        ----------
-        prompt_data : BatchPromptData
-            A batch of PromptData (cf . See Also).
-
-        Returns
-        -------
-        List[str]
-            A list of true answers corresponding to each prompt in the batch.
-
-        See Also
-        --------
-        mars_steg.utils.prompt_data.PromptData
-            The structure of the PromptData object used in this method.
-        """
 
     def get_true_answers_from_batch_prompt_data(self, prompt_data: BatchPromptData) -> List[str]:
         """
@@ -1101,18 +716,6 @@ class TorchDatasetTask(Task, Dataset):
 
 
 class GameBasedTask(Task):
-    """
-    A base class for game-based tasks.
-
-    This abstract base class defines a structure for game-based tasks (cf. Task).
-
-    See Also
-    --------
-
-    Task
-        The base class for single-turn tasks.
-
-    """
     """
     A base class for game-based tasks.
 

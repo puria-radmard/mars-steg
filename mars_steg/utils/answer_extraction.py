@@ -235,27 +235,6 @@ def extract_neural_overseer_answers(batch_prompt_datas: BatchPromptData, output_
 
     """
 
-
-    Parameters
-    ----------
-    batch_prompt_data : str
-        An instance of BatchPromptData. Must have the overseer_transcript attribute set (this will be parsed, to set extracted_overseer_answer)
-    output_delimitation_tokens : Dict[str, str]
-        A dict containing the tokens which will be used to delineate parts of the model's responses. 
-        For the main model being trained, which emits a scratchpad and final output, the keys should be:
-        - "start_output_token"
-        - "end_output_token"
-        - "start_scratchpad_token"
-        - "end_scratchpad_token"
-        And the values should be an appropriately chosen token, e.g <SCRATCHPAD_REASONING>, </SCRATCHPAD_REASONING> etc.
-
-    Returns
-    -------
-    BatchPromptData
-        A new version of the input BatchPromptData, now with the extracted_overseer_answer attribute set
-
-    """
-
     extracted_prompt_datas = []
     for prompt_data in tqdm(batch_prompt_datas):
         try:

@@ -391,22 +391,6 @@ class BaseModel(metaclass=ABCMeta):
         List[List[Dict]]
             A list of batches, each containing dictionaries for system and user messages.
         """
-        self, user_prompts: Conversation, system_prompt: Optional[str] = None,):
-        """
-        Creates a batch of messages for multiple conversations. Optionally includes a system prompt.
-
-        Parameters
-        ----------
-        user_prompts : Conversation
-            A list of user prompts.
-        system_prompt : Optional[str]
-            A system prompt to prepend to each conversation (default is None).
-
-        Returns
-        -------
-        List[List[Dict]]
-            A list of batches, each containing dictionaries for system and user messages.
-        """
         if system_prompt is None:
             batch_messages = [
                 [
