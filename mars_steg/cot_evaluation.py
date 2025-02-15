@@ -29,7 +29,6 @@ from transformers import set_seed
 from trl import PPOConfig, PPOTrainer
 
 from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
-from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 from mars_steg.utils.common import (
     get_dataloaders_and_ref_model,
     get_optimizer,
@@ -76,18 +75,6 @@ with torch.no_grad():
 
 
     experiment_args = ExperimentArgs.from_yaml(experiment_args_path)
-
-    model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(config_path)
-
-    prompt_config = PromptConfig.from_file(prompt_config_path)
-
-    output_delimitation_tokens = {
-        "start_scratchpad_token": prompt_config.start_scratchpad_token,
-        "end_scratchpad_token": prompt_config.end_scratchpad_token,
-        "start_output_token": prompt_config.start_output_token,
-        "end_output_token": prompt_config.end_output_token,
-    }
-
 
     wandb.init(
         project="MARS-STEGO",
