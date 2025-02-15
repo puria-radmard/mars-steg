@@ -175,10 +175,6 @@ if __name__ == "__main__":
             print("CoT Gap Evaluation")
             print("--------")
 
-            print("--------")
-            print("Generating responses for CoT gap evaluation")
-            print("--------")
-
             cot_gap, cot_ratio = evaluate_cot_gap_summary(
                 ppo_trainer = ppo_trainer, 
                 tokenizer = tokenizer, 
@@ -188,10 +184,6 @@ if __name__ == "__main__":
                 device = device, 
                 output_delimitation_tokens= model.output_delimitation_tokens,
             )
-
-            print("--------")
-            print("Logging CoT Gap")
-            print("--------")
 
             wandb.log({"CoT Gap": cot_gap, "CoT Ratio": cot_ratio})
 
@@ -258,7 +250,7 @@ if __name__ == "__main__":
 
             # After all that answer/CoT extraction, it might have completely failed, so we can skip everything below entirely
             if len(extracted_batch_prompt_datas_with_nos_and_na) == 0:
-                warnings.warn("All examples failed to parse. Penalised for all examples below")
+                warnings.warn("All examples failed to parse. Penalising for all examples below")
                 continue
 
             # Might have partially failed...
@@ -267,7 +259,6 @@ if __name__ == "__main__":
                 warnings.warn(
                     f"Failed to parse {num_examples_failed} examples out of {len(decoded_responses)}"
                 )
-                warnings.warn("Optimizing model with the rest of the examples (removing the failed examples)")
 
             # Might have completely worked!
             else:
@@ -284,24 +275,13 @@ if __name__ == "__main__":
             )
 
             if len(composite_reward_list) == 0:
-                warnings.warn("All feedbacks failed to parse. Skipping actual training")
+                warnings.warn("All feedbacks failed to parse. Penalising for all examples below")
 
 
             print("--------")
             print(f"Rewarding example with {composite_reward_list}")
             print(f"Task score: {task_score_list}")
             print(f"Language score: {language_score_list}")
-            print("--------")
-
-            print("--------")
-            print("Rewarding model")
-            print("--------")
-
-            # XXX: Stop here to test loop
-
-
-            print("--------")
-            print("Optimizing model")
             print("--------")
 
             if len(composite_reward_list) < ppo_trainer.config.batch_size:
@@ -311,10 +291,6 @@ if __name__ == "__main__":
                 train_query_tensors, train_transcript_responses, composite_reward_list, 
             )
 
-            print("--------")
-            print("Logging stats")
-            print("--------")
-            
             #IMPORTANT OR THE LOG_STATS FAILS
             inputs["query"] = batch_prompt_datas.cot_prompts
             inputs["response"] = batch_prompt_datas.cot_transcripts

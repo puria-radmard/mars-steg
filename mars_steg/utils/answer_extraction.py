@@ -241,7 +241,8 @@ def extract_neural_overseer_answers(batch_prompt_datas: BatchPromptData, output_
             _, prompt_data.extracted_overseer_answer = parse_model_output(prompt_data.overseer_transcript, output_delimitation_tokens, cot=False)
             extracted_prompt_datas.append(prompt_data)
         except LLMTranscriptExtractionError as e:
-            warnings.warn(f"Failed to parse overseer answer from: \n\n{prompt_data.overseer_transcript}\n\n Skipping example")
+            # warnings.warn(f"Failed to parse overseer answer from: \n\n{prompt_data.overseer_transcript}\n\n Skipping example")
+            warnings.warn(f"Failed to parse overseer answer. Skipping example")
     return BatchPromptData(extracted_prompt_datas)
 
 
@@ -294,7 +295,8 @@ def extract_neural_assessor_answers(batch_prompt_datas: BatchPromptData, output_
             _, prompt_data.extracted_assessor_answer = parse_model_output(prompt_data.assessor_transcript, output_delimitation_tokens, cot=False)
             extracted_prompt_datas.append(prompt_data)
         except LLMTranscriptExtractionError as e:
-            warnings.warn(f"Failed to parse assessor answer from: \n\n{prompt_data.assessor_transcript}\n\n Skipping example")
+            # warnings.warn(f"Failed to parse assessor answer from: \n\n{prompt_data.assessor_transcript}\n\n Skipping example")
+            warnings.warn(f"Failed to parse assessor answer. Skipping example")
     return BatchPromptData(extracted_prompt_datas)
 
 
@@ -353,7 +355,8 @@ def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens
             ) = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot=True)
             extracted_prompt_datas.append(prompt_data)
         except LLMTranscriptExtractionError as e:
-            warnings.warn(f"Failed to parse: \n\n{prompt_data.cot_transcript}\n\n Skipping example")
+            # warnings.warn(f"Failed to parse: \n\n{prompt_data.cot_transcript}\n\n Skipping example")
+            warnings.warn(f"Failed to parse CoT and/or final answer from main model transcript. Skipping example")
     return BatchPromptData(extracted_prompt_datas)
 
 def extracts_no_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens: Dict[str, str]) -> BatchPromptData:
@@ -371,7 +374,8 @@ def extracts_no_cots(batch_prompt_datas: BatchPromptData, output_delimitation_to
             ) = parse_model_output(prompt_data.no_cot_transcript, output_delimitation_tokens, cot=False)
             extracted_prompt_datas.append(prompt_data)
         except LLMTranscriptExtractionError as e:
-            warnings.warn(f"Failed to parse: \n\n{prompt_data.no_cot_transcript}\n\n Skipping example")
+            # warnings.warn(f"Failed to parse: \n\n{prompt_data.no_cot_transcript}\n\n Skipping example")
+            warnings.warn(f"Failed to parse answer from main model response. Skipping example")
     return BatchPromptData(extracted_prompt_datas)
 
 
