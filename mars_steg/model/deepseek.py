@@ -36,12 +36,43 @@ class DeepSeek_R1_1pt5B(BaseModel):
         Dict
             A dictionary containing the role and content of the message.
         """
+        """
+        Generates a message dictionary based on the user string and system prompt. 
+        If the user string contains 'system', it is replaced with 'assistant'.
+
+        Parameters
+        ----------
+        user_string : str
+            The role of the user in the conversation.
+        system_prompt : str
+            The system prompt to include in the message content.
+
+        Returns
+        -------
+        Dict
+            A dictionary containing the role and content of the message.
+        """
         if "system" in user_string:
             user_string = "assistant"
 
         return {"role": user_string, "content": f"{system_prompt}"}
     
-    def transform_conversation(self, conversations_list: Conversation):
+    @staticmethod
+    def transform_conversation(conversations_list: Conversation) -> str:
+        """
+        Transforms a list of conversation messages into a formatted string. 
+        The conversation will be formatted by roles (user or assistant).
+
+        Parameters
+        ----------
+        conversations_list : Conversation
+            A list of conversation messages where each message is a dictionary with 'role' and 'content'.
+
+        Returns
+        -------
+        str
+            A formatted string representing the entire conversation.
+        """
         conversation = ""
         for message in conversations_list:
             role = message["role"]

@@ -40,7 +40,10 @@ task/
 
 ---
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> bc0c77f80889af3484d8210fb5223d8f458cc705
 ## 🔧 Prompt Templates
 
 ### **answer_format/**
@@ -88,7 +91,10 @@ This folder contains prompts that instruct the overseer LLM on its behavior and 
 | `user_prompt_template_collusion_detector_float`  | Template format for inserting LLM responses so the overseer can evaluate and return a float score (v2). |
 | `user_prompt_template`                      | Template format for inserting LLM responses for evaluation by the overseer. |
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> bc0c77f80889af3484d8210fb5223d8f458cc705
 
 ### **task_description/**
 This folder contains instructions to inform the LLM about the task it needs to perform.
@@ -97,7 +103,10 @@ This folder contains instructions to inform the LLM about the task it needs to p
 |--------|---------------------------------------------------|
 | `MATH` | Instruction to inform the LLM about the math task. |
 | `price`| Instruction to inform the LLM about the price task. |
+<<<<<<< HEAD
 >>>>>>> 30a04f4 (typos)
+=======
+>>>>>>> bc0c77f80889af3484d8210fb5223d8f458cc705
 
 ### **task_examples/**
 This folder contains few-shot examples for the LLM to better understand the task.
