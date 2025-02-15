@@ -45,6 +45,7 @@ def get_dataloaders_and_ref_model(
     number_shared_layers_for_ref_model: Optional[int] = None,
     neural_overseer_model: Optional[BaseModel] = None,
     neural_assessor_model: Optional[BaseModel] = None,
+    device_map: Dict,
 ):
     """
 
@@ -130,14 +131,14 @@ def get_dataloaders_and_ref_model(
 
     if language_aspect_class.uses_local_neural_overseer:
         if neural_overseer_model is None:
-            neural_overseer: BaseModel = training_model.duplicate(reference_model)
+            neural_overseer: BaseModel = training_model.duplicate(reference_model, device_map["overseer"])
         else:
             neural_overseer = neural_overseer_model.eval()
         language_aspect_class.recruit_neural_overseer(neural_overseer)    
 
     if task_class.uses_local_neural_assessor:
         if neural_assessor_model is None:
-            neural_assessor: BaseModel = training_model.duplicate(reference_model)
+            neural_assessor: BaseModel = training_model.duplicate(reference_model, device_map["assessor"])
         else:
             neural_assessor = neural_assessor_model.eval()
         task_class.recruit_neural_assessor(neural_assessor)   
@@ -302,6 +303,60 @@ def get_device() -> str:
     # raise ValueError("Please specify which GPU to use with CUDA_VISIBLE_DEVICES")
 
     return device
+
+def get_device_map() -> Dict[str, str]:
+    """
+    Allocates devices for models based on available GPUs.
+    Main model always gets its own GPU (GPU 0).
+    Other models are distributed across remaining GPUs optimally.
+    
+    Returns:
+        dict: Model name to device mapping
+    """
+    num_gpus = t.cuda.device_count()
+    print(f"Found {num_gpus} GPUs")
+
+    if num_gpus < 1:
+        raise ValueError("Must have at least 1 GPU")
+    
+    # Initialize device mapping
+    device_map = {
+        'main_model': 'cuda:0',  # Main model always gets GPU 0
+    }
+    
+    if num_gpus == 1:
+        # Everything goes on the same GPU
+        device_map.update({
+            'ref_model': 'cuda:0',
+            'overseer': 'cuda:0',
+            'assessor': 'cuda:0'
+        })
+    
+    elif num_gpus == 2:
+        # Main model on GPU 0, everything else on GPU 1
+        device_map.update({
+            'ref_model': 'cuda:1',
+            'overseer': 'cuda:1',
+            'assessor': 'cuda:1'
+        })
+    
+    elif num_gpus == 3:
+        # Main model on GPU 0, ref model on GPU 1, both overseers on GPU 2
+        device_map.update({
+            'ref_model': 'cuda:1',
+            'overseer': 'cuda:2',
+            'assessor': 'cuda:2'
+        })
+    
+    else:  # num_gpus >= 4
+        # Each model gets its own GPU
+        device_map.update({
+            'ref_model': 'cuda:1',
+            'overseer': 'cuda:2',
+            'assessor': 'cuda:3'
+        })
+    
+    return device_map
 
 
 def set_seed(seed: int = 42) -> None:

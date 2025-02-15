@@ -42,13 +42,13 @@ from mars_steg.language.language_aspects.neural_overseer import NeuralOverseer
 from mars_steg.utils.prompt_data import BatchPromptData
 from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 
-
 from mars_steg.utils.common import (
     get_dataloaders_and_ref_model,
     get_optimizer,
     get_tokenizer,
     get_model,
     get_device,
+    get_device_map,
     get_rewards_and_training_datas,
     evaluate_cot_gap_summary
 )
@@ -65,6 +65,7 @@ config_path = sys.argv[2]   # e.g. "mars_steg/configs/config.yaml"
 prompt_config_path = sys.argv[3]   # e.g. "mars_steg/configs/prompt/math_training_deepseek.yaml"
 
 device = get_device()
+device_map = get_device_map()
 
 ####################################################################################################################
 ####################################################################################################################
@@ -123,7 +124,7 @@ tokenizer = get_tokenizer(model_config.model_name)
 generation_config.pad_token_id = tokenizer.eos_token_id 
 #TODO Resolve the problem of the model looping on final answer
 generation_config.eos_token_id = tokenizer.eos_token_id 
-model = get_model(model_config, tokenizer, output_delimitation_tokens, generation_config, device)
+model = get_model(model_config, tokenizer, output_delimitation_tokens, generation_config, device_map["main_model"])
 optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
 
 training_generation_kwargs = generation_config.to_training_dict()
@@ -141,9 +142,11 @@ train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader,
     batch_size = train_config.batch_size,
     training_model = model,
     override_create_ref_model = train_config.create_ref_model,
-    number_shared_layers_for_ref_model = train_config.number_shared_layers_for_ref_model
+    number_shared_layers_for_ref_model = train_config.number_shared_layers_for_ref_model,
+    device_map=device_map
 )
 
+ref_model.to(device_map["ref_model"])
 
 ppo_trainer = PPOTrainer(
     config,
@@ -301,38 +304,34 @@ if __name__ == "__main__":
 
             # XXX: Stop here to test loop
 
-            #TODO Watch Out !
-            warnings.warn("Optimize is set to FALSE")
-            optimize = False
-            if optimize:
 
-                print("--------")
-                print("Optimizing model")
-                print("--------")
+            print("--------")
+            print("Optimizing model")
+            print("--------")
 
-                if len(composite_reward_list) < ppo_trainer.config.batch_size:
-                    ppo_trainer.config.batch_size = len(composite_reward_list)
-                
-                stats = ppo_trainer.step(
-                    train_query_tensors, train_transcript_responses, composite_reward_list, 
-                )
+            if len(composite_reward_list) < ppo_trainer.config.batch_size:
+                ppo_trainer.config.batch_size = len(composite_reward_list)
+            
+            stats = ppo_trainer.step(
+                train_query_tensors, train_transcript_responses, composite_reward_list, 
+            )
 
-                print("--------")
-                print("Logging stats")
-                print("--------")
-                
-                #IMPORTANT OR THE LOG_STATS FAILS
-                inputs["query"] = batch_prompt_datas.cot_prompts
-                inputs["response"] = batch_prompt_datas.cot_transcripts
+            print("--------")
+            print("Logging stats")
+            print("--------")
+            
+            #IMPORTANT OR THE LOG_STATS FAILS
+            inputs["query"] = batch_prompt_datas.cot_prompts
+            inputs["response"] = batch_prompt_datas.cot_transcripts
 
-                ppo_trainer.log_stats(
-                    stats,
-                    inputs,
-                    [composite_reward_list, task_score_list, language_score_list],
-                )
+            ppo_trainer.log_stats(
+                stats,
+                inputs,
+                [composite_reward_list, task_score_list, language_score_list],
+            )
 
-                ppo_trainer.config.batch_size = train_config.batch_size
-                wandb.log(stats)
+            ppo_trainer.config.batch_size = train_config.batch_size
+            wandb.log(stats)
 
             wandb.log(
                 {

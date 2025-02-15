@@ -253,7 +253,7 @@ class BaseModel(metaclass=ABCMeta):
         print(f"Model loaded in {self.precission_mode} mode")
         print("------------------")
     
-    def duplicate(self, whitebox_model):
+    def duplicate(self, whitebox_model, device):
         """
         Creates a duplicate of the current model, sharing the same configuration 
         but with a new model instance. The model is set to evaluation mode and 
@@ -291,7 +291,7 @@ class BaseModel(metaclass=ABCMeta):
             output_delimitation_tokens = self.output_delimitation_tokens,
             generation_config = self.generation_config,
             model=whitebox_model if whitebox_model is not None else None,
-            device = self.device
+            device = device
         )
 
         new_instance.model.eval()

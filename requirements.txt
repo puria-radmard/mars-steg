@@ -11,11 +11,3 @@ torch
 bitsandbytes==0.45.2
 wandb
 openai==1.58.1
-
-sphinx
-sphinx-rtd-theme
-sphinxcontrib-napoleon
-sphinx.ext.autodoc
-sphinx.ext.viewcode
-sphinx.ext.autosummary
-myst-parser
