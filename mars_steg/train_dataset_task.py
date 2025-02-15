@@ -304,38 +304,34 @@ if __name__ == "__main__":
 
             # XXX: Stop here to test loop
 
-            #TODO Watch Out !
-            warnings.warn("Optimize is set to FALSE")
-            optimize = False
-            if optimize:
 
-                print("--------")
-                print("Optimizing model")
-                print("--------")
+            print("--------")
+            print("Optimizing model")
+            print("--------")
 
-                if len(composite_reward_list) < ppo_trainer.config.batch_size:
-                    ppo_trainer.config.batch_size = len(composite_reward_list)
-                
-                stats = ppo_trainer.step(
-                    train_query_tensors, train_transcript_responses, composite_reward_list, 
-                )
+            if len(composite_reward_list) < ppo_trainer.config.batch_size:
+                ppo_trainer.config.batch_size = len(composite_reward_list)
+            
+            stats = ppo_trainer.step(
+                train_query_tensors, train_transcript_responses, composite_reward_list, 
+            )
 
-                print("--------")
-                print("Logging stats")
-                print("--------")
-                
-                #IMPORTANT OR THE LOG_STATS FAILS
-                inputs["query"] = batch_prompt_datas.cot_prompts
-                inputs["response"] = batch_prompt_datas.cot_transcripts
+            print("--------")
+            print("Logging stats")
+            print("--------")
+            
+            #IMPORTANT OR THE LOG_STATS FAILS
+            inputs["query"] = batch_prompt_datas.cot_prompts
+            inputs["response"] = batch_prompt_datas.cot_transcripts
 
-                ppo_trainer.log_stats(
-                    stats,
-                    inputs,
-                    [composite_reward_list, task_score_list, language_score_list],
-                )
+            ppo_trainer.log_stats(
+                stats,
+                inputs,
+                [composite_reward_list, task_score_list, language_score_list],
+            )
 
-                ppo_trainer.config.batch_size = train_config.batch_size
-                wandb.log(stats)
+            ppo_trainer.config.batch_size = train_config.batch_size
+            wandb.log(stats)
 
             wandb.log(
                 {

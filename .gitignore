@@ -1,4 +1,5 @@
 .mars_steg/
+myenv
 wandb/
 experiment/
 experiments/models/
