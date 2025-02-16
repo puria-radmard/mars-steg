@@ -80,7 +80,7 @@ class NeuralOverseer(LanguageAspect, metaclass=ABCMeta):
             overseer_prompts.append(
                 self.user_prompt_template.format(
                     agent_prompt = self.prompt_config.task_description + pd.cot_prompt,
-                    extracted_cot = pd.extracted_cot
+                    extracted_cot = pd.cot_transcript
                 )
             )
 
