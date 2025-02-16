@@ -4,6 +4,7 @@ import random
 from torch import nn
 import warnings
 from typing import Optional, Dict
+import torch
 from torch.optim import Adam
 
 from typing import List, Tuple
@@ -311,15 +312,35 @@ def get_device() -> str:
 
     return device
 
-def get_device_map() -> Dict[str, str]:
+def get_device_map(force_cpu = False) -> Dict[str, str]:
     """
     Allocates devices for models based on available GPUs.
     Main model always gets its own GPU (GPU 0).
     Other models are distributed across remaining GPUs optimally.
+
+    Parameters
+    ----------
+
+    force_cpu : bool
+        Forces models to go on cpu
     
-    Returns:
+    Returns
+    -------
         dict: Model name to device mapping
     """
+    if force_cpu:
+        device = "cpu"
+    else:
+        device = get_device()
+
+    if device in ["cpu", "mps"]:
+        return {
+        'main_model': f'{device}',  # Main model always gets GPU 0
+        'ref_model': f'{device}',
+        'overseer': f'{device}',   # These two should always be on the same device!
+        'assessor': f'{device}'
+    }
+    
     num_gpus = t.cuda.device_count()
     print(f"Found {num_gpus} GPUs")
 

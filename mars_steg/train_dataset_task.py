@@ -44,7 +44,6 @@ from mars_steg.utils.common import (
     get_optimizer,
     get_tokenizer,
     get_model,
-    get_device,
     get_device_map,
     get_rewards_and_training_datas,
     evaluate_cot_gap_summary
@@ -61,7 +60,7 @@ experiment_args_path = sys.argv[1]
 config_path = sys.argv[2]   # e.g. "mars_steg/configs/config.yaml"
 prompt_config_path = sys.argv[3]   # e.g. "mars_steg/configs/prompt/math_training_deepseek.yaml"
 
-device = get_device()
+
 device_map = get_device_map()
 
 ####################################################################################################################
@@ -178,7 +177,7 @@ if __name__ == "__main__":
                 dataloader = val_loader, 
                 system_prompt = val_dataset.system_prompt,
                 model_class = model, 
-                device = device, 
+                device = device_map["main_model"], 
                 output_delimitation_tokens= model.output_delimitation_tokens,
             )
 
@@ -202,12 +201,13 @@ if __name__ == "__main__":
             inputs = model.tokenize(transformed_batch_conversation)
 
             # Move the tokenized inputs to the same device the model is on (GPU/CPU)
-            inputs = {key: tensor.to(device) for key, tensor in inputs.items()}
+            inputs = {key: tensor.to(device_map["main_model"]) for key, tensor in inputs.items()}
 
             # Translate it into ppo.generate format which List[torch.tensors]
             query_tensors = []
             for input in inputs["input_ids"]:
                 query_tensors.append(input)
+
 
             # Generate the with-CoT transcript (no-CoT transcript not needed during training)
             transcript_responses = ppo_trainer.generate(
@@ -247,8 +247,11 @@ if __name__ == "__main__":
 
             # After all that answer/CoT extraction, it might have completely failed, so we can skip everything below entirely
             if len(extracted_batch_prompt_datas_with_nos_and_na) == 0:
-                warnings.warn("All examples failed to parse. Penalising for all examples below")
-                continue
+                if train_config.skipping_failed_parsing_examples:
+                    warnings.warn("All examples failed to parse by neural assessor and/or overseer. Skipping the optimisation for this batch of examples")
+                else:
+                    warnings.warn("All examples failed to parse. Penalising for all examples below")
+
 
             # Might have partially failed...
             elif len(extracted_batch_prompt_datas_with_nos_and_na) != len(batch_prompt_datas):
@@ -272,7 +275,14 @@ if __name__ == "__main__":
             )
 
             if len(composite_reward_list) == 0:
-                warnings.warn("All feedbacks failed to parse. Penalising for all examples below")
+                if train_config.skipping_failed_parsing_examples:
+                    warnings.warn("All feedbacks (get_task_score and/or get_language_score) failed to parse. Skipping the optimisation for this batch of examples")
+                    continue
+                else:
+                    raise IndexError(
+                        f"""
+                            PPO trainer will fail because there is no element in the composite_reward_list. 
+                        """)
 
 
             print("--------")
@@ -307,8 +317,8 @@ if __name__ == "__main__":
                     'language_score': sum(language_score_list) / len(language_score_list),
                 }
             )
-
-            torch.cuda.empty_cache() 
+            if "cuda" in device_map["main_model"]:
+                torch.cuda.empty_cache() 
             # Save model every 100 batchs
             if batch_ticker % train_config.save_frequency == 0:
                 if ppo_trainer.accelerator.is_main_process:

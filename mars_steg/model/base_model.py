@@ -1,17 +1,3 @@
-"""
-Module Name: base_model.py
-------------------------
-
-
-This module contains the implementation of the base classes for models in the mars-steg framework to load the models for training and evaluating an LLM for elicitng steganography.
-
-Classes:
-    - BaseModel
-
-Examples:
-    Cf. mars_steg.README.md
-
-"""
 
 """
 Module Name: base_model.py
@@ -94,70 +80,7 @@ class BaseModel(metaclass=ABCMeta):
     full_generate(conversations_list: Conversation) -> List[str]
         Generates responses for a list of conversations using the model.
     """
-    """
-    A base class for a model that integrates loading and managing a transformer-based model 
-    (with support for LoRA) and handles tokenization and generation.
-
-    Attributes
-    ----------
-    model_config : ModelConfig
-        Configuration for the model, including model name and precision settings.
-    model_name : str
-        Name of the model being loaded.
-    tokenizer : AutoTokenizer
-        Tokenizer used to convert text to tokens for the model.
-    lora : bool
-        Whether the model uses LoRA (Low-Rank Adaptation).
-    precission_mode : str
-        Mode used for model precision (e.g., '4bits', '8bits').
-    model_save_path : str
-        Path to save the model.
-    output_delimitation_tokens : Dict[str, str]
-        Tokens used to delimit model outputs.
-    generation_config : GenerationConfig
-        Configuration for controlling generation behavior.
-    device : str
-        The device ('cpu' or 'cuda') where the model will run.
-    model : Optional[AutoModelForCausalLM]
-        The model object, either loaded from a checkpoint or provided.
-    
-    Methods
-    -------
-    load_model() -> AutoModelForCausalLM
-        Loads the model based on configuration (including LoRA if applicable).
-    log_loading()
-        Logs the loading process of the model.
-    duplicate(whitebox_model: Optional[AutoModelForCausalLM]) -> BaseModel
-        Creates a copy of the current model instance.
-    get_message(user_string: str, system_prompt: str) -> Dict
-        Abstract method to retrieve a message from the user/system.
-    transform_conversation(conversations_list: Conversation)
-        Abstract method to transform a list of conversations.
-    batchize_conversation(user_prompts: Conversation, system_prompt: Optional[str] = None) -> List[List[Dict]]
-        Creates a batch of messages based on the user prompts and system prompt.
-    full_generate(conversations_list: Conversation) -> List[str]
-        Generates responses for a list of conversations using the model.
-    """
     def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer, generation_config: GenerationConfig, output_delimitation_tokens: Dict[str, str], device: str, model=None):
-        """
-        Initializes the base model with the provided configurations and model.
-        
-        Parameters
-        ----------
-        model_config : ModelConfig
-            Configuration for the model.
-        tokenizer : AutoTokenizer
-            Tokenizer for the model.
-        generation_config : GenerationConfig
-            Configuration for generation behavior.
-        output_delimitation_tokens : Dict[str, str]
-            Tokens used for delimiting outputs.
-        device : str
-            Device where the model should be loaded ('cpu' or 'cuda').
-        model : Optional[AutoModelForCausalLM]
-            Pre-loaded model to use, otherwise the model will be loaded using the provided configuration.
-        """
-
         """
         Initializes the base model with the provided configurations and model.
         
@@ -221,6 +144,7 @@ class BaseModel(metaclass=ABCMeta):
             "4bits": BitsAndBytesConfig(load_in_4bit=True),
             "8bits": BitsAndBytesConfig(load_in_8bit=True)
         }.get(self.precission_mode, None)
+        print(device)
 
         warnings.warn('Reintroduce: model.resize_token_embeddings(len(self.tokenizer)) ?')
         if self.lora:
