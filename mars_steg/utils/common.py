@@ -468,12 +468,12 @@ def get_rewards_and_training_datas(
                 prompt_data, skipping_failed_parsing_examples
             )
         except (LLMTranscriptExtractionError, ValueError):
-            if not skipping_failed_parsing_examples:
+            if skipping_failed_parsing_examples:
+                continue
+            else:
                 composite_reward = -1.0
                 task_score = 0.0
                 language_score = 0.0
-            else:
-                continue
 
         composite_reward_list.append(t.tensor(composite_reward))
         task_score_list.append(task_score)

@@ -570,7 +570,7 @@ class ConfigLoader:
     """
 
     @staticmethod
-    def load_config(yaml_file: str) -> Tuple[ModelConfig, OptimizerConfig, TrainConfig, GenerationConfig]:
+    def load_config(*yaml_files: str) -> Tuple[ModelConfig, OptimizerConfig, TrainConfig, GenerationConfig]:
         """
 
         Load YAML data and map it to configuration dataclasses.
@@ -587,7 +587,11 @@ class ConfigLoader:
 
         """
 
-        config_dict = load_yaml(yaml_file)
+        config_dict = load_yaml(yaml_files[0])
+        for overwrite_yaml in yaml_files[1:]:
+            overwrite_config_dict = load_yaml(overwrite_yaml)
+            for k in overwrite_config_dict.keys():
+                config_dict[k].update(overwrite_config_dict[k])
 
         # Create instances of the dataclasses
         model_config = ModelConfig(**config_dict["Model"])

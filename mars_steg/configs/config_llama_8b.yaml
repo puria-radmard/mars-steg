@@ -1,7 +1,7 @@
 Model:
   model_name: "meta-llama/Llama-3.1-8B-Instruct"  # The model name
   model_save_path: "./experiments/models"  # The path to save the model
-  load_precision_mode: "full" # Options: ["4bits","8bits","full"]
+  load_precision_mode: "8bits" # Options: ["4bits","8bits","full"]
   lora: true # false
   lora_r: 8
   lora_alpha: 16
@@ -43,7 +43,7 @@ Generation:
   temperature: 0.6
   do_sample: true
   pad_token_id: 0
-  max_new_tokens: 512
+  max_new_tokens: 700
   return_prompt: False
   generate_ref_response: False
   bos_token_id: 128000

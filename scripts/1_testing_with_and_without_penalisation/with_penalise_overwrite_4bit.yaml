@@ -1,0 +1,6 @@
+Train:
+  number_of_evaluations: 0
+  skipping_failed_parsing_examples: False
+
+Model:
+  load_precision_mode: "4bits"

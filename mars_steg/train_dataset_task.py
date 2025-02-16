@@ -57,8 +57,9 @@ from mars_steg.utils.answer_extraction import extract_cots
 
 print(sys.argv)
 experiment_args_path = sys.argv[1]
-config_path = sys.argv[2]   # e.g. "mars_steg/configs/config.yaml"
-prompt_config_path = sys.argv[3]   # e.g. "mars_steg/configs/prompt/math_training_deepseek.yaml"
+default_config_path = sys.argv[2]   # e.g. "mars_steg/configs/config.yaml"
+overwrite_config_path = sys.argv[3]   # e.g. "mars_steg/configs/config.yaml"
+prompt_config_path = sys.argv[4]   # e.g. "mars_steg/configs/prompt/math_training_deepseek.yaml"
 
 
 device_map = get_device_map()
@@ -67,7 +68,7 @@ device_map = get_device_map()
 ####################################################################################################################
 
 
-model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(config_path)
+model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(default_config_path, overwrite_config_path)
 
 prompt_config = PromptConfig.from_file(prompt_config_path)
 
@@ -249,6 +250,7 @@ if __name__ == "__main__":
             if len(extracted_batch_prompt_datas_with_nos_and_na) == 0:
                 if train_config.skipping_failed_parsing_examples:
                     warnings.warn("All examples failed to parse by neural assessor and/or overseer. Skipping the optimisation for this batch of examples")
+                    continue
                 else:
                     warnings.warn("All examples failed to parse. Penalising for all examples below")
 
@@ -278,12 +280,6 @@ if __name__ == "__main__":
                 if train_config.skipping_failed_parsing_examples:
                     warnings.warn("All feedbacks (get_task_score and/or get_language_score) failed to parse. Skipping the optimisation for this batch of examples")
                     continue
-                else:
-                    raise IndexError(
-                        f"""
-                            PPO trainer will fail because there is no element in the composite_reward_list. 
-                        """)
-
 
             print("--------")
             print(f"Rewarding example with {composite_reward_list}")
