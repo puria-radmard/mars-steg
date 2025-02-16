@@ -127,18 +127,6 @@ class BaseModel(metaclass=ABCMeta):
         AutoModelForCausalLM
             The loaded model.
         """
-        """
-        Loads the model based on configuration.
-
-        This function handles precision mode and optional LoRA configuration, 
-        loads the model using either a regular or LoRA setup, and moves it to 
-        the device. 
-
-        Returns
-        -------
-        AutoModelForCausalLM
-            The loaded model.
-        """
         self.log_loading()
         quantization_config = {
             "4bits": BitsAndBytesConfig(load_in_4bit=True),
@@ -171,29 +159,11 @@ class BaseModel(metaclass=ABCMeta):
         """
         Logs the loading process of the model to the console.
         """
-        """
-        Logs the loading process of the model to the console.
-        """
         print("------------------")
         print(f"Model loaded in {self.precission_mode} mode")
         print("------------------")
     
     def duplicate(self, whitebox_model: Optional[AutoModelForCausalLM], device):
-        """
-        Creates a duplicate of the current model, sharing the same configuration 
-        but with a new model instance. The model is set to evaluation mode and 
-        gradients are disabled.
-
-        Parameters
-        ----------
-        whitebox_model : Optional[AutoModelForCausalLM]
-            A pre-loaded model to use for the duplicate instance.
-
-        Returns
-        -------
-        BaseModel
-            A new instance of the model with the same configuration.
-        """
         """
         Creates a duplicate of the current model, sharing the same configuration 
         but with a new model instance. The model is set to evaluation mode and 
@@ -245,15 +215,7 @@ class BaseModel(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def transform_conversation(self, conversations_list: Conversation) :
-        """
-        Abstract method to transform a list of conversations.
-
-        Parameters
-        ----------
-        conversations_list : Conversation
-            The list of conversations to transform.
-        """
+    def transform_conversation(self, conversations_list: Conversation, prompt_thinking_helper: Optional[str] = None) -> Conversation:
         """
         Abstract method to retrieve a message from the user/system.
 
@@ -263,6 +225,8 @@ class BaseModel(metaclass=ABCMeta):
             The string input from the user.
         system_prompt : str
             The system prompt to guide the conversation.
+        prompt_thinking_helper: str
+            A prompt that helps models to generate the way we want
 
         Returns
         -------
@@ -272,35 +236,11 @@ class BaseModel(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def transform_conversation(self, conversations_list: Conversation) :
-        """
-        Abstract method to transform a list of conversations.
-
-        Parameters
-        ----------
-        conversations_list : Conversation
-            The list of conversations to transform.
-        """
-        pass
-
-    @abstractmethod
-    def transform_conversation(self, conversations_list: Conversation, prompt_thinking_helper: Optional[str] = None) -> Conversation:
-        pass
-
-    @abstractmethod
-    def tokenize(self, conversations_list: Conversation | List[List[str]]) -> List[Dict[str, torch.TensorType]]:
-        pass
-
-    @abstractmethod
-    def transform_conversation(self, conversations_list: Conversation, prompt_thinking_helper: Optional[str] = None) -> Conversation:
-        pass
-
-    @abstractmethod
     def tokenize(self, conversations_list: Conversation | List[List[str]]) -> List[Dict[str, torch.TensorType]]:
         pass
 
     def batchize_conversation(
-        self, user_prompts: Conversation, system_prompt: Optional[str] = None,):
+        self, user_prompts: Conversation, system_prompt: Optional[str] = None):
         """
         Creates a batch of messages for multiple conversations. Optionally includes a system prompt.
 
