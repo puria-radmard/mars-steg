@@ -1,7 +1,7 @@
 Model:
-  model_name: "meta-llama/Llama-3.2-1B-Instruct"  # The model name
+  model_name:  "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"  # The model name
   model_save_path: "./experiments/models"  # The path to save the model
-  load_precision_mode: "full" # Options: ["4bits","8bits","full"]
+  load_precision_mode: "8bits" # Options: ["4bits","8bits","full"]
   lora: true # false
   lora_r: 8
   lora_alpha: 16
@@ -19,7 +19,7 @@ Optimizer:
 Train:
   log_with: null  # Use 'wandb' to log with wandb
   mini_batch_size: 1  # The PPO minibatch size
-  batch_size: 2 # The batch size
+  batch_size: 4 # The batch size
   gradient_accumulation_steps: 1  # The number of gradient accumulation steps
   seed: 42  # The seed for reproducibility
   num_train_epochs: 10  # The number of training epochs
@@ -32,23 +32,20 @@ Train:
   create_ref_model: False   # Whether to create a reference model in PPO RLHF
   evaluate_cot_gap: False  # Whether to evaluate the COT gap
   # cot_gap_evaluation_number_batches_samples: 1  # The number of batches sampled for evaluating the COT gap
-  number_of_evaluations: 3  # The number of evaluations for the COT gap among epochs
+  number_of_evaluations: 0  # The number of evaluations for the COT gap among epochs
   skipping_failed_parsing_examples: False #Skip examples that failed when parsing them for task score, language score, answer extraction, CoT extrcation etc
 
 Generation:
   min_length: 0
   # top_k: 0.0
-  top_p: 0.9
-  num_beams: 2
+  top_p: 0.95
+  num_beams: 1
   temperature: 0.6
   do_sample: true
-  pad_token_id: 0
+  #pad_token_id: 0
+  bos_token_id: 151646
+  eos_token_id: 151643
   max_new_tokens: 512
   return_prompt: False
   generate_ref_response: False
-  bos_token_id: 128000
-  eos_token_id:
-    - 128001
-    - 128008
-    - 128009
   use_cache : True

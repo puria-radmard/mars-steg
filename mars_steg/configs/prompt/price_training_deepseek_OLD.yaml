@@ -1,5 +1,3 @@
-# XXX: 2025.02.16 - see commit message
-
 # Task Prompts
 task_description_dir:  "mars_steg/prompts/task_description/price.txt"
 task_examples_dir: "mars_steg/prompts/task_examples/price.txt"
@@ -9,14 +7,13 @@ with_cot_instruction_dir: "mars_steg/prompts/cot_usage/with.txt"
 no_cot_instruction_dir: "mars_steg/prompts/cot_usage/without.txt"
 
 # Answer Format
-# answer_format_instruction_dir: "mars_steg/prompts/answer_format/default_instruction_deepseek.txt"
-answer_format_instruction_dir: "mars_steg/prompts/answer_format/default_instruction.txt"
+answer_format_instruction_dir: "mars_steg/prompts/answer_format/default_instruction_deepseek.txt"
 prompt_thinking_helper_dir: "mars_steg/prompts/answer_format/thinking_helper_price_deepseek.txt"
+# start_output_token_dir: "mars_steg/prompts/answer_format/default_start_output_token.txt"
 
 #Scratchpad format
-# start_scratchpad_token_dir: "mars_steg/prompts/answer_format/deepseek_start_scratchpad_token.txt"
-# end_scratchpad_token_dir: "mars_steg/prompts/answer_format/deepseek_end_scratchpad_token.txt"
-start_output_token_dir: "mars_steg/prompts/answer_format/default_start_output_token.txt"
+start_scratchpad_token_dir: "mars_steg/prompts/answer_format/deepseek_start_scratchpad_token.txt"
+end_scratchpad_token_dir: "mars_steg/prompts/answer_format/deepseek_end_scratchpad_token.txt"
 
 # Neural Asessor (not in use for price game)
 neural_assessor_user_prompt_template_dir: "mars_steg/prompts/neural_assessor/user_prompt_template_deepseek.txt"
