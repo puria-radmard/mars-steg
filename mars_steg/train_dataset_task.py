@@ -222,7 +222,7 @@ if __name__ == "__main__":
             batch_prompt_datas.cot_transcripts = decoded_responses
 
             # Extract answer and CoT before given to neural overseer and assessor
-            extracted_batch_prompt_datas = extract_cots(batch_prompt_datas, model.output_delimitation_tokens, train_config.skipping_failed_parsing_examples)
+            extracted_batch_prompt_datas = extract_cots(batch_prompt_datas, model.output_delimitation_tokens)
 
             # Penalise CoT - imbue relevant information to PromptData's
             if isinstance(train_dataset.language_aspect, NeuralOverseer):
@@ -269,7 +269,7 @@ if __name__ == "__main__":
             # Extract rewards
             composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses = \
             get_rewards_and_training_datas(
-                batch_prompt_datas=extracted_batch_prompt_datas_with_nos_and_na,                           # XXX: 20250212 - passing unpruned batch 
+                batch_prompt_datas=extracted_batch_prompt_datas,
                 query_tensors=query_tensors,
                 transcript_responses=transcript_responses, 
                 train_dataset=train_dataset,
