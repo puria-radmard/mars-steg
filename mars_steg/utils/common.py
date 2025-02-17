@@ -467,7 +467,7 @@ def get_rewards_and_training_datas(
             composite_reward, task_score, language_score = train_dataset.reward_from_transcript(
                 prompt_data, skipping_failed_parsing_examples
             )
-        except (LLMTranscriptExtractionError, ValueError):
+        except (LLMTranscriptExtractionError, ValueError, TypeError):
             if skipping_failed_parsing_examples:
                 continue
             else:
@@ -497,6 +497,7 @@ def evaluate_cot_gap_summary(
         device: str, 
         generation_kwargs: Dict,
         output_delimitation_tokens: Dict[str, str],
+        skipping_failed_parsing_examples: bool
     ) -> CoTGapSummary:
     
     """
@@ -526,6 +527,8 @@ def evaluate_cot_gap_summary(
         - "start_scratchpad_token"
         - "end_scratchpad_token"
         And the values should be an appropriately chosen token, e.g <SCRATCHPAD>, </SCRATCHPAD> etc.
+    skipping_failed_parsing_examples: bool
+        Skip examples that failed when parsing them for task score, language score, answer extraction, CoT extraction etc
 
     Returns
     -------
@@ -587,8 +590,8 @@ def evaluate_cot_gap_summary(
 
             batch_prompt_datas.cot_transcripts = decoded_responses[:batch_length]
             batch_prompt_datas.no_cot_transcripts = decoded_responses[batch_length:]
-            extracted_batch_prompt_datas_with_cot = extract_cots(batch_prompt_datas, output_delimitation_tokens)
-            extracted_batch_prompt_datas_with_cot_and_without_cot = extracts_no_cots(extracted_batch_prompt_datas_with_cot, output_delimitation_tokens)
+            extracted_batch_prompt_datas_with_cot = extract_cots(batch_prompt_datas, output_delimitation_tokens, skipping_failed_parsing_examples)
+            extracted_batch_prompt_datas_with_cot_and_without_cot = extracts_no_cots(extracted_batch_prompt_datas_with_cot, output_delimitation_tokens, skipping_failed_parsing_examples)
             extracted_batch_prompt_datas_with_na_with_cot = dataloader.dataset.neural_assessor_from_batch_prompt_data(extracted_batch_prompt_datas_with_cot_and_without_cot, from_cot_prompt = True)
             results_with_cot = [extract_floatingpoint_overseer_or_assessor_answer(prompt_data.extracted_assessor_answer) for prompt_data in extracted_batch_prompt_datas_with_na_with_cot]
             extracted_batch_prompt_datas_with_na_without_cot = dataloader.dataset.neural_assessor_from_batch_prompt_data(batch_prompt_datas, from_cot_prompt = False)

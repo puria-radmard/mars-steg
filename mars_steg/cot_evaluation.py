@@ -135,6 +135,7 @@ with torch.no_grad():
         device = device, 
         generation_kwargs = generation_kwargs,
         output_delimitation_tokens= output_delimitation_tokens,
+        skipping_failed_parsing_examples= train_config.skipping_failed_parsing_examples
     )
     print(cot_gap.summary)
     wandb.log(asdict(cot_gap))

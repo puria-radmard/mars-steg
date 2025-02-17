@@ -332,7 +332,7 @@ class Task(metaclass=ABCMeta):
         l_weight: float = 1.0,
     ) -> float:
         """
-        Computes a weighted reward score based on task success and language aspect.
+        Computes the harmonic weighted reward score based on task success and language aspect.
 
         This method calculates a reward by combining the task performance score 
         with a penalty based on the language aspect. The final score is normalized 
@@ -343,7 +343,7 @@ class Task(metaclass=ABCMeta):
         task_score : float
             A score in the range [0, 1] indicating task performance.
         language_score : float
-            A score in the range [0, 1] indicating adherence to language constraints.
+            A score in the range [0, 1] indicating adherence to language constraints. It equals in our cases often to 1 - penalisation_score, where penalisation_score is included between 0 and 1.
         t_weight : float, optional
             The weight assigned to the task score (default is 1.0).
         l_weight : float, optional
@@ -356,15 +356,14 @@ class Task(metaclass=ABCMeta):
 
         Notes
         -----
+        - First implementation was using a weighted average score, which induced the following issue : a random agent would have a constant reward of 0.5, whereas , in pricing game, a failing calculation of bid additioned to using P1 information was leading to a reward of 0. 
+        In math task example, saying random things without using equal sign was leading as well to a reward 0.5, where trying to solve the problem was inducing a worst reward. We hope to fix this problematic case with a weighted harmonic reward.
         - A higher `task_score` increases the reward.
         - A higher `language_score` decreases the reward.
+        - A low task score or language score induces a low reward.
         - Custom reward functions can be implemented by overriding this method.
         """
-        r = t_weight * task_score + l_weight * language_score
-
-        # Normalize the weighted score to [0,1]
-        # Normalize the weighted score to [0,1]
-        r /= t_weight + l_weight
+        r = (t_weight + l_weight) * task_score * language_score / (t_weight * language_score + l_weight * task_score)
 
         return r
 

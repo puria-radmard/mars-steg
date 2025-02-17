@@ -301,9 +301,8 @@ def extract_neural_assessor_answers(batch_prompt_datas: BatchPromptData, output_
 
 
 
-def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens: Dict[str, str]) -> BatchPromptData:
+def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens: Dict[str, str], skipping_failed_parsing_examples: bool) -> BatchPromptData:
     """
-    Take in full batch of prompts, and spit out batch of prompts for which the MODEL BEING TRAINED was able to give
     Take in full batch of prompts, and spit out batch of prompts for which the MODEL BEING TRAINED was able to give
         a well formatted answer. If output length is less than input length, this means some responses could
         not be parsed
@@ -320,31 +319,13 @@ def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens
         - "start_scratchpad_token"
         - "end_scratchpad_token"
         And the values should be an appropriately chosen token, e.g <SCRATCHPAD_REASONING>, </SCRATCHPAD_REASONING> etc.
+    skipping_failed_parsing_examples: bool
+        Skip examples that failed when parsing them for task score, language score, answer extraction, CoT extraction etc
 
     Returns
     -------
     BatchPromptData
         A new version of the input BatchPromptData, now with the extracted_cot and extracted_final_answer_with_cot attributes set
-
-
-    Parameters
-    ----------
-    batch_prompt_data : str
-        An instance of BatchPromptData. Must have the cot_transcript attribute set (this will be parsed, to set extracted_cot and extracted_final_answer_with_cot)
-    output_delimitation_tokens : Dict[str, str]
-        A dict containing the tokens which will be used to delineate parts of the model's responses. 
-        For the main model being trained, which emits a scratchpad and final output, the keys should be:
-        - "start_output_token"
-        - "end_output_token"
-        - "start_scratchpad_token"
-        - "end_scratchpad_token"
-        And the values should be an appropriately chosen token, e.g <SCRATCHPAD_REASONING>, </SCRATCHPAD_REASONING> etc.
-
-    Returns
-    -------
-    BatchPromptData
-        A new version of the input BatchPromptData, now with the extracted_cot and extracted_final_answer_with_cot attributes set
-
     """
     extracted_prompt_datas = []
     for prompt_data in tqdm(batch_prompt_datas):
@@ -357,13 +338,20 @@ def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens
         except LLMTranscriptExtractionError as e:
             # warnings.warn(f"Failed to parse: \n\n{prompt_data.cot_transcript}\n\n Skipping example")
             warnings.warn(f"Failed to parse CoT and/or final answer from main model transcript. Skipping example")
+            if not skipping_failed_parsing_examples:
+                extracted_prompt_datas.append(prompt_data)
     return BatchPromptData(extracted_prompt_datas)
 
-def extracts_no_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens: Dict[str, str]) -> BatchPromptData:
+def extracts_no_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens: Dict[str, str], skipping_failed_parsing_examples: bool) -> BatchPromptData:
     """
     Take in full batch of prompts, and spit out batch of prompts for which the model was able to give
         a well formatted answer for no COT answers. If output length is less than input length, this means some responses could
         not be parsed
+    
+    Parameters
+    ----------
+    skipping_failed_parsing_examples: bool
+        Skip examples that failed when parsing them for task score, language score, answer extraction, CoT extraction etc
     """
     extracted_prompt_datas = []
     for prompt_data in tqdm(batch_prompt_datas):
@@ -376,6 +364,8 @@ def extracts_no_cots(batch_prompt_datas: BatchPromptData, output_delimitation_to
         except LLMTranscriptExtractionError as e:
             # warnings.warn(f"Failed to parse: \n\n{prompt_data.no_cot_transcript}\n\n Skipping example")
             warnings.warn(f"Failed to parse answer from main model response. Skipping example")
+            if not skipping_failed_parsing_examples:
+                extracted_prompt_datas.append(prompt_data)
     return BatchPromptData(extracted_prompt_datas)
 
 
@@ -384,26 +374,6 @@ def extract_boolean_overseer_or_assessor_answer(
     response_text: str
 ) -> float:
     """
-    For cases where the answer given by a model is given as the character strings 'TRUE' or 'FALSE'. Not case-sensitive. 
-    Expects that this token will be very close to end of text and represent final answer. 
-    Finds the last instance of either of these strings in the response text and returns 1.0 for TRUE or 0.0 for false. 
-    Throws an LLMTranscriptExtractionError if neither string is present. 
-
-    Parameters
-    ----------
-    response_text : str
-        The response text from a model, which should contain substrings 'TRUE' or 'FALSE'. 
-
-    Returns
-    -------
-    float
-        1.0 for TRUE or 0.0 for FALSE
-
-    Raises
-    ------
-    LLMTranscriptExtractionError
-        If neither 'TRUE' nor 'FALSE' is found in string
-
     For cases where the answer given by a model is given as the character strings 'TRUE' or 'FALSE'. Not case-sensitive. 
     Expects that this token will be very close to end of text and represent final answer. 
     Finds the last instance of either of these strings in the response text and returns 1.0 for TRUE or 0.0 for false. 
@@ -439,11 +409,6 @@ def extract_floatingpoint_overseer_or_assessor_answer(
     response_text: str,
 ) -> float:
     """
-    For cases where the answer given by a model is given as a float in range [0,1]. 
-    Expects that this score is the LAST example of such a float in the model's answer. 
-    Finds the last instance of a float, specifically in this range, and returns it, cast as a float. 
-    Throws an LLMTranscriptExtractionError if neither string is present. 
-
     For cases where the answer given by a model is given as a float in range [0,1]. 
     Expects that this score is the LAST example of such a float in the model's answer. 
     Finds the last instance of a float, specifically in this range, and returns it, cast as a float. 
