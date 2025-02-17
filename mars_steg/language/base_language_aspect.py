@@ -57,6 +57,8 @@ class EmptyLanguageAspect(LanguageAspect):
 
     uses_local_neural_overseer = False
 
+    compatible_tasks = {'SequentialPriceTask'}
+
     def __init__(self, **kwargs):
         super().__init__()
 

@@ -143,7 +143,8 @@ train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader,
     device_map=device_map
 )
 
-ref_model.to(device_map["ref_model"])
+if train_config.create_ref_model:
+    ref_model.to(device_map["ref_model"])
 
 ppo_trainer = PPOTrainer(
     config,

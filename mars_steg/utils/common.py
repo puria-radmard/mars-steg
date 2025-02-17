@@ -461,7 +461,7 @@ def get_rewards_and_training_datas(
         
         # Original model extraction failed - penalise if required
         if None in [
-            prompt_data.extracted_cot
+            prompt_data.extracted_cot,
             prompt_data.extracted_final_answer_with_cot
         ]:
             if skipping_failed_parsing_examples:
