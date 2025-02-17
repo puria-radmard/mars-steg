@@ -222,8 +222,10 @@ if __name__ == "__main__":
             batch_prompt_datas.cot_transcripts = decoded_responses
 
             # Extract answer and CoT before given to neural overseer and assessor
+            # If this fails - we might want to still penalise the batch
             extracted_batch_prompt_datas = extract_cots(batch_prompt_datas, model.output_delimitation_tokens)
 
+            # If any of these two stages fail - we should not penalise the batch
             # Penalise CoT - imbue relevant information to PromptData's
             if isinstance(train_dataset.language_aspect, NeuralOverseer):
                 extracted_batch_prompt_datas_with_nos = train_dataset.language_aspect.get_overseer_generated_answers(

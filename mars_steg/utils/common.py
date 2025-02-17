@@ -459,21 +459,29 @@ def get_rewards_and_training_datas(
 
     for i, prompt_data in tqdm(enumerate(batch_prompt_datas)):
         
-        composite_reward = 0.0
-        task_score = 0.0
-        language_score = 0.0
-
-        try:
-            composite_reward, task_score, language_score = train_dataset.reward_from_transcript(
-                prompt_data, skipping_failed_parsing_examples
-            )
-        except (LLMTranscriptExtractionError, ValueError, TypeError):
+        # Original model extraction failed - penalise if required
+        if None in [
+            prompt_data.extracted_cot
+            prompt_data.extracted_final_answer_with_cot
+        ]:
             if skipping_failed_parsing_examples:
                 continue
             else:
                 composite_reward = -1.0
                 task_score = 0.0
                 language_score = 0.0
+
+        # Original model extraction succeeded!
+        else:
+            try:
+                composite_reward, task_score, language_score = train_dataset.reward_from_transcript(
+                    prompt_data, skipping_failed_parsing_examples
+                )
+
+            # Extraction failed at overseer/assessor stage - do not penalise model
+            except (LLMTranscriptExtractionError, ValueError, TypeError):
+                continue
+
 
         composite_reward_list.append(t.tensor(composite_reward))
         task_score_list.append(task_score)
