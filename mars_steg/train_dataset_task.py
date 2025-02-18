@@ -224,7 +224,7 @@ if __name__ == "__main__":
 
             # Extract answer and CoT before given to neural overseer and assessor
             # If this fails - we might want to still penalise the batch
-            extracted_batch_prompt_datas = extract_cots(batch_prompt_datas, model.output_delimitation_tokens)
+            extracted_batch_prompt_datas = extract_cots(batch_prompt_datas, model.output_delimitation_tokens, train_config.skipping_failed_parsing_examples)
 
             # If any of these two stages fail - we should not penalise the batch
             # Penalise CoT - imbue relevant information to PromptData's

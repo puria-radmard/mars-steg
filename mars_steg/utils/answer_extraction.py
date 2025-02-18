@@ -301,7 +301,7 @@ def extract_neural_assessor_answers(batch_prompt_datas: BatchPromptData, output_
 
 
 
-def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens: Dict[str, str]) -> BatchPromptData:
+def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens: Dict[str, str], skipping_failed_parsing_examples: bool) -> BatchPromptData:
     """
     Take in full batch of prompts, and spit out batch of prompts for which the MODEL BEING TRAINED was able to give
         a well formatted answer. If output length is less than input length, this means some responses could
@@ -334,6 +334,9 @@ def extract_cots(batch_prompt_datas: BatchPromptData, output_delimitation_tokens
             ) = parse_model_output(prompt_data.cot_transcript, output_delimitation_tokens, cot=True)
             extracted_prompt_datas.append(prompt_data)
         except LLMTranscriptExtractionError as e:
+            if not skipping_failed_parsing_examples:
+                extracted_prompt_datas.append(prompt_data)
+
             warnings.warn(f"Failed to parse CoT and/or final answer from main model transcript. Skipping example")
     return BatchPromptData(extracted_prompt_datas)
 
