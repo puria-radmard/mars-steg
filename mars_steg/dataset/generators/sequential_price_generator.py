@@ -73,7 +73,8 @@ class SequentialPriceGameGenerator:
         
         # Calculate P2's true cost
         cost_with_overhead = self.p2_costs.base_cost * (1 + self.p2_costs.overhead_rate/100)
-        final_discount = (self.p2_costs.quantity_discount * self.p2_costs.min_order)/100
+        # final_discount = (self.p2_costs.quantity_discount * self.p2_costs.min_order)/100
+        final_discount = (self.p2_costs.quantity_discount)/100
         self.p2_costs.true_cost = cost_with_overhead * (1 - final_discount)
 
         # Generate P1's bid
@@ -143,7 +144,7 @@ class SequentialPriceGameGenerator:
         """
         self.generate_episode_data() # new episode data for each prompt
         p1_bid_prompt=self.generate_p1_bid_prompt()
-        p2_true_cost_prompt=self.generate_p2_true_cost_prompt()
+        p2_true_cost_prompt=self.generate_p2_true_costx_prompt()
 
         # Randomly choose the order of the prompts
         return p1_bid_prompt + p2_true_cost_prompt if torch.rand(1) > 0.5 else p2_true_cost_prompt + p1_bid_prompt
