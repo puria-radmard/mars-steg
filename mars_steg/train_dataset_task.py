@@ -279,9 +279,7 @@ if __name__ == "__main__":
                 skipping_failed_parsing_examples = train_config.skipping_failed_parsing_examples
             )
 
-            # log_to_wandb_merged_batch([batch_prompt_datas, extracted_batch_prompt_datas])
-
-
+            log_to_wandb_merged_batch([batch_prompt_datas, extracted_batch_prompt_datas])
 
             if len(composite_reward_list) == 0:
                 if train_config.skipping_failed_parsing_examples:
