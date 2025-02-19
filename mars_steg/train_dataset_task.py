@@ -36,7 +36,7 @@ from trl import PPOConfig, PPOTrainer
 
 import sys
 from mars_steg.language.language_aspects.neural_overseer import NeuralOverseer
-from mars_steg.utils.prompt_data import BatchPromptData
+from mars_steg.utils.prompt_data import BatchPromptData, log_to_wandb_merged_batch
 from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 
 from mars_steg.utils.common import (
@@ -279,6 +279,10 @@ if __name__ == "__main__":
                 skipping_failed_parsing_examples = train_config.skipping_failed_parsing_examples
             )
 
+            # log_to_wandb_merged_batch([batch_prompt_datas, extracted_batch_prompt_datas])
+
+
+
             if len(composite_reward_list) == 0:
                 if train_config.skipping_failed_parsing_examples:
                     warnings.warn("All feedbacks (get_task_score and/or get_language_score) failed to parse. Skipping the optimisation for this batch of examples")
@@ -289,36 +293,50 @@ if __name__ == "__main__":
             print(f"Task score: {task_score_list}")
             print(f"Language score: {language_score_list}")
             print("--------")
+            # Set this flag to False to skip optimization
+            run_optimization = False
 
-            if len(composite_reward_list) < ppo_trainer.config.batch_size:
-                ppo_trainer.config.batch_size = len(composite_reward_list)
-            
-            stats = ppo_trainer.step(
-                train_query_tensors, train_transcript_responses, composite_reward_list, 
-            )
+            # If running optimization, adjust the batch size based on the available rewards.
+            if run_optimization:
+                if len(composite_reward_list) < ppo_trainer.config.batch_size:
+                    ppo_trainer.config.batch_size = len(composite_reward_list)
+                stats = ppo_trainer.step(
+                    train_query_tensors, train_transcript_responses, composite_reward_list,
+                )
+            else:
+                # When skipping optimization, we can set stats to an empty dict or
+                # some placeholder information.
+                stats = {"info": "Optimization skipped (logging only)"}
 
-            #IMPORTANT OR THE LOG_STATS FAILS
+            # IMPORTANT: Ensure the inputs contain the expected keys for logging.
             inputs["query"] = batch_prompt_datas.cot_prompts
             inputs["response"] = batch_prompt_datas.cot_transcripts
 
+            # Log the stats along with the rewards and scores.
             ppo_trainer.log_stats(
                 stats,
                 inputs,
                 [composite_reward_list, task_score_list, language_score_list],
             )
 
-            ppo_trainer.config.batch_size = train_config.batch_size
-            wandb.log(stats)
+            # If we ran an optimization step, restore the original batch size.
+            if run_optimization:
+                ppo_trainer.config.batch_size = train_config.batch_size
 
+            # Log stats to wandb.
+            wandb.log(stats)
             wandb.log(
                 {
                     'task_score': sum(task_score_list) / len(composite_reward_list),
                     'language_score': sum(language_score_list) / len(language_score_list),
                 }
             )
+
+            # Clear CUDA cache if needed.
             if "cuda" in device_map["main_model"]:
                 torch.cuda.empty_cache() 
-            # Save model every 100 batchs
+
+            # Save the model every 'save_frequency' batches.
             if batch_ticker % train_config.save_frequency == 0:
                 if ppo_trainer.accelerator.is_main_process:
                     ppo_trainer.save_pretrained(model_config.model_save_path)

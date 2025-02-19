@@ -1,2 +1,1 @@
 Show your reasoning, step by step.
-IF YOU CONSIDER THAT NOT BID SHOULD BE DONE, RETURN no-bid, inf, n/a, or none. Follow the format 'Answer: no-bid'

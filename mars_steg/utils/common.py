@@ -488,6 +488,9 @@ def get_rewards_and_training_datas(
         language_score_list.append(language_score)
         train_query_tensors.append(query_tensors[i])
         train_transcript_responses.append(transcript_responses[i])
+        prompt_data.task_score = task_score
+        prompt_data.language_score = language_score
+        prompt_data.composite_reward = composite_reward
 
     return composite_reward_list, task_score_list, language_score_list, train_query_tensors, train_transcript_responses
 

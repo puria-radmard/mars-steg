@@ -2,6 +2,7 @@ from abc import ABC
 from typing import List, Optional, Iterable
 from dataclasses import dataclass, asdict
 from datetime import datetime
+import pandas as pd
 
 from torch import Tensor as _T
 
@@ -109,6 +110,10 @@ class PromptData:
     assessor_transcript: Optional[str] = None # Full transcript from the assessor
     extracted_assessor_answer: Optional[bool] = None # Final decision from overseer
 
+    task_score : Optional[float] = None # Task Score for the concern prompt 
+    language_score : Optional[float] = None # Language Score for the concern prompt
+    composite_reward : Optional[float] = None #Composite Reward for the concern prompt
+
     def __str__(self) -> str:
 
         """Return the data on this episode as a string. Useful for watching behaviour during training etc. String may be very long. 
@@ -133,6 +138,9 @@ class PromptData:
             f"extracted_overseer_answer: {self.extracted_overseer_answer}\n"
             f"assessor_transcript: {self.assessor_transcript}\n"
             f"extracted_assessor_answer: {self.extracted_assessor_answer}\n"
+            f"task_score {self.task_score} \n"
+            f"language_score {self.language_score} \n"
+            f"composite_reward {self.composite_reward} \n"
         )
 
 
@@ -168,6 +176,10 @@ class BatchPromptData:
         self.extracted_overseer_answers: Optional[List[bool]] # Final decision from overseer
         self.assessor_transcripts: Optional[List[str]] # Full transcript from the assessor
         self.extracted_assessor_answers: Optional[List[bool]] # Final decision from overseer
+
+        self.task_scores : Optional[List[float]]  # Task Score list for the concern prompt 
+        self.language_scores : Optional[List[float]]  # Language Score list for the concern prompt
+        self.composite_rewards : Optional[List[float]]  #Composite Reward list for the concern prompt
 
     def __len__(self):
         return len(self.prompt_datas)
@@ -223,6 +235,36 @@ class BatchPromptData:
             data.append(list(pd_dict.values()))
         wandb.log({f"Batch_prompt_data_{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')}": 
                    wandb.Table(columns=columns, data=data)})
+    
+    def create_data_frame(self):
+        data = []
+        members_as_dicts = [asdict(pd) for pd in self.prompt_datas]
+        columns = list(members_as_dicts[0].keys())
+        
+        # Populate data with values from each dictionary in members_as_dicts
+        for pd_dict in members_as_dicts:
+            data.append(list(pd_dict.values()))
+        
+        # Create a pandas DataFrame
+        df = pd.DataFrame(data, columns=columns)
+        
+        return df
+
+
+def log_to_wandb_merged_batch(list_of_batches : list[BatchPromptData]) :
+    dataframes = [batch.create_data_frame() for batch in list_of_batches]
+    merged_df = dataframes[0]
+    for df in dataframes[1:]:
+        merged_df = merged_df.merge(df, how="outer")
+    wandb.log({f"Merged_Batch_prompt_data_{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')}":
+               wandb.Table(columns=list(merged_df.columns), data=merged_df.values.tolist())})
+
+
+
+
+
+
+
 
 
     

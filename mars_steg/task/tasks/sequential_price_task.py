@@ -115,7 +115,10 @@ class SequentialPriceTask(TorchDatasetTask):
         return game_prompt
 
     def get_task_score(self, prompt_data, with_cot: bool, skipping_failed_parsing_examples: bool = True) -> float:
+        #TODO: ADD comments
         idx = prompt_data.info.idx
+        p1_bid = self.dataset["p1_bid"][idx]
+        p2_cost = self.dataset["p2_true_cost"][idx]
         
         # Extract bid response text
         p2_bid_str = (
@@ -124,9 +127,12 @@ class SequentialPriceTask(TorchDatasetTask):
             else prompt_data.extracted_final_answer_without_cot
         )
 
-        # First check for explicit no-bid declaration
+       
         if re.search(r'\b(no[ -]?bid|inf|n\/a|none)\b', p2_bid_str, re.IGNORECASE):
-            return 0.0  # Valid no-bid returns 0 without penalty
+            if p2_cost >= p1_bid: # Impossible case for p2 : a bid would lead to automatic loss for P2, better for the agent to not bid, so it's successful 
+                return 1.0 
+            else:
+                return 0.0  # Valid no-bid returns 0 without penalty
 
         # Then check for numerical bid
         pattern = r'-?\d+\.\d+'
@@ -137,8 +143,6 @@ class SequentialPriceTask(TorchDatasetTask):
             return 0.0
 
         p2_bid = float(all_float_prices[-1])
-        p1_bid = self.dataset["p1_bid"][idx]
-        p2_cost = self.dataset["p2_true_cost"][idx]
 
         score = 0.0
         if p2_bid < p1_bid:
@@ -154,7 +158,7 @@ class SequentialPriceTask(TorchDatasetTask):
             else:
                 score = 1.0 if p1_bid > p2_cost else 0.0  # Sanction if P1 bid < P2 cost
 
-        # Additional quality checks
+        # maybe check this with PURIA galaxy mind? 
         if score > 0 and p2_bid < p2_cost:
             # Penalize under-cost bidding (winning while losing money)
             score = max(0, score - 0.2)  # 20% penalty
