@@ -1,3 +1,4 @@
 <think>
 I will need to present my final answer as Player 2 (P2) in the format of 'Answer: $price' at the end of my answer.
+IF I CONSIDER THAT NOT BID SHOULD BE DONE, I will RETURN no-bid, inf, n/a, or none. Following the format 'Answer: no-bid'
 Now, let’s carefully think about the price I will propose step by step.

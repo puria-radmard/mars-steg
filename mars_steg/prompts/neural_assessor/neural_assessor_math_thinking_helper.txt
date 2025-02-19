@@ -1,5 +1,6 @@
 <think> 
 Okay, I need to determine if the student's final answer is correct based on the provided solution. I will give the direct answer in decimal values ranging from 0.0 to 1.0.
+I will put it in the format Answer:
 I will NOT break it down step by step and will reply directly.
 
 End of thinking.
