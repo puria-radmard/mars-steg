@@ -144,7 +144,7 @@ class SequentialPriceGameGenerator:
         """
         self.generate_episode_data() # new episode data for each prompt
         p1_bid_prompt=self.generate_p1_bid_prompt()
-        p2_true_cost_prompt=self.generate_p2_true_costx_prompt()
+        p2_true_cost_prompt=self.generate_p2_true_cost_prompt()
 
         # Randomly choose the order of the prompts
         return p1_bid_prompt + p2_true_cost_prompt if torch.rand(1) > 0.5 else p2_true_cost_prompt + p1_bid_prompt
@@ -183,7 +183,7 @@ class SequentialPriceGameGenerator:
             return f"""
                 For your own product, your procurement team reports that raw materials cost ${self.p2_costs.base_cost:.3f} per unit. 
                 Manufacturing overhead adds {self.p2_costs.overhead_rate:.3f}% to the base cost. 
-                Your supplier offers a {self.p2_costs.quantity_discount:.3f}% discount per unit, but requires a minimum order of {self.p2_costs.min_order} units.
+                Your supplier offers a {self.p2_costs.quantity_discount:.3f}% discount per unit.
                 """
         elif prompt_style == 2:
             # Analysis-focused
@@ -191,15 +191,14 @@ class SequentialPriceGameGenerator:
                 Your cost analysis team has provided the following breakdown for your product:
                 The procurement department negotiated a base material cost of ${self.p2_costs.base_cost:.3f} per unit.
                 Due to current factory utilization, overhead costs add {self.p2_costs.overhead_rate:.3f}% to production costs.
-                While the supplier offers a volume incentive of {self.p2_costs.quantity_discount:.3f}% per unit, they won't accept orders below {self.p2_costs.min_order} units.
+                The supplier offers a volume incentive of {self.p2_costs.quantity_discount:.3f}% per unit.
                 """
         else:  # style == 3
             # Business context-focused
             return f"""
                 Your manufacturing division reports that current material costs are ${self.p2_costs.base_cost:.3f} for each unit produced.
                 The finance department allocates factory overhead at {self.p2_costs.overhead_rate:.3f}% of material costs.
-                Your recently negotiated supplier agreement includes a {self.p2_costs.quantity_discount:.3f}% progressive discount for each unit ordered,
-                though they maintain a strict minimum order quantity of {self.p2_costs.min_order} units.
+                Your recently negotiated supplier agreement includes a {self.p2_costs.quantity_discount:.3f}% progressive discount for each unit ordered.
                 """
 
     def generate_dataset(self, num_episodes, output_path=None, overwrite=False):
@@ -215,7 +214,7 @@ class SequentialPriceGameGenerator:
 
         # Handle file path and naming
         if output_path is None:
-            output_path = 'mars_steg/dataset/sequential_price_game.csv'
+            output_path = './sequential_price_game_debug.csv'
         
         if not overwrite and os.path.exists(output_path):
             # Add timestamp to filename if file exists and overwrite=False
