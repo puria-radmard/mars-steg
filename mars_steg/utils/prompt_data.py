@@ -259,8 +259,9 @@ class BatchPromptData:
 def log_to_wandb_merged_batch(list_of_batches : list[BatchPromptData]) :
     dataframes = [batch.create_data_frame() for batch in list_of_batches]
     merged_df = dataframes[0]
+    common_columns = list(dataframes[0].columns)
     for df in dataframes[1:]:
-        merged_df = merged_df.merge(df, how="outer", on=["idx"])
+        merged_df = merged_df.merge(df, how="outer", on=common_columns)
     wandb.log({f"Merged_Batch_prompt_data_{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')}":
                wandb.Table(columns=list(merged_df.columns), data=merged_df.values.tolist())})
 
