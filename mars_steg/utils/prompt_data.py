@@ -251,8 +251,7 @@ class BatchPromptData:
         print(info_keys)
         for info_key in info_keys:
             df[info_key] = df["info"].apply(lambda x : x[info_key])
-        print(df)
-        
+        df.drop(['info'])
         return df
 
 
