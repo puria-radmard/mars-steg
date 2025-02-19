@@ -247,11 +247,12 @@ class BatchPromptData:
         
         # Create a pandas DataFrame
         df = pd.DataFrame(data, columns=columns)
+
+        #Handle the case of the infos member that is a dict
         info_keys = list(members_as_dicts[0]["info"].keys())
-        print(info_keys)
         for info_key in info_keys:
             df[info_key] = df["info"].apply(lambda x : x[info_key])
-        df.drop(['info'])
+        df.drop(columns=["info"], inplace=True)
         return df
 
 
@@ -259,7 +260,7 @@ def log_to_wandb_merged_batch(list_of_batches : list[BatchPromptData]) :
     dataframes = [batch.create_data_frame() for batch in list_of_batches]
     merged_df = dataframes[0]
     for df in dataframes[1:]:
-        merged_df = merged_df.merge(df, how="outer")
+        merged_df = merged_df.merge(df, how="outer", on=["idx"])
     wandb.log({f"Merged_Batch_prompt_data_{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')}":
                wandb.Table(columns=list(merged_df.columns), data=merged_df.values.tolist())})
 
