@@ -247,6 +247,8 @@ class BatchPromptData:
         
         # Create a pandas DataFrame
         df = pd.DataFrame(data, columns=columns)
+
+        print(df)
         
         return df
 
