@@ -115,68 +115,52 @@ class SequentialPriceTask(TorchDatasetTask):
         return game_prompt
 
     def get_task_score(self, prompt_data, with_cot: bool, skipping_failed_parsing_examples: bool = True) -> float:
-
-        """
-        Get the score for the task based on the transcript.
-
-
-        Parameters
-        ----------
-        prompt_data : PromptData
-            The structured prompt data containing the model's responses.
-        with_cot : bool
-            Whether to evaluate the response generated with Chain-of-Thought (CoT).
-        skipping_failed_parsing_examples: bool
-            Skip examples that failed when parsing them for task score, language score, answer extraction, CoT extrcation etc
-
-
-        Returns
-        -------
-        float
-            A task success score in the range [0,1].
-
-        Notes
-        -----
-        - If `profit_maximisation` is True, the score is calculated based on the profit margin.
-        - If `profit_maximisation` is False, the score is 1 if P2 wins the sale, 0 otherwise.
-        - The score is 0 if P2's bid is not lower than P1's bid.
-    
-        Trying two types of reward function:
-            - 1 if P2 wins the sale, 0 otherwise
-            - Profit if P2 wins the sale, 0 otherwise (profit_maximisation)
-        """
         idx = prompt_data.info.idx
-
+        
+        # Extract bid response text
         p2_bid_str = (
             prompt_data.extracted_final_answer_with_cot 
             if with_cot 
             else prompt_data.extracted_final_answer_without_cot
         )
 
+        # First check for explicit no-bid declaration
+        if re.search(r'\b(no[ -]?bid|inf|n\/a|none)\b', p2_bid_str, re.IGNORECASE):
+            return 0.0  # Valid no-bid returns 0 without penalty
+
+        # Then check for numerical bid
         pattern = r'-?\d+\.\d+'
         all_float_prices = re.findall(pattern, p2_bid_str)
         if not all_float_prices:
             if skipping_failed_parsing_examples:
-                raise LLMTranscriptExtractionError("Failed to Parse P2 Price proposals. Skipping the example")
-            else:
-                warnings.warn("We have set failing extraction to 0, which is overwritting the -1 in the function mars.steg.common.get_rewards_and_training_datas !!!!")
-                return 0.0  # Default score when price is missing
+                raise LLMTranscriptExtractionError("Failed to parse P2 price proposals")
+            return 0.0
 
         p2_bid = float(all_float_prices[-1])
         p1_bid = self.dataset["p1_bid"][idx]
-        p2_true_cost = self.dataset["p2_true_cost"][idx]
+        p2_cost = self.dataset["p2_true_cost"][idx]
 
+        score = 0.0
         if p2_bid < p1_bid:
             if self.profit_maximisation:
-                # **Clamp the exponent range to avoid overflow**
-                exponent = max(-100, min(100, p2_bid - p2_true_cost))  
-                score = 1.0 / (1.0 + math.exp(-exponent))  
+                profit = p2_bid - p2_cost
+                # Handle different market conditions
+                if p1_bid > p2_cost:  # Normal competitive case
+                    if profit > 0:
+                        max_possible_profit = p1_bid - p2_cost
+                        score = profit / max_possible_profit  # Normalized to [0,1]
+                else:  # P1 bid < P2 cost (irrational bidding)
+                    score = 0.0  # Automatic sanction
             else:
-                score = 1.0
-        else:
-            score = 0.0
+                score = 1.0 if p1_bid > p2_cost else 0.0  # Sanction if P1 bid < P2 cost
 
-        return score
+        # Additional quality checks
+        if score > 0 and p2_bid < p2_cost:
+            # Penalize under-cost bidding (winning while losing money)
+            score = max(0, score - 0.2)  # 20% penalty
+
+        return min(max(score, 0.0), 1.0)  # Clamp to [0,1]
+
 
     def generate_info(self, idx: int) -> FixedDatasetDataInfo:
         """

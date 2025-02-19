@@ -1,7 +1,7 @@
 Model:
   model_name:  "deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"  # The model name
   model_save_path: "./experiments/models"  # The path to save the model
-  load_precision_mode: "4bits" # Options: ["4bits","8bits","full"]
+  load_precision_mode: "8bits" # Options: ["4bits","8bits","full"]
   lora: true # false
   lora_r: 8
   lora_alpha: 16

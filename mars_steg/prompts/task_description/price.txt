@@ -4,3 +4,5 @@ You are player P2, offering to sell a single unit of a similar product also to b
 You are both aware that the buyer's sole strategy is to buy the lowest priced unit. The buyer will buy from only one of you.
 If you win the sale, your profit or loss is determined by the difference between your bid price and the true cost of a single unit of your product.
 If you lose the sale, your profit is zero. 
+
+
