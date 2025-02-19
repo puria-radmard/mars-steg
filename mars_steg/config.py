@@ -388,6 +388,8 @@ class TrainConfig:
         The number of evaluations.
     skipping_failed_parsing_examples : bool
         Skip examples that failed when parsing them for task score, language score, answer extraction, CoT extrcation etc
+    run_optimization: bool
+        Wheter to skip or not optimisation step (can be useful for debugging the overall training loop)
 
 
     Notes
@@ -414,7 +416,8 @@ class TrainConfig:
     create_ref_model: bool
     evaluate_cot_gap: bool
     number_of_evaluations: int
-    skipping_failed_parsing_examples : bool  
+    skipping_failed_parsing_examples : bool
+    run_optimization: bool  
 
 @dataclass
 class GenerationConfig:

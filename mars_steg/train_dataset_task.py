@@ -292,7 +292,7 @@ if __name__ == "__main__":
             print(f"Language score: {language_score_list}")
             print("--------")
             # Set this flag to False to skip optimization
-            run_optimization = False
+            run_optimization = train_config.run_optimization
 
             # If running optimization, adjust the batch size based on the available rewards.
             if run_optimization:
