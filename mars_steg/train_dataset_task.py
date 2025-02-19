@@ -247,7 +247,7 @@ if __name__ == "__main__":
                 extracted_batch_prompt_datas_with_nos_and_na = extracted_batch_prompt_datas_with_nos
 
             
-            batch_prompt_datas.log_to_wandb()
+            # batch_prompt_datas.log_to_wandb()
 
             # After all that answer/CoT extraction, it might have completely failed, so we can skip everything below entirely
             if len(extracted_batch_prompt_datas_with_nos_and_na) == 0:
