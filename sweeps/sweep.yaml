@@ -1,0 +1,12 @@
+program: sweeps/sweep.py
+method: grid
+#TODO: Need to update this
+metric:
+  goal: minimize
+  name: train_mse_loss
+run_cap: 36 # not sure
+parameters:
+  learning_rate:
+    values: [2e-5, 2e-4]
+  batch_size:
+    values: [2, 4]

@@ -328,6 +328,7 @@ def get_device_map(force_cpu = False) -> Dict[str, str]:
     -------
         dict: Model name to device mapping
     """
+    # TODO: Update this so it uses available GPUs in a more optimal way
     if force_cpu:
         device = "cpu"
     else:
