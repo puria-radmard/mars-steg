@@ -11,4 +11,6 @@ torch
 bitsandbytes
 wandb
 openai==1.58.1
+py-cpuinfo
+deepspeed
 accelerate
