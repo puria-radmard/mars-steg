@@ -3,7 +3,8 @@ from typing import List, Optional, Iterable
 from dataclasses import dataclass, asdict
 from datetime import datetime
 import pandas as pd
-
+import os
+import json
 from torch import Tensor as _T
 
 import wandb
@@ -269,9 +270,74 @@ def log_to_wandb_merged_batch(list_of_batches: list[BatchPromptData], epoch: int
     wandb.log({f"Merged_Batch_prompt_data_{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')}":
                wandb.Table(columns=list(merged_df.columns), data=merged_df.values.tolist())})
 
-
-
-
+def log_merged_batch_wandb_old(list_of_batches: list[BatchPromptData], epoch: int, batch_in_epoch: int, ):
+    dataframes = [batch.create_data_frame() for batch in list_of_batches]
+    merged_df = dataframes[0]
+    common_columns = list(dataframes[0].columns)
+    
+    for df in dataframes[1:]:
+        merged_df = merged_df.merge(df, how="outer", on=common_columns)
+    
+    # Add timestamp, epoch, and batch_in_epoch columns
+    timestamp = datetime.now().strftime('%m/%d/%Y, %H:%M:%S')
+    merged_df['timestamp'] = timestamp
+    merged_df['epoch'] = epoch
+    merged_df['batch_in_epoch'] = batch_in_epoch
+    
+    # Get the run - assuming you're already in a wandb run context
+    run = wandb.run
+    
+    # Check if the table already exists as an artifact
+    table_name = "merged_batch_prompt_data"
+    artifact_name = f"{run.id}_{table_name}"
+    
+    try:
+        # Try to get the existing artifact
+        artifact = run.use_artifact(f"{run.entity}/{run.project}/{artifact_name}:latest")
+        table_dir = artifact.download()
+        table_path = os.path.join(table_dir, f"{table_name}.json")
+        
+        if os.path.exists(table_path):
+            # Load existing table data
+            with open(table_path, 'r') as f:
+                table_data = json.load(f)
+            
+            # Create a new table with the same columns
+            existing_table = wandb.Table(columns=table_data['columns'])
+            
+            # Add existing rows
+            for row in table_data['data']:
+                existing_table.add_data(*row)
+                
+            # Add new rows
+            for row in merged_df.values.tolist():
+                existing_table.add_data(*row)
+                
+            table = existing_table
+        else:
+            # Create new table
+            table = wandb.Table(columns=list(merged_df.columns), data=merged_df.values.tolist())
+    except:
+        # Create new table if artifact doesn't exist
+        table = wandb.Table(columns=list(merged_df.columns), data=merged_df.values.tolist())
+    
+    # Log the table
+    wandb.log({"Merged Batch prompt data": table})
+    
+    # Save as artifact for future appends
+    new_artifact = wandb.Artifact(name=artifact_name, type="dataset")
+    
+    # Save table data to file
+    table_data = {
+        "columns": list(merged_df.columns),
+        "data": merged_df.values.tolist()
+    }
+    os.makedirs("./artifacts", exist_ok=True)
+    with open(f"./artifacts/{table_name}.json", 'w') as f:
+        json.dump(table_data, f)
+    
+    new_artifact.add_file(f"./artifacts/{table_name}.json")
+    run.log_artifact(new_artifact)
 
     
 if __name__ == "__main__":

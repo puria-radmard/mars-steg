@@ -36,7 +36,7 @@ from trl import PPOConfig, PPOTrainer
 
 import sys
 from mars_steg.language.language_aspects.neural_overseer import NeuralOverseer
-from mars_steg.utils.prompt_data import BatchPromptData, log_to_wandb_merged_batch
+from mars_steg.utils.prompt_data import BatchPromptData, log_to_wandb_merged_batch, log_merged_batch_wandb
 from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 
 from mars_steg.utils.common import (
@@ -224,8 +224,8 @@ def train(ppo_config, model_config, optimizer_config, train_config, generation_c
             )
 
             import pdb; pdb.set_trace(header = '2025.02.25: check that batch_prompt_datas contains the rewards!')
-            # log_to_wandb_merged_batch([batch_prompt_datas, extracted_batch_prompt_datas])
-            log_to_wandb_merged_batch([batch_prompt_datas], epoch = epoch, batch_in_epoch = batch_ticker)
+            #log_to_wandb_merged_batch([batch_prompt_datas], epoch = epoch, batch_in_epoch = batch_ticker)
+            log_merged_batch_wandb([batch_prompt_datas], epoch = epoch, batch_in_epoch = batch_ticker)
 
             if len(composite_reward_list) == 0:
                 if train_config.skipping_failed_parsing_examples:
