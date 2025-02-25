@@ -1,5 +1,5 @@
 """
-Module Name: train_dataset_task.py
+Module Name: train.py
 ------------------------
 
 
@@ -223,7 +223,9 @@ def train(ppo_config, model_config, optimizer_config, train_config, generation_c
                 skipping_failed_parsing_examples = train_config.skipping_failed_parsing_examples
             )
 
-            log_to_wandb_merged_batch([batch_prompt_datas, extracted_batch_prompt_datas])
+            import pdb; pdb.set_trace(header = '2025.02.25: check that batch_prompt_datas contains the rewards!')
+            # log_to_wandb_merged_batch([batch_prompt_datas, extracted_batch_prompt_datas])
+            log_to_wandb_merged_batch([batch_prompt_datas], epoch = epoch, batch_in_epoch = batch_ticker)
 
             if len(composite_reward_list) == 0:
                 if train_config.skipping_failed_parsing_examples:
@@ -266,9 +268,12 @@ def train(ppo_config, model_config, optimizer_config, train_config, generation_c
                 ppo_trainer.config.batch_size = train_config.batch_size
 
             # Log stats to wandb.
-            wandb.log(stats)
+            import pdb; pdb.set_trace(header = "2025.02.25: associate this with a epoch and batch ticker")
+            wandb.log(stats)            
             wandb.log(
-                {
+                {   
+                    'epoch': epoch,
+                    'batch_in_epoch': batch_ticker,
                     'task_score': sum(task_score_list) / len(composite_reward_list),
                     'language_score': sum(language_score_list) / len(language_score_list),
                 }

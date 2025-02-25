@@ -3,10 +3,18 @@ method: grid
 #TODO: Need to update this
 metric:
   goal: minimize
-  name: train_mse_loss
+  name: composite_reward
 run_cap: 36 # not sure
 parameters:
   learning_rate:
     values: [2e-5, 2e-4]
   batch_size:
     values: [2, 4]
+  experiment_args_path:
+    values: ["experiments/b_sequential_price_game/1_collusion_with_no_cot_oversight.yaml"]
+  default_config_path:
+    values: ["mars_steg/configs/config_deepseek_1pt5b.yaml"]
+  overwrite_config_path:
+    values: ["scripts/1_testing_with_and_without_penalisation/no_penalise_overwrite.yaml"]
+  prompt_config_path:
+    values: ["mars_steg/configs/prompt/price_training_deepseek.yaml"]

@@ -1,8 +1,7 @@
+from __future__ import annotations
 
 from typing import Any
 import sys
-
-from __future__ import annotations
 
 import wandb
 from trl import PPOConfig
@@ -16,15 +15,17 @@ from mars_steg.train import train
 wandb.login()
 
 
-def sweep_run() -> None:
+def sweep_run(
+    
+) -> None:
 
     wandb_config: dict[str, Any] = wandb.config  # type: ignore
 
     # TODO: Is this correct?
-    experiment_args_path = "experiments/b_sequential_price_game/1_collusion_with_no_cot_oversight.yaml"
-    default_config_path = "mars_steg/configs/config_deepseek_1pt5b.yaml"  
-    overwrite_config_path = "scripts/1_testing_with_and_without_penalisation/no_penalise_overwrite.yaml"
-    prompt_config_path = "mars_steg/configs/prompt/price_training_deepseek.yaml"
+    experiment_args_path = wandb_config["experiment_args_path"]
+    default_config_path = wandb_config["default_config_path"]
+    overwrite_config_path = wandb_config["overwrite_config_path"]
+    prompt_config_path = wandb_config["prompt_config_path"]
 
     # TODO: Update this to use set of device instead of splitting it
     device_map = get_device_map()
