@@ -84,9 +84,9 @@ def get_dataloaders_and_ref_model(
     number_shared_layers_for_ref_model : Optional[int], optional
         Required if reference model created, by default None
     neural_overseer_model : Optional[BaseModel], optional
-        If model for neural overseer has already been created, pass here.
+        If model for neural overseer has already been created, pass here. Otherwise the ref_model will be used.
     neural_assessor_model : Optional[BaseModel], optional
-        If model for neural assessor has already been created, pass here.
+        If model for neural assessor has already been created, pass here. Otherwise the ref_model will be used.
     device: Optional[str] | Optional[Dict]
         Indicates to which kernel is assigned each model. Can be a single device if using accelerate
 
@@ -147,33 +147,28 @@ def get_dataloaders_and_ref_model(
             )
     else:
         reference_model = None
+    
+    if device_map is not None:
+        ref_model_class: BaseModel = training_model.duplicate(reference_model, device_map["overseer"])
+    else:
+        ref_model_class: BaseModel = training_model.duplicate(reference_model, DEVICE)
+    
 
     if language_aspect_class.uses_local_neural_overseer:
         if neural_overseer_model is None:
             # XXX: 2025.02.15 FIND A WAY TO MOVE QUANTISED MODELS (WHICH MAY OR MAY NOT BE IN PEFT) OVER TO ANOTHER DEVICE // 
-            # neural_overseer: BaseModel = training_model.duplicate(reference_model, device_map["overseer"])
-            if device_map is not None:
-                neural_overseer: BaseModel = training_model.duplicate(None, device_map["overseer"])
-            else:
-                neural_overseer: BaseModel = training_model.duplicate(None, DEVICE)
-                # raise NotImplementedError("Think of an implementation here if device map is None because we cannot use it with accelerate")
+            neural_overseer = ref_model_class
         else:
             neural_overseer = neural_overseer_model.eval()
+            raise NotImplementedError("The line below will fail because we are passing an AutoModelForCausalLM while the code is mainly working with BaseModel. We need to implement something to make it a BaseModel")
         language_aspect_class.recruit_neural_overseer(neural_overseer)    
 
     if task_class.uses_local_neural_assessor:
         if neural_assessor_model is None:
-            if device_map is not None:
-            # XXX: 2025.02.15 FIND A WAY TO MOVE QUANTISED MODELS (WHICH MAY OR MAY NOT BE IN PEFT) OVER TO ANOTHER DEVICE // 
-            # neural_assessor: BaseModel = training_model.duplicate(reference_model, device_map["assessor"])
-                neural_assessor: BaseModel = training_model.duplicate(
-                    neural_overseer if language_aspect_class.uses_local_neural_overseer else None,
-                    device_map["assessor"]
-                )
-            else:
-                raise NotImplementedError("Think of an implementation here because we cannot use device_map with Accelerate")
+            neural_assessor = ref_model_class
         else:
             neural_assessor = neural_assessor_model.eval()
+            raise NotImplementedError("The line below will fail because we are passing an AutoModelForCausalLM while the code is mainly working with BaseModel. We need to implement something to make it a BaseModel")
         task_class.recruit_neural_assessor(neural_assessor)   
 
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(
