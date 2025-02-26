@@ -2,6 +2,7 @@ import torch as t
 import numpy as np
 import random
 from torch import nn
+import torch
 from transformers import AutoModelForCausalLM
 from typing import Optional, Dict
 from torch.optim import Adam
@@ -51,7 +52,7 @@ def get_dataloaders_and_ref_model(
     number_shared_layers_for_ref_model: Optional[int] = None,
     neural_overseer_model: Optional[BaseModel] = None,
     neural_assessor_model: Optional[BaseModel] = None,
-    device_map: Dict,
+    device_map: Optional[Dict] = None,
 ):
     """
 
@@ -86,6 +87,8 @@ def get_dataloaders_and_ref_model(
         If model for neural overseer has already been created, pass here.
     neural_assessor_model : Optional[BaseModel], optional
         If model for neural assessor has already been created, pass here.
+    device_map: Optional[Dict]
+        Indicates to which kernel is assigned each model.
 
 
     Returns
@@ -137,6 +140,7 @@ def get_dataloaders_and_ref_model(
             reference_model = create_reference_model_under_deepspeed_R3(
                 model_name=training_model.model_name,
                 num_shared_layers=number_shared_layers_for_ref_model,
+                device= training_model.device
                 # pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things #XXX: We will need to reintroduce it later on because we are not using it for now (26/02/2025).
             )
     else:
@@ -645,7 +649,7 @@ def evaluate_cot_gap_summary(
 
 
 def create_reference_model_under_deepspeed_R3(
-    model_name: str, num_shared_layers: Optional[int] = None, pattern: Optional[str] = None
+    model_name: str, num_shared_layers: Optional[int] = None, pattern: Optional[str] = None, device: Optional[str] = None
 ) -> PreTrainedModelWrapper:
     """
     Creates a static reference copy of a model underdeepseed ZERO Stage 3. Note that model will be in `.eval()` mode.
@@ -658,13 +662,15 @@ def create_reference_model_under_deepspeed_R3(
             The number of initial layers that are shared between both models and kept frozen.
         pattern: Optional[str]
             The shared layers are selected with a string pattern (e.g. "transformer.h.{layer}" for GPT2) and if a custom pattern is necessary it can be passed here.
+        device: Optional[str]
+            The device on which to put the ref model
 
     Returns
     -------
         ref_model: PreTrainedModelWrapper
     """
     logging.info("Recruiting ref model under deepseed ZERO Stage 3")
-    ref_model = AutoModelForCausalLM.from_pretrained(model_name)
+    ref_model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32, device_map="auto")
     parameter_names = [n for n, _ in ref_model.named_parameters()]
 
     # if no layers are shared, return copy of model
