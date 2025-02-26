@@ -39,6 +39,7 @@ from mars_steg.language.language_aspects.neural_overseer import NeuralOverseer
 from mars_steg.utils.prompt_data import BatchPromptData, log_to_wandb_merged_batch
 from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 from accelerate import Accelerator
+from accelerate.state import AcceleratorState
 from mars_steg.utils.common import (
     get_dataloaders_and_ref_model,
     get_optimizer,
@@ -66,7 +67,10 @@ prompt_config_path = sys.argv[4]   # e.g. "mars_steg/configs/prompt/math_trainin
 
 model_config, optimizer_config, train_config, generation_config = ConfigLoader.load_config(default_config_path, overwrite_config_path)
 
+
 prompt_config = PromptConfig.from_file(prompt_config_path)
+
+AcceleratorState().deepspeed_plugin.deepspeed_config['train_micro_batch_size_per_gpu'] = train_config.batch_size
 
 output_delimitation_tokens = {
     "start_scratchpad_token": prompt_config.start_scratchpad_token,
