@@ -148,6 +148,10 @@ ppo_trainer = PPOTrainer(
     optimizer=optimizer,
 )
 
+train_loader = ppo_trainer.accelerator.prepare(train_loader)
+val_loader = ppo_trainer.accelerator.prepare(val_loader)
+test_loader = ppo_trainer.accelerator.prepare(test_loader)
+
 if train_config.create_ref_model:
     ref_model.to(ppo_trainer.accelerator.device)
 
