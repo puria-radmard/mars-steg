@@ -2,10 +2,11 @@ import torch as t
 import numpy as np
 import random
 from torch import nn
-import warnings
+from transformers import AutoModelForCausalLM
 from typing import Optional, Dict
-import torch
 from torch.optim import Adam
+import logging
+from copy import deepcopy
 
 from typing import List, Tuple
 
@@ -16,6 +17,8 @@ from mars_steg.utils.answer_extraction import extract_cots, extracts_no_cots, ex
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.utils.score import CoTGapSummary
 from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct, Llama_32_1B_Instruct, DeepSeek_R1_1pt5B
+from trl.models.modeling_base import PreTrainedModelWrapper, LAYER_PATTERNS
+from transformers.integrations.deepspeed import is_deepspeed_zero3_enabled
 
 from torch.utils.data import DataLoader
 
@@ -123,10 +126,17 @@ def get_dataloaders_and_ref_model(
         (task_class.uses_local_neural_assessor and neural_assessor_model is None)
     )
     if need_reference_model:
-        reference_model = create_reference_model(
-            training_model.model, num_shared_layers=number_shared_layers_for_ref_model,
-            pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things
-        )
+        if not is_deepspeed_zero3_enabled():
+            reference_model = create_reference_model(
+                training_model.model, num_shared_layers=number_shared_layers_for_ref_model,
+                pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things
+            )
+        else:
+            reference_model = create_reference_model_under_deepspeed_R3(
+                model=training_model.model_name,
+                num_shared_layers=number_shared_layers_for_ref_model,
+                pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things
+            )
     else:
         reference_model = None
 
@@ -134,7 +144,8 @@ def get_dataloaders_and_ref_model(
         if neural_overseer_model is None:
             # XXX: 2025.02.15 FIND A WAY TO MOVE QUANTISED MODELS (WHICH MAY OR MAY NOT BE IN PEFT) OVER TO ANOTHER DEVICE // 
             # neural_overseer: BaseModel = training_model.duplicate(reference_model, device_map["overseer"])
-            neural_overseer: BaseModel = training_model.duplicate(None, device_map["overseer"])
+            if not is_deepspeed_zero3_enabled():
+                neural_overseer: BaseModel = training_model.duplicate(None, device_map["overseer"])
         else:
             neural_overseer = neural_overseer_model.eval()
         language_aspect_class.recruit_neural_overseer(neural_overseer)    
@@ -624,5 +635,83 @@ def evaluate_cot_gap_summary(
         sum_reward_with_cot,
         sum_reward_without_cot,
     )
+
+
+def create_reference_model_under_deepspeed_R3(
+    model_name: str, num_shared_layers: Optional[int] = None, pattern: Optional[str] = None
+) -> PreTrainedModelWrapper:
+    """
+    Creates a static reference copy of a model underdeepseed ZERO Stage 3. Note that model will be in `.eval()` mode.
+
+    Parameters
+    ----------
+        model: str
+            The model to be copied.
+        num_shared_layers: Optional[int] 
+            The number of initial layers that are shared between both models and kept frozen.
+        pattern: Optional[str]
+            The shared layers are selected with a string pattern (e.g. "transformer.h.{layer}" for GPT2) and if a custom pattern is necessary it can be passed here.
+
+    Returns
+    -------
+        ref_model: PreTrainedModelWrapper
+    """
+    logging.info("Recruiting ref model under deepseed ZERO Stage 3")
+    model = AutoModelForCausalLM.from_pretrained(model_name)
+    parameter_names = [n for n, _ in model.named_parameters()]
+    ref_model = deepcopy(model)
+
+    # if no layers are shared, return copy of model
+    if num_shared_layers is None:
+        for param_name in parameter_names:
+            param = ref_model.get_parameter(param_name)
+            param.requires_grad = False
+        return ref_model.eval()
+
+    # identify layer name pattern
+    if pattern is not None:
+        pattern = pattern.format(layer=num_shared_layers)
+    else:
+        for pattern_candidate in LAYER_PATTERNS:
+            pattern_candidate = pattern_candidate.format(layer=num_shared_layers)
+            if any(pattern_candidate in name for name in parameter_names):
+                pattern = pattern_candidate
+                break
+
+    if pattern is None:
+        raise ValueError("Layer pattern could not be matched.")
+
+    # divide parameters in shared and unshared parameter lists
+    shared_param_list = []
+    unshared_param_list = []
+
+    shared_parameter = True
+    for name, _param in model.named_parameters():
+        if pattern in name:
+            shared_parameter = False
+        if shared_parameter:
+            shared_param_list.append(name)
+        else:
+            unshared_param_list.append(name)
+
+    # create reference of the original parameter if they are shared
+    for param_name in shared_param_list:
+        param = model.get_parameter(param_name)
+        param.requires_grad = False
+
+        _ref_param = ref_model.get_parameter(param_name)
+
+    # for all other parameters just make sure they don't use gradients
+    for param_name in unshared_param_list:
+        param = ref_model.get_parameter(param_name)
+        param.requires_grad = False
+
+    if pattern is not None and len(unshared_param_list) == 0:
+        logging.warning("Pattern passed or found, but no layers matched in the model. Check for a typo.")
+
+    logging.info("Ref model recruited")
+    return ref_model.eval()
+
+
 
  
