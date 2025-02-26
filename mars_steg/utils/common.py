@@ -670,7 +670,7 @@ def create_reference_model_under_deepspeed_R3(
         ref_model: PreTrainedModelWrapper
     """
     logging.info("Recruiting ref model under deepseed ZERO Stage 3")
-    ref_model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32, device_map="auto")
+    ref_model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32, device_map=f"{device}")
     parameter_names = [n for n, _ in ref_model.named_parameters()]
 
     # if no layers are shared, return copy of model
