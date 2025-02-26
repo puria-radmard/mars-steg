@@ -12,7 +12,7 @@ downcast_bf16: 'no'
 machine_rank: 0
 mixed_precision: bf16
 num_machines: 1
-num_processes: 8
+num_processes: 3
 rdzv_backend: static
 same_network: true
 tpu_env: []
