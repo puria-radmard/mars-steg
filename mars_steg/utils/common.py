@@ -87,7 +87,7 @@ def get_dataloaders_and_ref_model(
         If model for neural overseer has already been created, pass here.
     neural_assessor_model : Optional[BaseModel], optional
         If model for neural assessor has already been created, pass here.
-    device: Optional[str] | Optional[Dict] | Optional[torch.device]
+    device: Optional[str] | Optional[Dict]
         Indicates to which kernel is assigned each model. Can be a single device if using accelerate
 
 
@@ -155,7 +155,8 @@ def get_dataloaders_and_ref_model(
             if device_map is not None:
                 neural_overseer: BaseModel = training_model.duplicate(None, device_map["overseer"])
             else:
-                raise NotImplementedError("Think of an implementation here if device map is None because we cannot use it with accelerate")
+                neural_overseer: BaseModel = training_model.duplicate(None, DEVICE)
+                # raise NotImplementedError("Think of an implementation here if device map is None because we cannot use it with accelerate")
         else:
             neural_overseer = neural_overseer_model.eval()
         language_aspect_class.recruit_neural_overseer(neural_overseer)    

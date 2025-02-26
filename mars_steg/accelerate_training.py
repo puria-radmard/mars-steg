@@ -136,8 +136,7 @@ train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader,
     batch_size = train_config.batch_size,
     training_model = model,
     override_create_ref_model = train_config.create_ref_model,
-    number_shared_layers_for_ref_model = train_config.number_shared_layers_for_ref_model,
-    device_map= accelerator.device
+    number_shared_layers_for_ref_model = train_config.number_shared_layers_for_ref_model
 )
 
 
