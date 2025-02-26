@@ -636,7 +636,7 @@ class TorchDatasetTask(Task, Dataset):
         cls = self.__class__
         output_datasets = []
         for dataset_pd in [train_dataset_pd, val_dataset_pd, test_dataset_pd]:
-            new_dataset = cls(self.dataset_name, self.language_aspect, self.uses_local_neural_assessor, self.prompt_config)
+            new_dataset = cls(self.dataset_name, self.language_aspect, self.uses_local_neural_assessor, self.prompt_config, self.batch_size)
             new_dataset.dataset = dataset_pd
             new_dataset.length = len(dataset_pd)
             if self.uses_local_neural_assessor:
