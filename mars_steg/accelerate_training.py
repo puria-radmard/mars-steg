@@ -138,7 +138,6 @@ train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader,
     training_model = model,
     override_create_ref_model = train_config.create_ref_model,
     number_shared_layers_for_ref_model = train_config.number_shared_layers_for_ref_model,
-    device_map=None
 )
 
 
