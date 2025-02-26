@@ -31,6 +31,8 @@ from mars_steg.language import LanguageAspect
 
 from trl import create_reference_model, PPOTrainer
 
+from accelerate import Accelerator
+accelerate = Accelerator()
 
 
 
@@ -133,9 +135,9 @@ def get_dataloaders_and_ref_model(
             )
         else:
             reference_model = create_reference_model_under_deepspeed_R3(
-                model=training_model.model_name,
+                model_name=training_model.model_name,
                 num_shared_layers=number_shared_layers_for_ref_model,
-                pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things
+                # pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things #XXX: We will need to reintroduce it later on because we are not using it for now (26/02/2025).
             )
     else:
         reference_model = None
@@ -144,20 +146,25 @@ def get_dataloaders_and_ref_model(
         if neural_overseer_model is None:
             # XXX: 2025.02.15 FIND A WAY TO MOVE QUANTISED MODELS (WHICH MAY OR MAY NOT BE IN PEFT) OVER TO ANOTHER DEVICE // 
             # neural_overseer: BaseModel = training_model.duplicate(reference_model, device_map["overseer"])
-            if not is_deepspeed_zero3_enabled():
+            if device_map is not None:
                 neural_overseer: BaseModel = training_model.duplicate(None, device_map["overseer"])
+            else:
+                raise NotImplementedError("Think of an implementation here if device map is None because we cannot use it with accelerate")
         else:
             neural_overseer = neural_overseer_model.eval()
         language_aspect_class.recruit_neural_overseer(neural_overseer)    
 
     if task_class.uses_local_neural_assessor:
         if neural_assessor_model is None:
+            if device_map is not None:
             # XXX: 2025.02.15 FIND A WAY TO MOVE QUANTISED MODELS (WHICH MAY OR MAY NOT BE IN PEFT) OVER TO ANOTHER DEVICE // 
             # neural_assessor: BaseModel = training_model.duplicate(reference_model, device_map["assessor"])
-            neural_assessor: BaseModel = training_model.duplicate(
-                neural_overseer if language_aspect_class.uses_local_neural_overseer else None,
-                device_map["assessor"]
-            )
+                neural_assessor: BaseModel = training_model.duplicate(
+                    neural_overseer if language_aspect_class.uses_local_neural_overseer else None,
+                    device_map["assessor"]
+                )
+            else:
+                raise NotImplementedError("Think of an implementation here because we cannot use device_map with Accelerate")
         else:
             neural_assessor = neural_assessor_model.eval()
         task_class.recruit_neural_assessor(neural_assessor)   
@@ -645,7 +652,7 @@ def create_reference_model_under_deepspeed_R3(
 
     Parameters
     ----------
-        model: str
+        model_name: str
             The model to be copied.
         num_shared_layers: Optional[int] 
             The number of initial layers that are shared between both models and kept frozen.
@@ -657,9 +664,8 @@ def create_reference_model_under_deepspeed_R3(
         ref_model: PreTrainedModelWrapper
     """
     logging.info("Recruiting ref model under deepseed ZERO Stage 3")
-    model = AutoModelForCausalLM.from_pretrained(model_name)
-    parameter_names = [n for n, _ in model.named_parameters()]
-    ref_model = deepcopy(model)
+    ref_model = AutoModelForCausalLM.from_pretrained(model_name)
+    parameter_names = [n for n, _ in ref_model.named_parameters()]
 
     # if no layers are shared, return copy of model
     if num_shared_layers is None:
@@ -667,50 +673,51 @@ def create_reference_model_under_deepspeed_R3(
             param = ref_model.get_parameter(param_name)
             param.requires_grad = False
         return ref_model.eval()
-
-    # identify layer name pattern
-    if pattern is not None:
-        pattern = pattern.format(layer=num_shared_layers)
     else:
-        for pattern_candidate in LAYER_PATTERNS:
-            pattern_candidate = pattern_candidate.format(layer=num_shared_layers)
-            if any(pattern_candidate in name for name in parameter_names):
-                pattern = pattern_candidate
-                break
-
-    if pattern is None:
-        raise ValueError("Layer pattern could not be matched.")
-
-    # divide parameters in shared and unshared parameter lists
-    shared_param_list = []
-    unshared_param_list = []
-
-    shared_parameter = True
-    for name, _param in model.named_parameters():
-        if pattern in name:
-            shared_parameter = False
-        if shared_parameter:
-            shared_param_list.append(name)
+        raise NotImplementedError("We need to think with accelerate framework, go on each GPU, and identify which one requires grad = False or not. OR have a function before that does the require grad m false (in load model for instance in BaseModel)")
+        # identify layer name pattern
+        if pattern is not None:
+            pattern = pattern.format(layer=num_shared_layers)
         else:
-            unshared_param_list.append(name)
+            for pattern_candidate in LAYER_PATTERNS:
+                pattern_candidate = pattern_candidate.format(layer=num_shared_layers)
+                if any(pattern_candidate in name for name in parameter_names):
+                    pattern = pattern_candidate
+                    break
 
-    # create reference of the original parameter if they are shared
-    for param_name in shared_param_list:
-        param = model.get_parameter(param_name)
-        param.requires_grad = False
+        if pattern is None:
+            raise ValueError("Layer pattern could not be matched.")
 
-        _ref_param = ref_model.get_parameter(param_name)
+        # divide parameters in shared and unshared parameter lists
+        shared_param_list = []
+        unshared_param_list = []
 
-    # for all other parameters just make sure they don't use gradients
-    for param_name in unshared_param_list:
-        param = ref_model.get_parameter(param_name)
-        param.requires_grad = False
+        shared_parameter = True
+        for name, _param in model.named_parameters():
+            if pattern in name:
+                shared_parameter = False
+            if shared_parameter:
+                shared_param_list.append(name)
+            else:
+                unshared_param_list.append(name)
 
-    if pattern is not None and len(unshared_param_list) == 0:
-        logging.warning("Pattern passed or found, but no layers matched in the model. Check for a typo.")
+        # create reference of the original parameter if they are shared
+        for param_name in shared_param_list:
+            param = model.get_parameter(param_name)
+            param.requires_grad = False
 
-    logging.info("Ref model recruited")
-    return ref_model.eval()
+            _ref_param = ref_model.get_parameter(param_name)
+
+        # for all other parameters just make sure they don't use gradients
+        for param_name in unshared_param_list:
+            param = ref_model.get_parameter(param_name)
+            param.requires_grad = False
+
+        if pattern is not None and len(unshared_param_list) == 0:
+            logging.warning("Pattern passed or found, but no layers matched in the model. Check for a typo.")
+
+        logging.info("Ref model recruited")
+        return ref_model.eval()
 
 
 
