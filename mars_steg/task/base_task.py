@@ -505,7 +505,8 @@ class TorchDatasetTask(Task, Dataset):
         dataset: str,
         language_aspect: LanguageAspect,
         uses_local_neural_assessor: bool,
-        prompt_config: PromptConfig
+        prompt_config: PromptConfig,
+        batch_size: int
     ) -> None:
         super().__init__(
             language_aspect=language_aspect,
@@ -516,6 +517,7 @@ class TorchDatasetTask(Task, Dataset):
         self.dataset = pd.read_csv(dataset)
         self.length = len(self.dataset)
         self.prompt_config = prompt_config
+        self.batch_size = batch_size
 
         if self.uses_local_neural_assessor:
             self.whitebox_model: Optional[PreTrainedModelWrapper] = None
