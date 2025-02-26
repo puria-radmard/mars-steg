@@ -58,7 +58,7 @@ class BaseModel(metaclass=ABCMeta):
         Tokens used to delimit model outputs.
     generation_config : GenerationConfig
         Configuration for controlling generation behavior.
-    device : str
+    device : Optional[str]
         The device ('cpu' or 'cuda') where the model will run.
     model : Optional[AutoModelForCausalLM]
         The model object, either loaded from a checkpoint or provided.
@@ -80,7 +80,7 @@ class BaseModel(metaclass=ABCMeta):
     full_generate(conversations_list: Conversation) -> List[str]
         Generates responses for a list of conversations using the model.
     """
-    def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer, generation_config: GenerationConfig, output_delimitation_tokens: Dict[str, str], device: str, model=None):
+    def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer, generation_config: GenerationConfig, output_delimitation_tokens: Dict[str, str], device: Optional[str] = None, model=None):
         """
         Initializes the base model with the provided configurations and model.
         
@@ -94,7 +94,7 @@ class BaseModel(metaclass=ABCMeta):
             Configuration for generation behavior.
         output_delimitation_tokens : Dict[str, str]
             Tokens used for delimiting outputs.
-        device : str
+        device : Optional[str]
             Device where the model should be loaded ('cpu' or 'cuda').
         model : Optional[AutoModelForCausalLM]
             Pre-loaded model to use, otherwise the model will be loaded using the provided configuration.
@@ -114,13 +114,18 @@ class BaseModel(metaclass=ABCMeta):
         else:
             self.model = self.load_model(device)
 
-    def load_model(self, device):
+    def load_model(self, device: str = None):
         """
         Loads the model based on configuration.
 
         This function handles precision mode and optional LoRA configuration, 
         loads the model using either a regular or LoRA setup, and moves it to 
         the device. 
+
+        Parameters
+        ----------
+        device : Optional[str]
+            Device where the model should be loaded ('cpu' or 'cuda').
 
         Returns
         -------
@@ -139,20 +144,37 @@ class BaseModel(metaclass=ABCMeta):
             lora_config = LoraConfig(
                 task_type="CAUSAL_LM", **self.model_config.lora_params
             )
-            model = AutoModelForCausalLMWithValueHead.from_pretrained(
-                self.model_name,
-                peft_config=lora_config,
-                torch_dtype=torch.bfloat16,
-                quantization_config=quantization_config,
-                device_map=device,
-            )
+            if device is not None:
+                model = AutoModelForCausalLMWithValueHead.from_pretrained(
+                    self.model_name,
+                    peft_config=lora_config,
+                    torch_dtype=torch.bfloat16,
+                    quantization_config=quantization_config,
+                    device_map=device,
+                )
+            else:
+                model = AutoModelForCausalLMWithValueHead.from_pretrained(
+                    self.model_name,
+                    peft_config=lora_config,
+                    torch_dtype=torch.bfloat16,
+                    quantization_config=quantization_config,
+                )
+
         else:
-            model = AutoModelForCausalLM.from_pretrained(
-                self.model_name,
-                torch_dtype=torch.bfloat16,
-                quantization_config=quantization_config,
-                device_map=device,
-            )
+            if device is not None:
+                model = AutoModelForCausalLM.from_pretrained(
+                    self.model_name,
+                    torch_dtype=torch.bfloat16,
+                    quantization_config=quantization_config,
+                    device_map=device,
+                )
+            else:
+                model = AutoModelForCausalLM.from_pretrained(
+                    self.model_name,
+                    torch_dtype=torch.bfloat16,
+                    quantization_config=quantization_config,
+                )
+
         return model
     
     def log_loading(self):

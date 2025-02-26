@@ -234,7 +234,7 @@ def get_model(
     tokenizer: AutoTokenizer, 
     output_delimitation_tokens: Dict[str, str], 
     generation_config=GenerationConfig,
-    device: str = 'cuda'
+    device: Optional[str] = None
 ) -> BaseModel:
     
     """
@@ -256,7 +256,7 @@ def get_model(
         And the values should be an appropriately chosen token, e.g <SCRATCHPAD>, </SCRATCHPAD> etc.
     generation_config : GenerationConfig
         Contains the keyword arguments that will be fed to self.model.generate() internally (some edits are made on the fly)
-    device: str = 'cuda'
+    device: str = None
         The device for the model to sit on (use torch keywords, eg 'cuda', 'cuda:0')
     
     
