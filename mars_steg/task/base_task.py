@@ -481,6 +481,8 @@ class TorchDatasetTask(Task, Dataset):
         Whether the task utilizes a local neural assessor for evaluation.
     prompt_config : PromptConfig
         The prompt configuration used for generating prompts.
+    batch_size : int
+        Batch size for torch dataloaders
 
     Methods
     -------
