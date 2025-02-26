@@ -142,7 +142,7 @@ def get_dataloaders_and_ref_model(
             reference_model = create_reference_model_under_deepspeed_R3(
                 model_name=training_model.model_name,
                 num_shared_layers=number_shared_layers_for_ref_model,
-                device= device
+                device= device_map
                 # pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things #XXX: We will need to reintroduce it later on because we are not using it for now (26/02/2025).
             )
     else:
