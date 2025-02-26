@@ -1,5 +1,5 @@
 compute_environment: LOCAL_MACHINE
-debug: false
+debug: true
 deepspeed_config:
   deepspeed_multinode_launcher: standard
   offload_optimizer_device: none
@@ -11,7 +11,7 @@ distributed_type: DEEPSPEED
 downcast_bf16: 'no'
 machine_rank: 0
 mixed_precision: bf16
-num_machines: 1
+num_machines: 3
 num_processes: 8
 rdzv_backend: static
 same_network: true
