@@ -87,8 +87,8 @@ def get_dataloaders_and_ref_model(
         If model for neural overseer has already been created, pass here.
     neural_assessor_model : Optional[BaseModel], optional
         If model for neural assessor has already been created, pass here.
-    device_map: Optional[Dict]
-        Indicates to which kernel is assigned each model.
+    device: Optional[str] | Optional[Dict]
+        Indicates to which kernel is assigned each model. if only str, indicates the device (important for accelerate)
 
 
     Returns
@@ -137,10 +137,12 @@ def get_dataloaders_and_ref_model(
                 pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things
             )
         else:
+            if type(device_map) != str:
+                raise TypeError("You should pass in the current case a device as a string, especially the ppo_trainer.accelerator.device")
             reference_model = create_reference_model_under_deepspeed_R3(
                 model_name=training_model.model_name,
                 num_shared_layers=number_shared_layers_for_ref_model,
-                device= training_model.device
+                device= device
                 # pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things #XXX: We will need to reintroduce it later on because we are not using it for now (26/02/2025).
             )
     else:

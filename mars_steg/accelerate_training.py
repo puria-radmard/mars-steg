@@ -96,9 +96,9 @@ config = PPOConfig(
 
 experiment_args = ExperimentArgs.from_yaml(experiment_args_path)
 
-accelerate = Accelerator()
+accelerator = Accelerator()
 
-if accelerate.is_main_process:
+if accelerator.is_main_process:
     wandb.init(
         project="MARS-STEGO",
         entity="luisoso",
@@ -138,6 +138,7 @@ train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader,
     training_model = model,
     override_create_ref_model = train_config.create_ref_model,
     number_shared_layers_for_ref_model = train_config.number_shared_layers_for_ref_model,
+    device_map= accelerator.device
 )
 
 
