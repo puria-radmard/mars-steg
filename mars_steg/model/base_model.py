@@ -150,8 +150,7 @@ class BaseModel(metaclass=ABCMeta):
                     peft_config=lora_config,
                     torch_dtype=torch.bfloat16,
                     quantization_config=quantization_config,
-                    device_map=device,
-                )
+                ).to(device)
             else:
                 model = AutoModelForCausalLMWithValueHead.from_pretrained(
                     self.model_name,
@@ -166,8 +165,7 @@ class BaseModel(metaclass=ABCMeta):
                     self.model_name,
                     torch_dtype=torch.bfloat16,
                     quantization_config=quantization_config,
-                    device_map=device,
-                )
+                ).to(device)
             else:
                 model = AutoModelForCausalLM.from_pretrained(
                     self.model_name,
