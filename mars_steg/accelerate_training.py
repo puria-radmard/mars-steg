@@ -125,6 +125,9 @@ optimizer = get_optimizer(optimizer_config=optimizer_config, model=model.model)
 training_generation_kwargs = generation_config.to_training_dict()
 generation_generation_kwargs = generation_config.to_generation_dict()
 
+print("--------")
+print(accelerator.device)
+print("--------")
 
 train_dataset, val_dataset, test_dataset, train_loader, val_loader, test_loader, ref_model = get_dataloaders_and_ref_model(
     dataset_class_name = experiment_args.dataset_class_name,
