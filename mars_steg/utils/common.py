@@ -35,7 +35,7 @@ from trl import create_reference_model, PPOTrainer
 from accelerate import Accelerator
 accelerate = Accelerator()
 
-
+DEVICE =  accelerate.device
 
 def get_dataloaders_and_ref_model(
     dataset_class_name: str,
@@ -142,7 +142,7 @@ def get_dataloaders_and_ref_model(
             reference_model = create_reference_model_under_deepspeed_R3(
                 model_name=training_model.model_name,
                 num_shared_layers=number_shared_layers_for_ref_model,
-                device= device_map
+                device= DEVICE
                 # pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things #XXX: We will need to reintroduce it later on because we are not using it for now (26/02/2025).
             )
     else:
@@ -672,7 +672,9 @@ def create_reference_model_under_deepspeed_R3(
         ref_model: PreTrainedModelWrapper
     """
     logging.info("Recruiting ref model under deepseed ZERO Stage 3")
-    ref_model = AutoModelForCausalLM.from_pretrained(model_name, torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32).to(device)
+    ref_model = AutoModelForCausalLM.from_pretrained(
+        model_name, 
+        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32).to(device)
     parameter_names = [n for n, _ in ref_model.named_parameters()]
 
     # if no layers are shared, return copy of model
