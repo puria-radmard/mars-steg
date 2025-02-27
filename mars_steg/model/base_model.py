@@ -342,6 +342,7 @@ class BaseModel(metaclass=ABCMeta):
         inputs = {key: tensor.to(self.device) for key, tensor in inputs.items()}
         print(inputs)
         print(f"model device {self.model}")
+        self.model.to(self.device)
         print("------- neural overseer checking ---------")
 
         generation_kwargs = self.generation_config.to_generation_dict()
