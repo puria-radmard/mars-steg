@@ -131,32 +131,33 @@ def get_dataloaders_and_ref_model(
         (language_aspect_class.uses_local_neural_overseer and neural_overseer_model is None) or
         (task_class.uses_local_neural_assessor and neural_assessor_model is None)
     )
-    if need_reference_model:
-        if not is_deepspeed_zero3_enabled():
-            reference_model = create_reference_model(
-                training_model.model, num_shared_layers=number_shared_layers_for_ref_model,
-                pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things
-            )
-        else:
-            # if type(device_map) != torch.device:
-            #     raise TypeError("You should pass in the current case a device as a string, especially the ppo_trainer.accelerator.device")
-            reference_model = create_reference_model_under_deepspeed_R3(
+
+
+    if language_aspect_class.uses_local_neural_overseer and need_reference_model:
+        ref_model_class: BaseModel = training_model.duplicate(None, device_map["overseer"])
+        reference_model = reference_model.model
+
+    elif task_class.uses_local_neural_assessor and need_reference_model:
+        ref_model_class: BaseModel = training_model.duplicate(None, device_map["assessor"])
+        reference_model = reference_model.model
+        
+    elif not language_aspect_class.uses_local_neural_overseer and need_reference_model and not is_deepspeed_zero3_enabled():
+        reference_model = create_reference_model(
+            training_model.model, num_shared_layers=number_shared_layers_for_ref_model,
+            pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things
+        )
+
+
+    elif need_reference_model and is_deepspeed_zero3_enabled():
+        reference_model = create_reference_model_under_deepspeed_R3(
                 model_name=training_model.model_name,
                 num_shared_layers=number_shared_layers_for_ref_model,
                 device= DEVICE
                 # pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things #XXX: We will need to reintroduce it later on because we are not using it for now (26/02/2025).
             )
+
     else:
         reference_model = None
-    
-    if device_map is not None:
-        if isinstance(language_aspect_class, ReferenceModelNeuralOverseer):
-            ref_model_class: BaseModel = training_model.duplicate(reference_model, device_map["overseer"])
-        else:
-            ref_model_class: BaseModel = training_model.duplicate(reference_model, device_map["ref_model"])
-    else:
-        ref_model_class: BaseModel = training_model.duplicate(reference_model, DEVICE)
-    
 
     if language_aspect_class.uses_local_neural_overseer:
         if neural_overseer_model is None:
