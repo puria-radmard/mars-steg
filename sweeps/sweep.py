@@ -7,9 +7,6 @@ import os
 import wandb
 from trl import PPOConfig
 
-print("----------------")
-print(os.path.abspath(""))
-print("----------------")
 sys.path.append(os.path.abspath(""))
 
 from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
