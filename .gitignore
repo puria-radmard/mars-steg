@@ -1,6 +1,7 @@
 .mars_steg/
 myenv
 wandb/
+artifacts/
 experiment/
 experiments/models/
 *.pyc
