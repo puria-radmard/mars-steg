@@ -91,9 +91,6 @@ def train(ppo_config, model_config, optimizer_config, train_config, generation_c
         device_map=device_map
     )
 
-    if train_config.create_ref_model:
-        ref_model.to(device_map["ref_model"])
-
     ppo_trainer = PPOTrainer(
         ppo_config,
         model.model,
