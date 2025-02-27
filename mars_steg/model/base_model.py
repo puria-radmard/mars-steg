@@ -98,6 +98,8 @@ class BaseModel(metaclass=ABCMeta):
             Device where the model should be loaded ('cpu' or 'cuda').
         model : Optional[AutoModelForCausalLM]
             Pre-loaded model to use, otherwise the model will be loaded using the provided configuration.
+        precision_override: Optional[str]
+            Override precision in specific case (problem in duplicating from ref model when quantized)
         """
 
         self.model_config = model_config
@@ -177,7 +179,7 @@ class BaseModel(metaclass=ABCMeta):
         print(f"Model loaded in {self.precission_mode} mode")
         print("------------------")
     
-    def duplicate(self, whitebox_model: Optional[AutoModelForCausalLM], device):
+    def duplicate(self, whitebox_model: Optional[AutoModelForCausalLM], device, precision_override: Optional[str]):
         """
         Creates a duplicate of the current model, sharing the same configuration 
         but with a new model instance. The model is set to evaluation mode and 
@@ -187,6 +189,8 @@ class BaseModel(metaclass=ABCMeta):
         ----------
         whitebox_model : Optional[AutoModelForCausalLM]
             A pre-loaded model to use for the duplicate instance.
+        precision_override: Optional[str]
+            Override precision in specific case (problem in duplicating from ref model when quantized)
 
         Returns
         -------
@@ -200,7 +204,8 @@ class BaseModel(metaclass=ABCMeta):
             output_delimitation_tokens = self.output_delimitation_tokens,
             generation_config = self.generation_config,
             model = whitebox_model,
-            device = device
+            device = device,
+            precision_override = precision_override
         )
 
         new_instance.model.eval()
