@@ -7,6 +7,10 @@ import os
 import wandb
 from trl import PPOConfig
 
+print("----------------")
+print(os.path.dirname(os.path.abspath("")))
+print("----------------")
+
 from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 from mars_steg.utils.common import (
     get_device_map,
@@ -15,7 +19,7 @@ from mars_steg.train import train
 
 wandb.login()
 
-print(os.path.dirname(os.path.abspath("")))
+
 sys.path.append(os.path.dirname(os.path.abspath("")))
 
 
