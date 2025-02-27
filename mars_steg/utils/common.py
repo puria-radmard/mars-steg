@@ -136,7 +136,7 @@ def get_dataloaders_and_ref_model(
     if language_aspect_class.uses_local_neural_overseer and need_reference_model:
         print("----------------------------")
         print("Using local overseer")
-        print(f"device {device_map["overseer"]}")
+        print(f"device {device_map['overseer']}")
         print("----------------------------")
         ref_model_class: BaseModel = training_model.duplicate(None, device_map["overseer"])
         reference_model = reference_model.model
