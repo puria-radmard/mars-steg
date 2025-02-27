@@ -481,6 +481,8 @@ class TorchDatasetTask(Task, Dataset):
         Whether the task utilizes a local neural assessor for evaluation.
     prompt_config : PromptConfig
         The prompt configuration used for generating prompts.
+    batch_size : int
+        Batch size for torch dataloaders
 
     Methods
     -------
@@ -505,7 +507,8 @@ class TorchDatasetTask(Task, Dataset):
         dataset: str,
         language_aspect: LanguageAspect,
         uses_local_neural_assessor: bool,
-        prompt_config: PromptConfig
+        prompt_config: PromptConfig,
+        batch_size: int
     ) -> None:
         super().__init__(
             language_aspect=language_aspect,
@@ -516,6 +519,7 @@ class TorchDatasetTask(Task, Dataset):
         self.dataset = pd.read_csv(dataset)
         self.length = len(self.dataset)
         self.prompt_config = prompt_config
+        self.batch_size = batch_size
 
         if self.uses_local_neural_assessor:
             self.whitebox_model: Optional[PreTrainedModelWrapper] = None
@@ -632,7 +636,7 @@ class TorchDatasetTask(Task, Dataset):
         cls = self.__class__
         output_datasets = []
         for dataset_pd in [train_dataset_pd, val_dataset_pd, test_dataset_pd]:
-            new_dataset = cls(self.dataset_name, self.language_aspect, self.uses_local_neural_assessor, self.prompt_config)
+            new_dataset = cls(self.dataset_name, self.language_aspect, self.uses_local_neural_assessor, self.prompt_config, self.batch_size)
             new_dataset.dataset = dataset_pd
             new_dataset.length = len(dataset_pd)
             if self.uses_local_neural_assessor:

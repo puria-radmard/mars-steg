@@ -34,7 +34,7 @@ Train:
   # cot_gap_evaluation_number_batches_samples: 1  # The number of batches sampled for evaluating the COT gap
   number_of_evaluations: 3  # The number of evaluations for the COT gap among epochs
   skipping_failed_parsing_examples: False #Skip examples that failed when parsing them for task score, language score, answer extraction, CoT extrcation etc
-  run_optimization: True
+  run_optimization: False
 
 Generation:
   min_length: 0

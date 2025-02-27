@@ -69,7 +69,8 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
         dataset: str,
         language_aspect: LanguageAspect,
         uses_local_neural_assessor: bool,
-        prompt_config: PromptConfig
+        prompt_config: PromptConfig,
+        batch_size: int
     ):
         """
         Initializes the MATH_Torch_Dataset_Task.
@@ -84,6 +85,8 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
             Whether the task utilizes a local neural assessor for evaluation.
         prompt_config : PromptConfig
             The prompt configuration for generating structured prompts.
+        batch_size : int
+            Batch size for torch dataloaders
 
         Raises
         ------
@@ -95,7 +98,8 @@ class MATH_Torch_Dataset_Task(TorchDatasetTask):
             dataset=dataset,
             language_aspect=language_aspect,
             uses_local_neural_assessor=uses_local_neural_assessor,
-            prompt_config=prompt_config
+            prompt_config=prompt_config,
+            batch_size=batch_size
         )
         answers_as_list = self.dataset['True answer'].map(eval)
         assert answers_as_list.map(lambda x: isinstance(x, list)).all()

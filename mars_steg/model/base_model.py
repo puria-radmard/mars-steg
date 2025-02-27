@@ -58,7 +58,7 @@ class BaseModel(metaclass=ABCMeta):
         Tokens used to delimit model outputs.
     generation_config : GenerationConfig
         Configuration for controlling generation behavior.
-    device : str
+    device : Optional[str]
         The device ('cpu' or 'cuda') where the model will run.
     model : Optional[AutoModelForCausalLM]
         The model object, either loaded from a checkpoint or provided.
@@ -80,7 +80,7 @@ class BaseModel(metaclass=ABCMeta):
     full_generate(conversations_list: Conversation) -> List[str]
         Generates responses for a list of conversations using the model.
     """
-    def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer, generation_config: GenerationConfig, output_delimitation_tokens: Dict[str, str], device: str, model=None):
+    def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer, generation_config: GenerationConfig, output_delimitation_tokens: Dict[str, str], device: Optional[str] = None, model=None, precision_override: Optional[str]=None):
         """
         Initializes the base model with the provided configurations and model.
         
@@ -94,17 +94,22 @@ class BaseModel(metaclass=ABCMeta):
             Configuration for generation behavior.
         output_delimitation_tokens : Dict[str, str]
             Tokens used for delimiting outputs.
-        device : str
+        device : Optional[str]
             Device where the model should be loaded ('cpu' or 'cuda').
         model : Optional[AutoModelForCausalLM]
             Pre-loaded model to use, otherwise the model will be loaded using the provided configuration.
+        precision_override: Optional[str]
+            Override precision in specific case (problem in duplicating from ref model when quantized)
         """
 
         self.model_config = model_config
         self.model_name = model_config.model_name
         self.tokenizer = tokenizer
         self.lora = model_config.lora
-        self.precission_mode = model_config.load_precision_mode
+        if precision_override is None:
+            self.precission_mode = model_config.load_precision_mode
+        else:
+            self.precission_mode = precision_override
         self.model_save_path = model_config.model_save_path
         self.output_delimitation_tokens = output_delimitation_tokens
         self.generation_config = generation_config
@@ -114,13 +119,18 @@ class BaseModel(metaclass=ABCMeta):
         else:
             self.model = self.load_model(device)
 
-    def load_model(self, device):
+    def load_model(self, device: str = None):
         """
         Loads the model based on configuration.
 
         This function handles precision mode and optional LoRA configuration, 
         loads the model using either a regular or LoRA setup, and moves it to 
         the device. 
+
+        Parameters
+        ----------
+        device : Optional[str]
+            Device where the model should be loaded ('cpu' or 'cuda').
 
         Returns
         -------
@@ -144,15 +154,21 @@ class BaseModel(metaclass=ABCMeta):
                 peft_config=lora_config,
                 torch_dtype=torch.bfloat16,
                 quantization_config=quantization_config,
-                device_map=device,
             )
         else:
             model = AutoModelForCausalLM.from_pretrained(
                 self.model_name,
                 torch_dtype=torch.bfloat16,
                 quantization_config=quantization_config,
-                device_map=device,
             )
+        if device is not None:
+            model.to(device)
+        
+        for name, param in model.named_parameters():
+            if param.device != torch.device(device):
+                print(f"Warning: Layer {name} is on {param.device}, expected {device}")
+                param.data = param.data.to(device)  # Move manually if needed
+
         return model
     
     def log_loading(self):
@@ -163,7 +179,7 @@ class BaseModel(metaclass=ABCMeta):
         print(f"Model loaded in {self.precission_mode} mode")
         print("------------------")
     
-    def duplicate(self, whitebox_model: Optional[AutoModelForCausalLM], device):
+    def duplicate(self, whitebox_model: Optional[AutoModelForCausalLM], device, precision_override: Optional[str]):
         """
         Creates a duplicate of the current model, sharing the same configuration 
         but with a new model instance. The model is set to evaluation mode and 
@@ -173,6 +189,8 @@ class BaseModel(metaclass=ABCMeta):
         ----------
         whitebox_model : Optional[AutoModelForCausalLM]
             A pre-loaded model to use for the duplicate instance.
+        precision_override: Optional[str]
+            Override precision in specific case (problem in duplicating from ref model when quantized)
 
         Returns
         -------
@@ -186,7 +204,8 @@ class BaseModel(metaclass=ABCMeta):
             output_delimitation_tokens = self.output_delimitation_tokens,
             generation_config = self.generation_config,
             model = whitebox_model,
-            device = device
+            device = device,
+            precision_override = precision_override
         )
 
         new_instance.model.eval()

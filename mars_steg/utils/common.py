@@ -2,20 +2,25 @@ import torch as t
 import numpy as np
 import random
 from torch import nn
-import warnings
-from typing import Optional, Dict
 import torch
+from transformers import AutoModelForCausalLM
+from typing import Optional, Dict
 from torch.optim import Adam
+import logging
+from copy import deepcopy
 
 from typing import List, Tuple
 
 from tqdm import tqdm
 from transformers import AutoTokenizer
 from mars_steg.config import ModelConfig, OptimizerConfig, PromptConfig, GenerationConfig
+from mars_steg.language.language_aspects.neural_overseer import ReferenceModelNeuralOverseer
 from mars_steg.utils.answer_extraction import extract_cots, extracts_no_cots, extract_floatingpoint_overseer_or_assessor_answer
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.utils.score import CoTGapSummary
 from mars_steg.model import BaseModel, GPT2Model, Llama_31_8B_Instruct, Llama_32_1B_Instruct, DeepSeek_R1_1pt5B
+from trl.models.modeling_base import PreTrainedModelWrapper, LAYER_PATTERNS
+from transformers.integrations.deepspeed import is_deepspeed_zero3_enabled
 
 from torch.utils.data import DataLoader
 
@@ -28,8 +33,10 @@ from mars_steg.language import LanguageAspect
 
 from trl import create_reference_model, PPOTrainer
 
+from accelerate import Accelerator
+accelerate = Accelerator()
 
-
+DEVICE =  accelerate.device
 
 def get_dataloaders_and_ref_model(
     dataset_class_name: str,
@@ -46,7 +53,7 @@ def get_dataloaders_and_ref_model(
     number_shared_layers_for_ref_model: Optional[int] = None,
     neural_overseer_model: Optional[BaseModel] = None,
     neural_assessor_model: Optional[BaseModel] = None,
-    device_map: Dict,
+    device_map: Optional[Dict] = None,
 ):
     """
 
@@ -78,9 +85,11 @@ def get_dataloaders_and_ref_model(
     number_shared_layers_for_ref_model : Optional[int], optional
         Required if reference model created, by default None
     neural_overseer_model : Optional[BaseModel], optional
-        If model for neural overseer has already been created, pass here.
+        If model for neural overseer has already been created, pass here. Otherwise the ref_model will be used.
     neural_assessor_model : Optional[BaseModel], optional
-        If model for neural assessor has already been created, pass here.
+        If model for neural assessor has already been created, pass here. Otherwise the ref_model will be used.
+    device: Optional[str] | Optional[Dict]
+        Indicates to which kernel is assigned each model. Can be a single device if using accelerate
 
 
     Returns
@@ -115,40 +124,60 @@ def get_dataloaders_and_ref_model(
     dataset_class_kwargs = dataset_class_kwargs or dict()
     penalisation_class_kwargs = penalisation_class_kwargs or dict()
     language_aspect_class: LanguageAspect = getattr(language, penalisation_class_name)(**penalisation_class_kwargs, prompt_config=prompt_config)
-    task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, prompt_config = prompt_config, **dataset_class_kwargs)
+    task_class: TorchDatasetTask = getattr(task, dataset_class_name)(language_aspect = language_aspect_class, prompt_config = prompt_config, batch_size = batch_size, **dataset_class_kwargs)
 
     need_reference_model = (
         override_create_ref_model or 
         (language_aspect_class.uses_local_neural_overseer and neural_overseer_model is None) or
         (task_class.uses_local_neural_assessor and neural_assessor_model is None)
     )
-    if need_reference_model:
+
+
+    if language_aspect_class.uses_local_neural_overseer and need_reference_model:
+        print("----------------------------")
+        print("Using local overseer")
+        print(f"device {device_map['overseer']}")
+        print("----------------------------")
+        ref_model_class: BaseModel = training_model.duplicate(None, device_map["overseer"], precision_override="full")
+        reference_model = ref_model_class.model
+
+    elif task_class.uses_local_neural_assessor and need_reference_model:
+        ref_model_class: BaseModel = training_model.duplicate(None, device_map["assessor"], precision_override="full")
+        reference_model = ref_model_class.model
+        
+    elif not language_aspect_class.uses_local_neural_overseer and need_reference_model and not is_deepspeed_zero3_enabled():
         reference_model = create_reference_model(
             training_model.model, num_shared_layers=number_shared_layers_for_ref_model,
             pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things
         )
+
+
+    elif need_reference_model and is_deepspeed_zero3_enabled():
+        reference_model = create_reference_model_under_deepspeed_R3(
+                model_name=training_model.model_name,
+                num_shared_layers=number_shared_layers_for_ref_model,
+                device= DEVICE
+                # pattern = 'pretrained_model.base_model.model.model.layers.{layer}'  # XXX: this works for peft LoRA, not tried for other things #XXX: We will need to reintroduce it later on because we are not using it for now (26/02/2025).
+            )
+
     else:
         reference_model = None
 
     if language_aspect_class.uses_local_neural_overseer:
         if neural_overseer_model is None:
             # XXX: 2025.02.15 FIND A WAY TO MOVE QUANTISED MODELS (WHICH MAY OR MAY NOT BE IN PEFT) OVER TO ANOTHER DEVICE // 
-            # neural_overseer: BaseModel = training_model.duplicate(reference_model, device_map["overseer"])
-            neural_overseer: BaseModel = training_model.duplicate(None, device_map["overseer"])
+            neural_overseer: BaseModel = ref_model_class
         else:
-            neural_overseer = neural_overseer_model.eval()
+            neural_overseer: AutoModelForCausalLM = neural_overseer_model.eval()
+            raise NotImplementedError("The line below will fail because we are passing an AutoModelForCausalLM while the code is mainly working with BaseModel. We need to implement something to make it a BaseModel")
         language_aspect_class.recruit_neural_overseer(neural_overseer)    
 
     if task_class.uses_local_neural_assessor:
         if neural_assessor_model is None:
-            # XXX: 2025.02.15 FIND A WAY TO MOVE QUANTISED MODELS (WHICH MAY OR MAY NOT BE IN PEFT) OVER TO ANOTHER DEVICE // 
-            # neural_assessor: BaseModel = training_model.duplicate(reference_model, device_map["assessor"])
-            neural_assessor: BaseModel = training_model.duplicate(
-                neural_overseer if language_aspect_class.uses_local_neural_overseer else None,
-                device_map["assessor"]
-            )
+            neural_assessor: BaseModel = ref_model_class
         else:
-            neural_assessor = neural_assessor_model.eval()
+            neural_assessor: AutoModelForCausalLM = neural_assessor_model.eval()
+            raise NotImplementedError("The line below will fail because we are passing an AutoModelForCausalLM while the code is mainly working with BaseModel. We need to implement something to make it a BaseModel")
         task_class.recruit_neural_assessor(neural_assessor)   
 
     train_dataset, val_dataset, test_dataset = task_class.test_train_split(
@@ -234,7 +263,8 @@ def get_model(
     tokenizer: AutoTokenizer, 
     output_delimitation_tokens: Dict[str, str], 
     generation_config=GenerationConfig,
-    device: str = 'cuda'
+    device: Optional[str] = None,
+    precision_override: Optional[str]=None
 ) -> BaseModel:
     
     """
@@ -256,8 +286,10 @@ def get_model(
         And the values should be an appropriately chosen token, e.g <SCRATCHPAD>, </SCRATCHPAD> etc.
     generation_config : GenerationConfig
         Contains the keyword arguments that will be fed to self.model.generate() internally (some edits are made on the fly)
-    device: str = 'cuda'
+    device: str = None
         The device for the model to sit on (use torch keywords, eg 'cuda', 'cuda:0')
+    precision_override: Optional[str]
+        override precision if needed
     
     
     Returns
@@ -275,15 +307,15 @@ def get_model(
     model_name = model_config.model_name
     print(f'GETTING: {model_name}')
     if model_name == "gpt2":
-        return GPT2Model(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
+        return GPT2Model(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device, precision_override=precision_override)
     elif model_name == 'meta-llama/Llama-3.1-8B-Instruct':
-        return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
+        return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device, precision_override=precision_override)
     elif model_name == 'meta-llama/Llama-3.2-1B-Instruct':
-        return Llama_32_1B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
+        return Llama_32_1B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device, precision_override=precision_override)
     elif model_name == 'deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B':
-        return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
+        return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device, precision_override=precision_override)
     elif "deepseek-ai" in model_name:
-        return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
+        return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device, precision_override=precision_override)
 
 
     else:
@@ -625,5 +657,87 @@ def evaluate_cot_gap_summary(
         sum_reward_with_cot,
         sum_reward_without_cot,
     )
+
+
+def create_reference_model_under_deepspeed_R3(
+    model_name: str, num_shared_layers: Optional[int] = None, pattern: Optional[str] = None, device: Optional[torch.device] = None
+) -> PreTrainedModelWrapper:
+    """
+    Creates a static reference copy of a model underdeepseed ZERO Stage 3. Note that model will be in `.eval()` mode.
+
+    Parameters
+    ----------
+        model_name: str
+            The model to be copied.
+        num_shared_layers: Optional[int] 
+            The number of initial layers that are shared between both models and kept frozen.
+        pattern: Optional[str]
+            The shared layers are selected with a string pattern (e.g. "transformer.h.{layer}" for GPT2) and if a custom pattern is necessary it can be passed here.
+        device: Optional[torch.device]
+            The device on which to put the ref model
+
+    Returns
+    -------
+        ref_model: PreTrainedModelWrapper
+    """
+    logging.info("Recruiting ref model under deepseed ZERO Stage 3")
+    ref_model = AutoModelForCausalLM.from_pretrained(
+        model_name, 
+        torch_dtype=torch.float16 if torch.cuda.is_available() else torch.float32).to(device)
+    parameter_names = [n for n, _ in ref_model.named_parameters()]
+
+    # if no layers are shared, return copy of model
+    if num_shared_layers is None:
+        for param_name in parameter_names:
+            param = ref_model.get_parameter(param_name)
+            param.requires_grad = False
+        return ref_model.eval()
+    else:
+        raise NotImplementedError("We need to think with accelerate framework, go on each GPU, and identify which one requires grad = False or not. OR have a function before that does the require grad m false (in load model for instance in BaseModel)")
+        # identify layer name pattern
+        if pattern is not None:
+            pattern = pattern.format(layer=num_shared_layers)
+        else:
+            for pattern_candidate in LAYER_PATTERNS:
+                pattern_candidate = pattern_candidate.format(layer=num_shared_layers)
+                if any(pattern_candidate in name for name in parameter_names):
+                    pattern = pattern_candidate
+                    break
+
+        if pattern is None:
+            raise ValueError("Layer pattern could not be matched.")
+
+        # divide parameters in shared and unshared parameter lists
+        shared_param_list = []
+        unshared_param_list = []
+
+        shared_parameter = True
+        for name, _param in model.named_parameters():
+            if pattern in name:
+                shared_parameter = False
+            if shared_parameter:
+                shared_param_list.append(name)
+            else:
+                unshared_param_list.append(name)
+
+        # create reference of the original parameter if they are shared
+        for param_name in shared_param_list:
+            param = model.get_parameter(param_name)
+            param.requires_grad = False
+
+            _ref_param = ref_model.get_parameter(param_name)
+
+        # for all other parameters just make sure they don't use gradients
+        for param_name in unshared_param_list:
+            param = ref_model.get_parameter(param_name)
+            param.requires_grad = False
+
+        if pattern is not None and len(unshared_param_list) == 0:
+            logging.warning("Pattern passed or found, but no layers matched in the model. Check for a typo.")
+
+        logging.info("Ref model recruited")
+        return ref_model.eval()
+
+
 
  

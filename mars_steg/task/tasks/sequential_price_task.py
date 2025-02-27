@@ -51,6 +51,8 @@ class SequentialPriceTask(TorchDatasetTask):
         Whether the task utilizes a local neural assessor for evaluation of LLM's answer for implementing a task score.
     prompt_config : PromptConfig
         The prompt configuration for generating structured prompts.
+    batch_size : int
+        Batch size for torch dataloaders
     profit_maximisation : bool
         Whether the task is about maximising profit or just winning the sale.
 
@@ -73,12 +75,14 @@ class SequentialPriceTask(TorchDatasetTask):
         language_aspect: LanguageAspect,
         uses_local_neural_assessor: bool,
         prompt_config: PromptConfig,
+        batch_size : int,
         profit_maximisation=True, # <- may depend on prompt config (i.e., do we say in prompt "Maximise Profit" or just "Win the sale")
     ):
         super().__init__(dataset=dataset, 
                          language_aspect=language_aspect,
                          uses_local_neural_assessor=uses_local_neural_assessor,
-                         prompt_config=prompt_config)
+                         prompt_config=prompt_config,
+                         batch_size=batch_size)
         self.profit_maximisation = profit_maximisation
 
         self.system_prompt = (
