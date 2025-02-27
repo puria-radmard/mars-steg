@@ -134,8 +134,8 @@ class BaseModel(metaclass=ABCMeta):
         """
         self.log_loading()
         quantization_config = {
-            "4bits": BitsAndBytesConfig(load_in_4bit=True, device_map="auto"),
-            "8bits": BitsAndBytesConfig(load_in_8bit=True, device_map="auto")
+            "4bits": BitsAndBytesConfig(load_in_4bit=True),
+            "8bits": BitsAndBytesConfig(load_in_8bit=True)
         }.get(self.precission_mode, None)
         print(device)
 
