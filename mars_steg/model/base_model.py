@@ -337,7 +337,11 @@ class BaseModel(metaclass=ABCMeta):
         else:
             transformed_conversations = [self.transform_conversation(conversation) for conversation in conversations_list]
         inputs = self.tokenize(conversations_list=transformed_conversations)
+        print("------- neural overseer checking ---------")
+        print(self.device)
         inputs = {key: tensor.to(self.device) for key, tensor in inputs.items()}
+        print(inputs)
+        print("------- neural overseer checking ---------")
 
         generation_kwargs = self.generation_config.to_generation_dict()
         {k: v for k, v in self.generation_config.to_dict().items() if k not in ['return_prompt', 'generate_ref_response', 'batch_size']}
