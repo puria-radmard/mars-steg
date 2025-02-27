@@ -139,11 +139,11 @@ def get_dataloaders_and_ref_model(
         print(f"device {device_map['overseer']}")
         print("----------------------------")
         ref_model_class: BaseModel = training_model.duplicate(None, device_map["overseer"])
-        reference_model = reference_model.model
+        reference_model = ref_model_class.model
 
     elif task_class.uses_local_neural_assessor and need_reference_model:
         ref_model_class: BaseModel = training_model.duplicate(None, device_map["assessor"])
-        reference_model = reference_model.model
+        reference_model = ref_model_class.model
         
     elif not language_aspect_class.uses_local_neural_overseer and need_reference_model and not is_deepspeed_zero3_enabled():
         reference_model = create_reference_model(
