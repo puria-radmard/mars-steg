@@ -270,7 +270,7 @@ def log_to_wandb_merged_batch(list_of_batches: list[BatchPromptData], epoch: int
     wandb.log({f"Merged_Batch_prompt_data_{datetime.now().strftime('%m/%d/%Y, %H:%M:%S')}":
                wandb.Table(columns=list(merged_df.columns), data=merged_df.values.tolist())})
 
-def log_merged_batch_wandb_old(list_of_batches: list[BatchPromptData], epoch: int, batch_in_epoch: int, ):
+def log_merged_batch_wandb(list_of_batches: list[BatchPromptData], epoch: int, batch_in_epoch: int, ):
     dataframes = [batch.create_data_frame() for batch in list_of_batches]
     merged_df = dataframes[0]
     common_columns = list(dataframes[0].columns)
