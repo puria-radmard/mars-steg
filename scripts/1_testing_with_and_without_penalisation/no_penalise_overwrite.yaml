@@ -1,5 +1,5 @@
 Train:
   number_of_evaluations: 0
   skipping_failed_parsing_examples: True
-  batch_size: 2
+  batch_size: 10
 
