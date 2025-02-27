@@ -14,6 +14,7 @@ from typing import List, Tuple
 from tqdm import tqdm
 from transformers import AutoTokenizer
 from mars_steg.config import ModelConfig, OptimizerConfig, PromptConfig, GenerationConfig
+from mars_steg.language.language_aspects.neural_overseer import ReferenceModelNeuralOverseer
 from mars_steg.utils.answer_extraction import extract_cots, extracts_no_cots, extract_floatingpoint_overseer_or_assessor_answer
 from mars_steg.utils.exceptions import LLMTranscriptExtractionError
 from mars_steg.utils.score import CoTGapSummary
@@ -149,7 +150,7 @@ def get_dataloaders_and_ref_model(
         reference_model = None
     
     if device_map is not None:
-        if neural_assessor_model is None:
+        if isinstance(language_aspect_class, ReferenceModelNeuralOverseer):
             ref_model_class: BaseModel = training_model.duplicate(reference_model, device_map["overseer"])
         else:
             ref_model_class: BaseModel = training_model.duplicate(reference_model, device_map["ref_model"])
