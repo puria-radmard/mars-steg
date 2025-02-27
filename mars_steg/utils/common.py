@@ -138,8 +138,7 @@ def get_dataloaders_and_ref_model(
         print("Using local overseer")
         print(f"device {device_map['overseer']}")
         print("----------------------------")
-        training_model.model_config.load_precision_mode = "full"
-        ref_model_class: BaseModel = get_model(training_model.model_config, training_model.tokenizer, training_model.output_delimitation_tokens, training_model.generation_config, device_map["overseer"])
+        ref_model_class: BaseModel = get_model(training_model.model_config, training_model.tokenizer, training_model.output_delimitation_tokens, training_model.generation_config, device_map["overseer"], precision_override="full")
         reference_model = ref_model_class.model
 
     elif task_class.uses_local_neural_assessor and need_reference_model:
@@ -264,7 +263,8 @@ def get_model(
     tokenizer: AutoTokenizer, 
     output_delimitation_tokens: Dict[str, str], 
     generation_config=GenerationConfig,
-    device: Optional[str] = None
+    device: Optional[str] = None,
+    precision_override: Optional[str]=None
 ) -> BaseModel:
     
     """
@@ -305,15 +305,15 @@ def get_model(
     model_name = model_config.model_name
     print(f'GETTING: {model_name}')
     if model_name == "gpt2":
-        return GPT2Model(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
+        return GPT2Model(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device, precision_override=precision_override)
     elif model_name == 'meta-llama/Llama-3.1-8B-Instruct':
-        return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
+        return Llama_31_8B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device, precision_override=precision_override)
     elif model_name == 'meta-llama/Llama-3.2-1B-Instruct':
-        return Llama_32_1B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
+        return Llama_32_1B_Instruct(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device, precision_override=precision_override)
     elif model_name == 'deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B':
-        return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
+        return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device, precision_override=precision_override)
     elif "deepseek-ai" in model_name:
-        return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device)
+        return DeepSeek_R1_1pt5B(model_config=model_config, tokenizer=tokenizer, output_delimitation_tokens=output_delimitation_tokens, generation_config=generation_config, device=device, precision_override=precision_override)
 
 
     else:

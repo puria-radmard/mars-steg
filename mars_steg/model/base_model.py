@@ -80,7 +80,7 @@ class BaseModel(metaclass=ABCMeta):
     full_generate(conversations_list: Conversation) -> List[str]
         Generates responses for a list of conversations using the model.
     """
-    def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer, generation_config: GenerationConfig, output_delimitation_tokens: Dict[str, str], device: Optional[str] = None, model=None):
+    def __init__(self, model_config: ModelConfig, tokenizer: AutoTokenizer, generation_config: GenerationConfig, output_delimitation_tokens: Dict[str, str], device: Optional[str] = None, model=None, precision_override: Optional[str]=None):
         """
         Initializes the base model with the provided configurations and model.
         
@@ -104,7 +104,10 @@ class BaseModel(metaclass=ABCMeta):
         self.model_name = model_config.model_name
         self.tokenizer = tokenizer
         self.lora = model_config.lora
-        self.precission_mode = model_config.load_precision_mode
+        if precision_override is None:
+            self.precission_mode = model_config.load_precision_mode
+        else:
+            self.precission_mode = precision_override
         self.model_save_path = model_config.model_save_path
         self.output_delimitation_tokens = output_delimitation_tokens
         self.generation_config = generation_config
