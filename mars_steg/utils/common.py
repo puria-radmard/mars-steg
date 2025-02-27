@@ -138,6 +138,7 @@ def get_dataloaders_and_ref_model(
         print("Using local overseer")
         print(f"device {device_map['overseer']}")
         print("----------------------------")
+        training_model.model_config.load_precision_mode = "full"
         ref_model_class: BaseModel = get_model(training_model.model_config, training_model.tokenizer, training_model.output_delimitation_tokens, training_model.generation_config, device_map["overseer"])
         reference_model = ref_model_class.model
 
