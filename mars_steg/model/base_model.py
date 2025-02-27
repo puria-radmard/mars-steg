@@ -134,8 +134,8 @@ class BaseModel(metaclass=ABCMeta):
         """
         self.log_loading()
         quantization_config = {
-            "4bits": BitsAndBytesConfig(load_in_4bit=True),
-            "8bits": BitsAndBytesConfig(load_in_8bit=True)
+            "4bits": BitsAndBytesConfig(load_in_4bit=True, device_map="auto"),
+            "8bits": BitsAndBytesConfig(load_in_8bit=True, device_map="auto")
         }.get(self.precission_mode, None)
         print(device)
 
@@ -144,34 +144,20 @@ class BaseModel(metaclass=ABCMeta):
             lora_config = LoraConfig(
                 task_type="CAUSAL_LM", **self.model_config.lora_params
             )
-            if device is not None:
-                model = AutoModelForCausalLMWithValueHead.from_pretrained(
-                    self.model_name,
-                    peft_config=lora_config,
-                    torch_dtype=torch.bfloat16,
-                    quantization_config=quantization_config,
-                ).to(device)
-            else:
-                model = AutoModelForCausalLMWithValueHead.from_pretrained(
-                    self.model_name,
-                    peft_config=lora_config,
-                    torch_dtype=torch.bfloat16,
-                    quantization_config=quantization_config,
-                )
-
+            model = AutoModelForCausalLMWithValueHead.from_pretrained(
+                self.model_name,
+                peft_config=lora_config,
+                torch_dtype=torch.bfloat16,
+                quantization_config=quantization_config,
+            )
         else:
-            if device is not None:
-                model = AutoModelForCausalLM.from_pretrained(
-                    self.model_name,
-                    torch_dtype=torch.bfloat16,
-                    quantization_config=quantization_config,
-                ).to(device)
-            else:
-                model = AutoModelForCausalLM.from_pretrained(
-                    self.model_name,
-                    torch_dtype=torch.bfloat16,
-                    quantization_config=quantization_config,
-                )
+            model = AutoModelForCausalLM.from_pretrained(
+                self.model_name,
+                torch_dtype=torch.bfloat16,
+                quantization_config=quantization_config,
+            )
+        if device is not None:
+            model.to(device)
 
         return model
     
