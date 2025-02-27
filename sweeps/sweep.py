@@ -8,8 +8,9 @@ import wandb
 from trl import PPOConfig
 
 print("----------------")
-print(os.path.dirname(os.path.abspath("")))
+print(os.path.abspath(""))
 print("----------------")
+sys.path.append(os.path.abspath(""))
 
 from mars_steg.config import ConfigLoader, ExperimentArgs, PromptConfig
 from mars_steg.utils.common import (
@@ -18,9 +19,6 @@ from mars_steg.utils.common import (
 from mars_steg.train import train
 
 wandb.login()
-
-
-sys.path.append(os.path.dirname(os.path.abspath("")))
 
 
 def sweep_run(
