@@ -19,6 +19,7 @@ from mars_steg.utils.common import (
 from mars_steg.train import train
 
 # wandb.login()
+wandb.init(project="MARS-STEGO")
 
 
 def sweep_run(
