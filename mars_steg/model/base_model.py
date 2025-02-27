@@ -158,6 +158,11 @@ class BaseModel(metaclass=ABCMeta):
             )
         if device is not None:
             model.to(device)
+        
+        for name, param in model.named_parameters():
+            if param.device != torch.device(device):
+                print(f"Warning: Layer {name} is on {param.device}, expected {device}")
+                param.data = param.data.to(device)  # Move manually if needed
 
         return model
     
