@@ -220,7 +220,7 @@ def train(ppo_config, model_config, optimizer_config, train_config, generation_c
                 skipping_failed_parsing_examples = train_config.skipping_failed_parsing_examples
             )
 
-            import pdb; pdb.set_trace(header = '2025.02.25: check that batch_prompt_datas contains the rewards!')
+            # import pdb; pdb.set_trace(header = '2025.02.25: check that batch_prompt_datas contains the rewards!')
             #log_to_wandb_merged_batch([batch_prompt_datas], epoch = epoch, batch_in_epoch = batch_ticker)
             log_merged_batch_wandb([batch_prompt_datas], epoch = epoch, batch_in_epoch = batch_ticker)
 
@@ -265,7 +265,7 @@ def train(ppo_config, model_config, optimizer_config, train_config, generation_c
                 ppo_trainer.config.batch_size = train_config.batch_size
 
             # Log stats to wandb.
-            import pdb; pdb.set_trace(header = "2025.02.25: associate this with a epoch and batch ticker")
+            # import pdb; pdb.set_trace(header = "2025.02.25: associate this with a epoch and batch ticker")
             wandb.log(stats)            
             wandb.log(
                 {   
