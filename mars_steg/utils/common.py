@@ -149,7 +149,10 @@ def get_dataloaders_and_ref_model(
         reference_model = None
     
     if device_map is not None:
-        ref_model_class: BaseModel = training_model.duplicate(reference_model, device_map["overseer"])
+        if neural_assessor_model is None:
+            ref_model_class: BaseModel = training_model.duplicate(reference_model, device_map["overseer"])
+        else:
+            ref_model_class: BaseModel = training_model.duplicate(reference_model, device_map["ref_model"])
     else:
         ref_model_class: BaseModel = training_model.duplicate(reference_model, DEVICE)
     
@@ -157,17 +160,17 @@ def get_dataloaders_and_ref_model(
     if language_aspect_class.uses_local_neural_overseer:
         if neural_overseer_model is None:
             # XXX: 2025.02.15 FIND A WAY TO MOVE QUANTISED MODELS (WHICH MAY OR MAY NOT BE IN PEFT) OVER TO ANOTHER DEVICE // 
-            neural_overseer = ref_model_class
+            neural_overseer: BaseModel = ref_model_class
         else:
-            neural_overseer = neural_overseer_model.eval()
+            neural_overseer: AutoModelForCausalLM = neural_overseer_model.eval()
             raise NotImplementedError("The line below will fail because we are passing an AutoModelForCausalLM while the code is mainly working with BaseModel. We need to implement something to make it a BaseModel")
         language_aspect_class.recruit_neural_overseer(neural_overseer)    
 
     if task_class.uses_local_neural_assessor:
         if neural_assessor_model is None:
-            neural_assessor = ref_model_class
+            neural_assessor: BaseModel = ref_model_class
         else:
-            neural_assessor = neural_assessor_model.eval()
+            neural_assessor: AutoModelForCausalLM = neural_assessor_model.eval()
             raise NotImplementedError("The line below will fail because we are passing an AutoModelForCausalLM while the code is mainly working with BaseModel. We need to implement something to make it a BaseModel")
         task_class.recruit_neural_assessor(neural_assessor)   
 
