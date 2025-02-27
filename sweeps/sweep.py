@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 import sys
+import os
 
 import wandb
 from trl import PPOConfig
@@ -13,6 +14,9 @@ from mars_steg.utils.common import (
 from mars_steg.train import train
 
 wandb.login()
+
+print(os.path.dirname(os.path.abspath("")))
+sys.path.append(os.path.dirname(os.path.abspath("")))
 
 
 def sweep_run(
